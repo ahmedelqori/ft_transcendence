@@ -1,0 +1,25 @@
+{
+  "name": "user_managment",
+  "version": "1.0.0",
+  "description": "user managment",
+  "keywords": [
+    "users"
+  ],
+  "license": "ISC",
+  "author": "7h3Y055",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "test": "node server"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.0.2",
+    "axios": "^1.7.9",
+    "fastify": "^5.2.1",
+    "knex": "^3.1.0",
+    "objection": "^3.1.5",
+    "pino-pretty": "^13.0.0",
+    "sqlite3": "^5.1.7",
+    "uuid": "^11.0.5"
+  }
+}
