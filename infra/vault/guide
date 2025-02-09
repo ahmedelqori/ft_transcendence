@@ -11,24 +11,45 @@ vault use cases :
     - encrypting app data : keep app data secure with centrealized key management
     - identity-based access : auth and access different clouds systems, and endpoints using trusted identites
 
- 
+vault servers can be run two diff modes:
+    - Dev mode : only intended for development
+        # it not secure
+        # it stores everything in memory
+        # vau;lt is automatically unsealed
+        # root token can be specified before lunching 
+        Sealed Vault: When Vault starts, it is sealed—meaning 
+                        the data inside is encrypted 
+                        and cannot be accessed until it is unsealed.
+        Unsealing vault: Unsealing is the process of decrypting the encryption key so Vault can access its stored secrets.
+                         Since Vault does not store the root key, it requires a process to reconstruct it when Vault restarts.
+[
+    IPC_LOCK :  lock memory to prevent sensitive values from being swapped to disk
+    When running in development mode, two additional options can be set via environment variables:
+        - VAULT_DEV_ROOT_TOKEN_ID: This sets the ID of the initial generated root token to the given value
+        - VAULT_DEV_LISTEN_ADDRESS: This sets the IP:port of the development server listener (defaults to 0.0.0.0:8200)
+
+    (
+        for get ipaddr od container
+        docker inspect vault |  grep IPAddress
+        for example : 127.0.0.2
+    )
+
+    after run and get a container of vault :
+    create a variable env locally in my machine
+        - export VAULT_ADDR='http://127.0.0.2:8200'
+]
+
+    - prod mode : that can used in QA and production
+        # specify configuration in a conf file
+        # then start the server
+        # intialize the server to get unseal keys and an intial root token
+        # unseal the vault server with the unseal keys
+        
 
 
 
-IPC_LOCK :  lock memory to prevent sensitive values from being swapped to disk
-When running in development mode, two additional options can be set via environment variables:
-    - VAULT_DEV_ROOT_TOKEN_ID: This sets the ID of the initial generated root token to the given value
-    - VAULT_DEV_LISTEN_ADDRESS: This sets the IP:port of the development server listener (defaults to 0.0.0.0:8200)
 
-(
-    for get ipaddr od container
-    docker inspect vault |  grep IPAddress
-    for example : 127.0.0.2
-)
 
-after run and get a container of vault :
-create a variable env locally in my machine
-    - export VAULT_ADDR='http://127.0.0.2:8200'
 
 To securely manage secrets like tokens, keys, and passwords using HashiCorp Vault :
 first method :
