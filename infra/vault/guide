@@ -1,6 +1,42 @@
 https://hub.docker.com/_/vault
 
+same most common types of secrets to store it in vault :
+    - username and pass
+    - certf
+    - api keys
+    - encryption keys
+
+vault use cases :
+    - secret management : centrally store , access , and distribute secrets
+    - encrypting app data : keep app data secure with centrealized key management
+    - identity-based access : auth and access different clouds systems, and endpoints using trusted identites
+
+ 
+
+
+
 IPC_LOCK :  lock memory to prevent sensitive values from being swapped to disk
 When running in development mode, two additional options can be set via environment variables:
     - VAULT_DEV_ROOT_TOKEN_ID: This sets the ID of the initial generated root token to the given value
     - VAULT_DEV_LISTEN_ADDRESS: This sets the IP:port of the development server listener (defaults to 0.0.0.0:8200)
+
+(
+    for get ipaddr od container
+    docker inspect vault |  grep IPAddress
+    for example : 127.0.0.2
+)
+
+after run and get a container of vault :
+create a variable env locally in my machine
+    - export VAULT_ADDR='http://127.0.0.2:8200'
+
+To securely manage secrets like tokens, keys, and passwords using HashiCorp Vault :
+first method :
+    - vault ui : enter token (its in .env)
+second method :
+    - install vault client
+    - https://developer.hashicorp.com/vault/install
+    - vault -h # show its install or not
+    - vault login # ask for token (from .env) -> (if any error double check for env varibale vault and check for docker container is running)
+    - example how can i store : vault kv put  secret/test pass=test1234
+    - to get secret from engine : vault kv get secret/test 
