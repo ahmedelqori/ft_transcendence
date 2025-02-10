@@ -4,7 +4,7 @@ import callback from "./controllers/callback.js";
 // Declare a route
 export default async function routes(fastify, options) {
     fastify.get('/login/google/', google_login);
-    // fastify.get('/login/42/', login_42);
+    fastify.get('/login/42/', login_42);
     fastify.get('/login/callback/', callback);
 }
 
