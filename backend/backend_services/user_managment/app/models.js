@@ -2,18 +2,17 @@ import { Model } from 'objection';
 
 class Player extends Model {
   static get tableName() {
-    return 'pong_player'; // Match your database table name
+    return 'pong_player';
   }
 
   static get idColumn() {
-    return 'id'; // Primary key
+    return 'id';
   }
 
-  // Table schema validation (optional)
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['username', 'email'], // Required fields
+      required: ['username', 'email'],
 
       properties: {
         id: { type: 'integer' },
@@ -21,11 +20,11 @@ class Player extends Model {
         email: { type: 'string', format: 'email', maxLength: 255 },
         first_name: { type: 'string', maxLength: 30, nullable: true },
         last_name: { type: 'string', maxLength: 30, nullable: true },
-        bio: { type: 'string', maxLength: 500, nullable: true },
+        bio: { type: 'string', maxLength: 500, default: ''},
         avatar_url: { type: 'string', format: 'uri', nullable: true },
         status: { 
           type: 'string', 
-          enum: ['ON', 'OF', 'IG'], // Equivalent to STATUS_CHOICES 
+          enum: ['ON', 'OF', 'IG'],
           default: 'ON',
         },
         two_FA: { type: 'boolean', default: false },
@@ -34,9 +33,8 @@ class Player extends Model {
     };
   }
 
-  // Hooks for validation or manipulation
   $beforeInsert() {
-    this.created_at = new Date().toISOString(); // Auto-set `created_at`
+    this.created_at = new Date().toISOString();
   }
 
 }
