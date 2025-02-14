@@ -4,7 +4,7 @@ exports.up = function(knex) {
         table.integer('sender_id').notNullable();
         table.integer('received_id').notNullable();
         table.string('requested_at').notNullable();
-        table.enu('status', ['PN', 'AC', 'BL']).defaultTo('PN');
+        table.enu('status', ['PN', 'FR', 'BL']).defaultTo('PN');
     })
 };
 

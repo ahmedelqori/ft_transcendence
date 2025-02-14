@@ -24,7 +24,7 @@ class Friendship extends Model {
             requested_at: { type: 'string' },
             status: {
                 type: 'string',
-                enum: ['PN', 'AC', 'BL'],
+                enum: ['PN', 'BL', 'FR'],
                 default: 'PN'
             },
         }

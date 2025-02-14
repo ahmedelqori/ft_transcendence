@@ -25,3 +25,4 @@ export default async function auth(req, res) {
     req.user = response.data;
 };
 
+

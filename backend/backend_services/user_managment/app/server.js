@@ -7,10 +7,8 @@ import knexConfig from './knexfile.cjs'; // knex config
 import { Model } from 'objection'; // ORM build on top of Knex 
 import multipart from '@fastify/multipart'; // to handle file uploads
 
-// Initialize Knex with the configuration
 const knex = Knex(knexConfig);
 
-// Bind Knex to Objection.js
 Model.knex(knex);
 
 const prettyStream = pinoPretty({

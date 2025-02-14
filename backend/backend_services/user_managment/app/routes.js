@@ -25,10 +25,8 @@ export default async function routes(fastify) {
     fastify.get('/search/', {preHandler: auth, preValidation: searchValidation}, search);
     fastify.get('/:id', {preHandler: auth}, who_this_guy);
     fastify.get('/users/', {preHandler: auth, preValidation: users_validation}, users);
-    
 }
 
 /*
-/api/account/logout/
 /api/account/login/refresh/
 */
