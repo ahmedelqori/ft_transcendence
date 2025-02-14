@@ -8,6 +8,8 @@ import cancel_request from './controllers/cancel_request.js';
 import block from './controllers/block.js';
 import unblock from './controllers/unblock.js';
 import relation_with_user from './controllers/relation_with_user.js';
+import paginition_validation from './middlewares/paginetion_validition.js';
+import search from './controllers/search.js';
 
 
 function not(req, res) {
@@ -23,13 +25,13 @@ export default async function routes(fastify) {
     fastify.delete('/:user_id/request', {preHandler: auth}, cancel_request);
     fastify.post('/:user_id/block', {preHandler: auth},block);
     fastify.delete('/:user_id/block', {preHandler: auth},unblock);
-    fastify.get('/:user_id', {preHandler: auth}, relation_with_user);
-
-    
+    fastify.get('/:user_id', {preHandler: auth, preValidation: paginition_validation}, relation_with_user);
     fastify.get('/', {preHandler: auth},friends);
 
     
-    fastify.get('/search', {preHandler: auth},not);
+    fastify.get('/search', {preHandler: auth, preValidation: paginition_validation}, search);
+
+    
 };
 
 
@@ -40,7 +42,7 @@ export default async function routes(fastify) {
     
 //     # Friend List Management
 //         /                                (GET)       : get all friends
-//         /search?q=keyword&status=status  (GET)       : get all users match the keyword and match the status (online/offline/in-game/blocked/pending)
+//         /search?status=status            (GET)       : get all users match the keyword and match the status (online/offline/in-game/blocked/pending)
 //         /{user_id}                       (GET)       : get all informations of this user and status (frined/blocked/pending/None)
 //         /{user_id}/friend                (DELETE)    : unfriend
 
