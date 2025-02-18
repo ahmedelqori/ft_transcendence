@@ -26,9 +26,21 @@ export default async function search(req, res) {
             if (user.status === STATUS[status])
                 arr.push(user);
         }
-    } else if (relation_status.includes(status)) {};
-
-
+    } else if (relation_status.includes(status)) {
+        const records = await fs.query().where({sender_id: req.user.id, status: STATUS[status]})
+                                  .orWhere({received_id: req.user.id, status: STATUS[status]});
+        let ids = [];
+        for (const record of records) {
+            if (record.received_id == req.user.id)
+                ids.push(record.sender_id);
+            else
+                ids.push(record.received_id);
+        }
+        for (const id of ids) {
+            const user = await get_user(req, id);
+            arr.push(user);
+        }
+    };
 
     arr = arr.slice(offset, offset + limit);
     res.send(arr);
