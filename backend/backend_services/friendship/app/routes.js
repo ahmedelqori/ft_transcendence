@@ -12,11 +12,6 @@ import paginition_validation from './middlewares/paginetion_validition.js';
 import search from './controllers/search.js';
 
 
-function not(req, res) {
-    res.send({status: "Still Not Implemented"});
-}
-
-
 export default async function routes(fastify) {
     fastify.post('/:user_id/request', {preHandler: auth}, request);
     fastify.post('/:user_id/request/accept', {preHandler: auth}, accept);
@@ -27,33 +22,10 @@ export default async function routes(fastify) {
     fastify.delete('/:user_id/block', {preHandler: auth},unblock);
     fastify.get('/:user_id', {preHandler: auth, preValidation: paginition_validation}, relation_with_user);
     fastify.get('/', {preHandler: auth},friends);
-
-    
     fastify.get('/search', {preHandler: auth, preValidation: paginition_validation}, search);
-
-    
 };
 
 
-
-
-// ROUTES (friendship service):
-//     all GET request you can use parameter 'limit' and 'offset' for paginition (friends/?limit=10&offset=20)
-    
-//     # Friend List Management
-//         /                                (GET)       : get all friends
-//         /search?status=status            (GET)       : get all users match the keyword and match the status (online/offline/in-game/blocked/pending)
-//         /{user_id}                       (GET)       : get all informations of this user and status (frined/blocked/pending/None)
-//         /{user_id}/friend                (DELETE)    : unfriend
-
-//     # Friend Actions
-//         /{user_id}/block                 (POST)      : block user
-//         /{user_id}/block                 (DELETE)    : unblock user
-//         /{user_id}/request               (POST)      : send request  
-//         /{user_id}/request               (DELETE)    : cancel request
-//         /{user_id}/request/accept        (POST)      : accept request
-//         /{user_id}/request/reject        (POST)      : reject request
-    
 //     # Notifications Managment
 //         /notification                    (GET)       : get list if any user send request to you
 //         /notification/{id}               (POST)      : mark it as read

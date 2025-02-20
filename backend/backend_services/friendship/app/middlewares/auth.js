@@ -15,7 +15,7 @@ export default async function auth(req, res) {
         if (response.status !== 200) {
             res.code(401).send({ message: 'Unauthorized' });
             return;
-        }
+}
     }
     catch(err){
         res.code(401).send({ message: 'Unauthorized' });
