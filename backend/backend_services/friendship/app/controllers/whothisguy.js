@@ -16,7 +16,7 @@ export default async function get_user(req, user_id) {
         }
     }
     catch(err){
-        console.log(err);
+        console.log(err.status);
         return null;
     };
 

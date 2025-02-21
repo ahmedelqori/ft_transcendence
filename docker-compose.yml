@@ -11,17 +11,17 @@ services:
     volumes:
       - profile_images:/app/profile_images
       - user_managment_database:/app/database
-  # friendship:
-  #   build:
-  #     context: ./backend/backend_services/friendship
-  #     dockerfile: Dockerfile
-  #   container_name: friendship
-  #   env_file:
-  #     - ./backend/backend_services/friendship/.env
-  #   ports:
-  #     - "8001:8001"
-  #   volumes:
-  #     - logs:/app/logs
+  friendship:
+    build:
+      context: ./backend/backend_services/friendship
+      dockerfile: Dockerfile
+    container_name: friendship
+    env_file:
+      - ./backend/backend_services/friendship/.env
+    ports:
+      - "3001:3000"
+    volumes:
+      - friendship_database:/app/database
 
 
 
@@ -39,33 +39,15 @@ volumes:
       type: none
       o: bind
       device: /home/yoss/ft_transcendence/others/db_data/user_managment_database
+  friendship_database:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/yoss/ft_transcendence/others/db_data/friendship_database
   profile_images:
     driver: local
     driver_opts:
       type: none
       o: bind
       device: /home/yoss/ft_transcendence/others/profile_images
-  # friendship_database:
-  #   driver: local
-  #   driver_opts:
-  #     type: none
-  #     o: bind
-  #     device: /home/yoss/ft_transcendence/others/db_data/friendship_database
-  # private_key:
-  #   driver: local
-  #   driver_opts:
-  #     type: none
-  #     o: bind
-  #     device: /home/yoss/ft_transcendence/others/RSA-key/private_key
-  # public_key:
-  #   driver: local
-  #   driver_opts:
-  #     type: none
-  #     o: bind
-  #     device: /home/yoss/ft_transcendence/others/RSA-key/public_key
-  # logs:
-  #   driver: local
-  #   driver_opts:
-  #     type: none
-  #     o: bind
-  #     device: /home/yoss/ft_transcendence/others/logs

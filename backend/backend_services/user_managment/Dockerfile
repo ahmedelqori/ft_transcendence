@@ -6,7 +6,6 @@ RUN apt-get update && apt-get install -y nodejs npm
 
 COPY ./app/package*.json ./
 RUN npm install
-RUN npm install
 
 COPY ./app ./
 
