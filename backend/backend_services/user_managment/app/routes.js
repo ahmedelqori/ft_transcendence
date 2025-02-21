@@ -10,6 +10,7 @@ import searchValidation from './middlewares/search_validation.js';
 import who_this_guy from './controllers/who_this_guy.js';
 import users from './controllers/users.js';
 import users_validation from './middlewares/users_validation.js';
+import refresh from './controllers/refresh_token.js';
 
 
 
@@ -19,6 +20,7 @@ export default async function routes(fastify) {
     fastify.get('/login/google/', google_login);
     fastify.get('/login/42/', login_42);
     fastify.get('/login/callback/', callback);
+    fastify.post('/login/refresh/', {preHandler: auth},refresh);
     fastify.get('/whoami/', {preHandler: auth}, whoami);
     fastify.patch('/update-profile/', {preHandler: auth}, update_profile);
     fastify.post('/avatar/', { preHandler: auth, preValidation: fileValidation }, avatar);

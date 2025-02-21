@@ -69,17 +69,13 @@ export default async function callback(req, reply) {
     const privateKey = fs.readFileSync('./private.pem', 'utf8');
 
     const payload = { user_id: player.id };
-    const jwt_access_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '1d' });
-    // const jwt_refresh_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '7d' });
+    const jwt_access_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '5h' });
+    const jwt_refresh_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '7d' });
 
-
-    // Set the refresh token in the cookie
-    // save refresh token in the database
-    
 
     reply
         .status(200)
-        .send({ access_token: jwt_access_token});
+        .send({ access_token: jwt_access_token, refresh_token: jwt_refresh_token });
 }
 
 

@@ -2,17 +2,12 @@ FROM debian:latest
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y nodejs
+RUN apt-get update && apt-get install -y nodejs npm
 
-COPY ./app .
+COPY ./app/package*.json ./
 
-CMD [ "server" ]
-ENTRYPOINT [ "nodejs" ]
+RUN npm install
 
-# ENTRYPOINT [ "tail", "-f", "/dev/null" ]
+COPY ./app ./
 
-# COPY ./tools/setup.sh .
-
-# RUN chmod +x setup.sh
-
-# ENTRYPOINT [ "./setup.sh" ]
+ENTRYPOINT [ "nodejs", "server" ]
