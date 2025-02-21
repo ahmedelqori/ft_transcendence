@@ -5,9 +5,12 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y nodejs npm
 
 COPY ./app/package*.json ./
-
+RUN npm install
 RUN npm install
 
 COPY ./app ./
 
-ENTRYPOINT [ "nodejs", "server" ]
+COPY ./tools/setup.sh /
+RUN chmod +x /setup.sh
+
+ENTRYPOINT [ "/setup.sh" ]

@@ -8,8 +8,9 @@ services:
       - ./backend/backend_services/user_managment/.env
     ports:
       - "3000:3000"
-    # volumes:
-    #   - profile_images:/app/profile_images
+    volumes:
+      - profile_images:/app/profile_images
+      - user_managment_database:/app/database
   # friendship:
   #   build:
   #     context: ./backend/backend_services/friendship
@@ -31,35 +32,19 @@ services:
 
 
 
-
-  # user_managment_database:
-  #   image: postgres:latest
-  #   container_name: user_managment_database
-  #   env_file:
-  #     - ./databases/user_managment_database/.env
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - user_managment_database:/var/lib/postgresql/data
-
-  # friendship_database:
-  #   image: postgres:latest
-  #   container_name: friendship_database
-  #   env_file:
-  #     - ./databases/friendship_database/.env
-  #   ports:
-  #     - "5433:5433"
-  #   volumes:
-  #     - friendship_database:/var/lib/postgresql/data
-  #   command: ["postgres", "-c", "port=5433"]
-
-# volumes:
-#   user_managment_database:
-#     driver: local
-#     driver_opts:
-#       type: none
-#       o: bind
-#       device: /home/yoss/ft_transcendence/others/db_data/user_managment_database
+volumes:
+  user_managment_database:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/yoss/ft_transcendence/others/db_data/user_managment_database
+  profile_images:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/yoss/ft_transcendence/others/profile_images
   # friendship_database:
   #   driver: local
   #   driver_opts:
@@ -84,9 +69,3 @@ services:
   #     type: none
   #     o: bind
   #     device: /home/yoss/ft_transcendence/others/logs
-  # profile_images:
-  #   driver: local
-  #   driver_opts:
-  #     type: none
-  #     o: bind
-  #     device: /home/yoss/ft_transcendence/others/profile_images
