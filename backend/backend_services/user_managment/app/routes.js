@@ -11,8 +11,11 @@ import who_this_guy from './controllers/who_this_guy.js';
 import users from './controllers/users.js';
 import users_validation from './middlewares/users_validation.js';
 import refresh from './controllers/refresh_token.js';
+import twoFA from './controllers/twofa.js';
 
-
+function not_yet(req, res) {
+    console.log(req.headers.host);
+}
 
 
 // Declare a route
@@ -27,8 +30,5 @@ export default async function routes(fastify) {
     fastify.get('/search/', {preHandler: auth, preValidation: searchValidation}, search);
     fastify.get('/:id', {preHandler: auth}, who_this_guy);
     fastify.get('/users/', {preHandler: auth, preValidation: users_validation}, users);
+    fastify.post('/twoFA', {preHandler: auth}, twoFA);
 }
-
-/*
-/api/account/login/refresh/
-*/

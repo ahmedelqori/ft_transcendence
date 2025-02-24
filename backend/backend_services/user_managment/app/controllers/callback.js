@@ -62,9 +62,11 @@ export default async function callback(req, reply) {
         return reply.status(500).send({'error': 'Error inserting player'})
     }
 
+    if (player.two_FA){
+        
+    }
+    
     console.log('login in User:', player);
-
-
 
     const privateKey = fs.readFileSync('./private.pem', 'utf8');
 
