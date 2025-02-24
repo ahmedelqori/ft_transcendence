@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Mode {
+  STANDARD
+  AI
+}
+
+enum Status {
+  IN_PROGRESS
+  FINISHED
+  CANCELED
+}
+
+
+model Game {
+  id                 Int   @id @default(autoincrement())
+  playerOneId        Int
+  playerTwoId        Int?
+  playerOneScore     Int @default(0)
+  playerTwoScore     Int @default(0)
+  winnerId           Int?     
+  isWinnerAI         Boolean @default(false)
+  startedAt          DateTime @default(now())
+  endedAt            DateTime?
+  isPlayerTwoAI      Boolean @default(false)
+  status             Status @default(IN_PROGRESS)
+  gameMode           Mode
+  tournement         String @default("")
+}
+
+
