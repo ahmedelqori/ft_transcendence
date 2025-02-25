@@ -8,8 +8,10 @@ export default async function enable(req, res) {
         res.status(400).send({ message: '2FA is already enabled' });
         return;
     }
-    
-    const secret = speakeasy.generateSecret();
+    const secret = speakeasy.generateSecret({
+        name: `pong ${req.user.username}`,
+        issuer: 'pong'
+    });
     try {
         await db.query().insert({
             user_id: req.user.id,
@@ -22,11 +24,9 @@ export default async function enable(req, res) {
     }
 
     try {
-        const qrCodeImage = await QRCode.toDataURL(secret.otpauth_url);
-
         res.send({
-            qr: qrCodeImage,
-            secret: secret.base32
+            secret: secret.base32,
+            qr: await QRCode.toDataURL(secret.otpauth_url)
         });
     } catch (err) {
         console.error('QR code generation error:', err);

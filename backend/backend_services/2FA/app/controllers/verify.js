@@ -1,21 +1,24 @@
 import db from '../models.js';
 import speakeazy from 'speakeasy';
 import axios from 'axios';
+import fs from 'fs';
+import jwt from 'jsonwebtoken';
 
 
 export default async function verify(req, res) {
-    const { code } = req.body || {};
+    let { code } = req.body || {};
     if (!code) {
         res.status(400).send({ message: 'code is required' });
         return;
     }
 
-    if (typeof code !== 'number')
-        res.status(400).send({ message: 'code must be a number' });
+    if (typeof code !== 'string' || code.length !== 6)
+        res.status(400).send({ message: 'code must be like:', code: '123456' });
 
-    if (code > 999999 || code < 100000) {
-        res.status(400).send({ message: 'code must be 6 digits long' });
-        reutrn ;
+    code = parseInt(code);
+    if (isNaN(code)) {
+        res.status(400).send({ message: 'code must be a number' });
+        return;
     }
     
 
@@ -59,7 +62,11 @@ export default async function verify(req, res) {
             res.status(500).send({ message: 'Internal Server Error' });
             return;
         };
+    }else {
+        const privateKey = fs.readFileSync('./private.pem', 'utf8');
+        const access_token = jwt.sign({user_id: req.user.id}, privateKey, { algorithm: 'RS256', expiresIn: '5h' });
+        const refresh_token = jwt.sign({user_id: req.user.id}, privateKey, { algorithm: 'RS256', expiresIn: '7d' });
+        res.status(200).send({ access_token, refresh_token });
     }
 
-    res.status(200).send({ verified: true });
 }

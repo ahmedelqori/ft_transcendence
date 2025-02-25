@@ -62,18 +62,24 @@ export default async function callback(req, reply) {
         return reply.status(500).send({'error': 'Error inserting player'})
     }
 
+    const privateKey = fs.readFileSync('./private.pem', 'utf8');
+    
     if (player.two_FA){
-        
+        const payload = { unverified_user_id: player.id };
+        const jwt_access_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '5m' });
+        reply
+            .status(200)
+            .send({ message: "Go to 2FA verification endpoint to verify", access_token: jwt_access_token });
+        // generate temporary JWT access token and ask to verify 2FA
+        return ;
     }
     
-    console.log('login in User:', player);
-
-    const privateKey = fs.readFileSync('./private.pem', 'utf8');
-
+    
     const payload = { user_id: player.id };
     const jwt_access_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '5h' });
     const jwt_refresh_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '7d' });
-
+    
+    console.log('login in User:', player);
 
     reply
         .status(200)
