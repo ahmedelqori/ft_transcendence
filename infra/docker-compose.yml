@@ -2,24 +2,28 @@ version: '3.8'
 
 services:
   nginx-modsecurity:
-  image: "nginx-modsecurity:app"
-  container: nginx-modsecurity
-  build: ./nginx-modsecurity/.
-  ports:
-    - "80:80" # https needed (start vault first for create it)
-  networks:
-    - appNet
-  restart: always
-  depends_on:
-    - vault
-  
-  vault:
-  image: hashicorp/vault:latest
-  container_name: vault
-  restart: always
-  env_file:
-    - .env
-  ports:
-    - "8200:8200"
-  cap_add:
-    - IPC_LOCK
+    image: "nginx-modsecurity:app"
+    container_name: nginx-modsecurity
+    build: ./nginx-modsecurity/.
+    ports:
+      - "443:443"
+    networks:
+      - appNet
+    restart: always
+    # depends_on:
+    #   - vault
+
+  # vault:
+  #   image: hashicorp/vault:latest
+  #   container_name: vault
+  #   restart: always
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "8200:8200"
+  #   cap_add:
+  #     - IPC_LOCK
+
+networks:
+  appNet:
+    driver: bridge

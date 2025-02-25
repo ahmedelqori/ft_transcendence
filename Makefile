@@ -1,4 +1,4 @@
-CMD = docker-compose -f infra/docker-compose.yml -p app
+CMD = docker-compose -f ./infra/docker-compose.yml -p app
 all: build up
 
 build:

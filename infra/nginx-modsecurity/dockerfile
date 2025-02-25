@@ -8,6 +8,12 @@ RUN apt install -y git nginx bison build-essential ca-certificates curl \
         libtool libxml2 libxml2-dev libyajl-dev locales liblua5.3-dev pkg-config wget \
         zlib1g-dev zlib1g-dev libxslt1-dev libgd-dev libperl-dev systemctl
 
+RUN mkdir -p /etc/nginx/ssl && \
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout /etc/nginx/ssl/nginx.key \
+    -out /etc/nginx/ssl/nginx.crt \
+    -subj "/CN=pingpong.ma"
+
 COPY tools/installation.sh /conf
 COPY tools/default /conf
 COPY tools/main.conf /conf
