@@ -1,3 +1,20 @@
 FROM hashicorp/vault:latest
+
+RUN apk update && apk add openssl libcap && /usr/sbin/setcap cap_ipc_lock=+ep /bin/vault
+
+RUN mkdir -p /vault/data /vault/tls && \
+    openssl req -x509 -nodes -days 365 -newkey rsa:4096 \
+    -keyout /vault/tls/vault.key \
+    -out /vault/tls/vault.crt \
+    -subj "/CN=vault" \
+    -addext "subjectAltName=DNS:vault"
+
 COPY config.hcl /vault/config/config.hcl
+
+RUN chown -R vault:vault /vault
+
+USER vault
+
+EXPOSE 8200
+
 CMD ["vault", "server", "-config=/vault/config/config.hcl"]
