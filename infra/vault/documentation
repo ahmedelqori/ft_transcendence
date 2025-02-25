@@ -1,0 +1,78 @@
+The core features of Vault include:
+
+    Secure Secret Storage: Encrypts secrets at rest.
+    Dynamic Secrets: Generates secrets (like database credentials) on the fly with limited lifespans.
+    Data Encryption: Encrypts and decrypts data without storing it.
+    Access Control: Policies define who can access what.
+    Audit Logging: Tracks who accessed which secret and when
+
+What Does It Mean to Unseal Vault?
+Vault operates in two states:
+    Sealed: Vault is locked and cannot access its encryption keys. No secrets can be read or written.
+    Unsealed: Vault has access to its encryption keys and can operate normally.
+--------------------------------------------------------------------------------------------------------
+Baseline recommendations : https://developer.hashicorp.com/vault/docs/concepts/production-hardening
+
+
+<!> dont forget  volume :
+    volume:  - vault-data:/vault/data
+
+steps for run prod mode vault :
+
+creat certf first for https :
+mkdir -p /vault/data /etc/vault/tls && \
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout /etc/vault/tls/vault.key \
+    -out /etc/vault/tls/vault.crt \
+    -subj "/CN=vault.local"
+
+add config file config.hcl
+
+permission to vault user
+
+export VAULT_ADDR='https://vault.local:8200'
+
+export VAULT_CACERT='/etc/vault/tls/vault.crt'
+
+i see error : 
+unable to set CAP_SETFCAP effective capability: Operation not permitted
+- These capabilities are assigned to processes and allow them to carry out specific privileged operations without requiring full root permissions.
+- CAP_SETFCAP is one of these Linux capabilities and specifically governs the ability of a process to set file capabilities.
+- File capabilities are used to grant certain privileges to executables on a per-file basis, without needing to grant the whole system root access.
+solution :  https://github.com/hashicorp/docker-vault/issues/137
+SKIP_CHOWN="true"
+SKIP_SETCAP="true"
+
+########### initialize Vault ###########
+cmd -> "vault operator init"
+- Generates Encryption Keys : 
+* generates a root key used to encrypt all data stored in its backend (e.g., secrets, policies, tokens).
+* This root key is itself encrypted using a master key, which is split into shares using Shamir’s Secret Sharing algorithm.
+- Creates Unseal Keys : 
+* The master key is split into multiple unseal keys (default 5 keys)
+- Generates a Root Token : 
+* A root token is created, which has full administrative privileges in Vault
+* This token is used for initial setup (e.g., enabling auth methods, creating policies).
+
+example of output : 
+---------------------------------------------------------
+Unseal Key 1: 4zgwyyS125aFwuU86wN9/8O3mKA7RQ0LCIL1I+6eofIe
+Unseal Key 2: kse7MsewFilh/S6xMKM/C29kIWvz8Y9eku1aDKpfXvxb
+Unseal Key 3: DfGEtiEqLxnY+OZmNa42NIi2Wz4nVgQotEYiSe8CXhxz
+Unseal Key 4: TZobto6bDl+isFYkM+OlBDr6NKFarobTd/j3lNo1rhiY
+Unseal Key 5: htIBJQxnPvkOVmm18s9JxFauijXu+QnN4WbOq5Gw1jcq
+Initial Root Token: hvs.kgkyhXOB6fPj7PwUuyDyg1m7
+---------------------------------------------------------
+
+cmd -> "vault operator unseal <key>"
+#
+#
+#
+
+
+After initial setup, revoke the root token to reduce the risk of misuse:
+cmd -> "vault token revoke <root-token>"
+
+
+
+Vault can be manually resealed using the "vault operator seal" command.
