@@ -65,14 +65,56 @@ Initial Root Token: hvs.kgkyhXOB6fPj7PwUuyDyg1m7
 ---------------------------------------------------------
 
 cmd -> "vault operator unseal <key>"
-#
-#
-#
+for check capabilities of a token :
+cnd -> vault token capabilities hvs.kgkyhXOB6fPj7PwUuyDyg1m7 sys/token/revoke
+
 
 
 After initial setup, revoke the root token to reduce the risk of misuse:
 cmd -> "vault token revoke <root-token>"
+[
+    - keeping it active after initial setup can pose a security risk : 
+    - Revoking the root token encourages following the least privilege principle: after Vault is initialized and unsealed, the goal should be to work with tokens that have only the permissions necessary for specific tasks.
+    - If the root token is not revoked after initial setup, someone who gains unauthorized access to the root token can take full control over your Vault system.
+    - Vault’s root token is meant to be used only in the initial setup and for emergency situations. Once Vault is up and running with a secure configuration and policies, the root token is no longer necessary for daily operations.
 
+now we talk about if dont have access to any token we can create again new root token
+cmds: 
+        - vault operator generate-root -init 
+            -> output: 
+                        A One-Time-Password has been generated for you and is shown in the OTP field.
+                        You will need this value to decode the resulting root token, so keep it safe.
+                        Nonce         df59416e-ade2-65b3-a23d-d510e2d2763b
+                        Started       true
+                        Progress      0/3
+                        Complete      false
+                        OTP           OS49RsGpgdNQtjOe8Q4GPZPc2pWJ
+                        OTP Length    28
+        - vault operator generate-root
+            -> Enter the unseal keys when prompted. Once the process is complete, you’ll receive a new root token.
+        - now we need to decode token 
+  cmd : vault operator generate-root -decode="JyVHFx1LBEAVKg0zHBMBNXwDWRMSDQIPYzktAg" -nonce="df59416e-ade2-65b3-a23d-d510e2d2763b"  -otp="OS49RsGpgdNQtjOe8Q4GPZPc2pWJ"
+  then we get token goood ********************************
+  
+  then we login with it using this cmd : 
+    -> vault login hvs.O8C0rNCbhyNPDRmTBWRlQIzH
+    -> then we create any policy we need after that we can revoke it again 
+    
+  Run the following command to add the policy:
+    -> vault policy write backend-policy backend-policy.hcl
+  Enable the AppRole auth method for your backend:
+    -> vault auth enable approle
+]
 
 
 Vault can be manually resealed using the "vault operator seal" command.
+
+
+----------- after init my vault ----------
+1 - Authentication Methods in vault :
+    *AppRole Authentication
+    *LDAP , github,kubernetes, aws,azure,OPENID CONNECT,USERPASS,RADUIS ...
+in my situation we use APPROLE !!
+https://developer.hashicorp.com/vault/docs/auth/approle
+The approle auth method allows machines or apps to authenticate with Vault-defined roles. The open design of AppRole enables a varied set of workflows and configurations to handle large numbers of apps. This auth method is oriented to automated workflows (machines and services), and is less useful for human operators. We recommend using batch tokens with the AppRole auth method.
+
