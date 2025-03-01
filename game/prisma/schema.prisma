@@ -32,7 +32,7 @@ model Game {
   isPlayerTwoAI      Boolean @default(false)
   status             Status @default(IN_PROGRESS)
   gameMode           Mode
-  tournement         String @default("")
+  tournement         Int?
 }
 
 

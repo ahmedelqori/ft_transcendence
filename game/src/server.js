@@ -1,5 +1,7 @@
 import Fastify from "fastify";
 import { gameRoutes } from "./routes/routegame.js";
+import prismaPlugin from "./models/prisma.plugin.js";
+
 
 // import getAllGames from "./controllers/controller.game"
 
@@ -15,15 +17,14 @@ const fastify = Fastify(({
       }
     }
   }));
-
+  fastify.register(prismaPlugin);
   fastify.register(gameRoutes, {prefix : "/api/games"})
-  fastify.post('/user', {
-  }, async (req, reply) => {
-     reply.send({ age: req.body.age, name: req.body.name });
-  });
 
 
 
+
+  
+  
 
 
 
