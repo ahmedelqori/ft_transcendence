@@ -100,17 +100,53 @@ cmds:
     -> vault login hvs.O8C0rNCbhyNPDRmTBWRlQIzH
     -> then we create any policy we need after that we can revoke it again 
     
-  Run the following command to add the policy:
-    -> vault policy write backend-policy backend-policy.hcl
+
   Enable the AppRole auth method for your backend:
     -> vault auth enable approle
-]
 
+    ->vault secrets enable -path=secret/sqlite kv
+            for verify -> vault secrets list 
+    ->vault kv put secret/sqlite/webapp db-name="test" username="test" password="test"
+            for verify -> vault kv get secret/sqlite/webapp 
+    
+  Run the following command to add the policy:
+        file backend-policy.hcl : 
+                                    #allow read access to SQLite database credentials
+                                    path "secret/sqlite/webapp" {
+                                    capabilities = ["read"]
+                                    }
+    -> vault policy write backend-policy backend-policy.hcl
+
+  now we need to create a role :
+    - vault auth list
+    - vault write auth/approle/role/backend token_policies="backend-policy" token_ttl=1h token_max_ttl=4h
+    - vault read auth/approle/role/backend
+   get role-id
+    - vault read auth/approle/role/backend/role-id
+                    role_id    642b472c-cca0-327d-07ab-7eca94c9f99e
+  we need now get secret-id
+    - vault write -f auth/approle/role/backend/secret-id
+                    secret_id  0f353d42-8483-d206-293d-02bb0060a26c
+
+  Log in with RoleID & SecretID :  get a token
+    - vault write auth/approle/login role_id="642b472c-cca0-327d-07ab-7eca94c9f99e" \
+        secret_id="0f353d42-8483-d206-293d-02bb0060a26c"
+
+    get token :  
+    token                   hvs.CAESIFfVtwnlxA2zjYUAxVOggN0E1Rn1-V1768bYxa-SNrdDGh4KHGh2cy5idXc0NU5la2ZqREVNendua05OQVNoejA
+
+    then we can login and see secrets 
+    - vault login hvs.CAESIFfVtwnlxA2zjYUAxVOggN0E1Rn1-V1768bYxa-SNrdDGh4KHGh2cy5idXc0NU5la2ZqREVNendua05OQVNoejA
+
+]
+  
 
 Vault can be manually resealed using the "vault operator seal" command.
 
 
 ----------- after init my vault ----------
+https://developer.hashicorp.com/vault/tutorials/auth-methods/approle
+https://www.youtube.com/watch?v=Q1VG5X6oPC4
 1 - Authentication Methods in vault :
     *AppRole Authentication
     *LDAP , github,kubernetes, aws,azure,OPENID CONNECT,USERPASS,RADUIS ...
