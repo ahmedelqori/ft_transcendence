@@ -29,3 +29,5 @@ model Game {
 
 
 // winnerId == -1 if the game was canceled | 0 if the AI is the winner
+
+// WHO CANCELS LOSE THE GAME

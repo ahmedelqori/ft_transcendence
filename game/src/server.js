@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import { gameRoutes } from "./routes/routegame.js";
 import prismaPlugin from "./models/prisma.plugin.js";
+import websocketPlugin from "@fastify/websocket";
 
 
 // import getAllGames from "./controllers/controller.game"
@@ -19,9 +20,24 @@ const fastify = Fastify(({
   }));
   fastify.register(prismaPlugin);
   fastify.register(gameRoutes, {prefix : "/api/games"})
+  fastify.register(websocketPlugin)
 
 
-
+  // fastify.addHook('preValidation', async (req, reply) => {
+  //   const token = req.headers.authorization;
+  //   if (!token) {
+  //     reply.status(401).send({ error: "Unauthorized" });
+  //     return;
+  //   }
+  
+  //   try {
+  //     const decoded = verifyToken(token); // Replace with your actual JWT verification logic
+  //     req.user = decoded; // Attach the user to the request
+  //   } catch (error) {
+  //     reply.status(401).send({ error: "Invalid token" });
+  //   }
+  // });
+  
 
   
   
