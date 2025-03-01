@@ -7,11 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Mode {
-  STANDARD
-  AI
-}
-
 enum Status {
   IN_PROGRESS
   FINISHED
@@ -22,17 +17,15 @@ enum Status {
 model Game {
   id                 Int   @id @default(autoincrement())
   playerOneId        Int
-  playerTwoId        Int?
+  playerTwoId        Int @default(0)
   playerOneScore     Int @default(0)
   playerTwoScore     Int @default(0)
-  winnerId           Int?     
-  isWinnerAI         Boolean @default(false)
+  winnerId           Int @default(-1)     
   startedAt          DateTime @default(now())
   endedAt            DateTime?
-  isPlayerTwoAI      Boolean @default(false)
   status             Status @default(IN_PROGRESS)
-  gameMode           Mode
-  tournement         Int?
+  tournementId         Int @default(0)
 }
 
 
+// winnerId == -1 if the game was canceled | 0 if the AI is the winner
