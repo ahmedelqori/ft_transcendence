@@ -1,5 +1,5 @@
 import Fastify from "fastify";
-import { gameRoutes } from "./routes/routegame.js";
+import { gameRoutes} from "./routes/routegame.js";
 import prismaPlugin from "./models/prisma.plugin.js";
 import websocketPlugin from "@fastify/websocket";
 
@@ -19,9 +19,8 @@ const fastify = Fastify(({
     }
   }));
   fastify.register(prismaPlugin);
-  fastify.register(gameRoutes, {prefix : "/api/games"})
   fastify.register(websocketPlugin)
-
+  fastify.register(gameRoutes, {prefix : "/api/games"})
 
   // fastify.addHook('preValidation', async (req, reply) => {
   //   const token = req.headers.authorization;
