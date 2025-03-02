@@ -27,27 +27,22 @@ services:
 
 
 
-
-
-
-
-
 volumes:
   user_managment_database:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/yoss/ft_transcendence/others/db_data/user_managment_database
+      device: /home/ybouchma/ft_transcendence/others/db_data/user_managment_database
   friendship_database:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/yoss/ft_transcendence/others/db_data/friendship_database
+      device: /home/ybouchma/ft_transcendence/others/db_data/friendship_database
   profile_images:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/yoss/ft_transcendence/others/profile_images
+      device: /home/ybouchma/ft_transcendence/others/profile_images
