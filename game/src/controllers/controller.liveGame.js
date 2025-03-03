@@ -1,39 +1,49 @@
-
+import {gameConnections} from "../server.js"
 
 export const validateGameId = async function(req, reply) {
     const gameId = parseInt(req.params.gameId);
     if (isNaN(gameId)) {
-      reply.code(400).send({ error: "Invalid game ID" });
-      return;
+        return reply.code(400).send({ error: "Invalid game ID" });
     }
   
     const game = await req.server.prisma.game.findUnique({ where: { id: gameId } });
   
     if (!game) {
-      reply.code(404).send({ error: "Game not found" });
-      return;
+        return reply.code(404).send({ error: "Game not found" });
     }
     req.game = game;
     // we should add the check of the user 
   }
 
 
-export const liveGame = function(socket, req){
+  export const liveGame = function (socket, req) {
     try {
-        console.log(`New WebSocket socket for game ${req.game.id}`)
-        socket.on('message', (message) => {
-            console.log('Received:', message.toString());
-            
-            // Send a response back to the client
-            socket.send(`Hello from the game ${req.game.id}`);
+        const gameId = req.game.id;
+        if (!gameConnections.has(gameId)) {
+            gameConnections.set(gameId, new Set());
+        }
+        if (gameConnections.get(gameId).size >= 2) {
+            console.error(`Game ${gameId} is full.`);
+            socket.close(1008, "Game is full (2 players max)");
+            return;
+        }
+        gameConnections.get(gameId).add(socket);
+        socket.on('message', async (message) => {
+            console.log(`Received in game ${gameId}:`, message.toString());
+            socket.send(`Hello from the game ${gameId}`);
         });
-    
-        // Handle client disconnection
-        // connection.socket.on('close', () => {
-        //     console.log('Client disconnected');
-        // });
-    } catch (error) {
-        console.error("Error:", error);
-    }
+        socket.on('close', () => {
+            console.log(`Client disconnected from game ${gameId}`);
+            gameConnections.get(gameId).delete(socket);
+            if (gameConnections.get(gameId).size === 0) {
+                gameConnections.delete(gameId);
+            }
+        });
+        socket.on('error', (err) => {
+            console.error(`WebSocket error in game ${gameId}:`, err);
+        });
 
-}
+    } catch (error) {
+        console.error("Error in liveGame:", error);
+    }
+};

@@ -5,7 +5,7 @@ import websocketPlugin from "@fastify/websocket";
 
 
 // import getAllGames from "./controllers/controller.game"
-
+export const gameConnections = new Map();
 const fastify = Fastify(({
     logger: {
       transport: {
