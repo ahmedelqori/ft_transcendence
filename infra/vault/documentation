@@ -154,3 +154,29 @@ in my situation we use APPROLE !!
 https://developer.hashicorp.com/vault/docs/auth/approle
 The approle auth method allows machines or apps to authenticate with Vault-defined roles. The open design of AppRole enables a varied set of workflows and configurations to handle large numbers of apps. This auth method is oriented to automated workflows (machines and services), and is less useful for human operators. We recommend using batch tokens with the AppRole auth method.
 
+
+
+
+---------- wraping approle response -------------
+Think of it like a secure gift box:
+ - You put the SecretID inside the box and lock it.
+ - You give the box (wrapping token) to someone.
+ - They open the box (unwrap the token) to get the SecretID.
+ - Once the box is opened, it cannot be used again.
+
+
+Wrapping adds an extra layer of security by ensuring:
+ - The SecretID is encrypted during delivery.
+ - Only the intended recipient (your backend container) can unwrap and use it.
+ - The wrapping token expires after a short time (e.g., 60 seconds), so it cannot be reused.
+
+You ask Vault to create a SecretID and wrap it in a temporary token. For example:
+    cmd -> vault write -wrap-ttl=60s auth/approle/role/<my-role>/secret-id
+Vault returns a wrapping token (not the SecretID itself).
+
+You need to securely send the wrapping_token to your backend container. For example:
+ - Use environment variables.
+ - Use a secure file transfer.
+ - Use a secrets manager like AWS Secrets Manager or Kubernetes Secrets.
+
+In your backend container, you use the wrapping_token to unwrap and get the SecretID
