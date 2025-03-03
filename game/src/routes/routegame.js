@@ -6,6 +6,5 @@ export const gameRoutes = function(fastify, options, done){
     fastify.post('/', createGame),
     fastify.put('/:id', updateGame),
     fastify.delete('/:id', cancelGame)
-    fastify.get('/live/:gameId',{ websocket: true, preHandler: validateGameId},  liveGame)
     done()
 }

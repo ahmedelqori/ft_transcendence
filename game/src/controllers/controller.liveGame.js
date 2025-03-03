@@ -1,5 +1,5 @@
 import {gameConnections} from "../server.js"
-
+import { fastify } from "../server.js";
 export const validateGameId = async function(req, reply) {
     const gameId = parseInt(req.params.gameId);
     if (isNaN(gameId)) {
@@ -16,7 +16,7 @@ export const validateGameId = async function(req, reply) {
   }
 
 
-  export const liveGame = function (socket, req) {
+export const liveGame = function (socket, req) {
     try {
         const gameId = req.game.id;
         if (!gameConnections.has(gameId)) {
@@ -47,3 +47,19 @@ export const validateGameId = async function(req, reply) {
         console.error("Error in liveGame:", error);
     }
 };
+export const startSocket =  function() {
+    fastify.io.on("connection", (socket) => {
+    console.log("A user connected");
+
+    // Send a message when a new client connects
+    socket.emit("hello", "Welcome to the WebSocket server!");
+
+    socket.on("message", (msg) => {
+        console.log("Received:", msg);
+        fastify.io.emit("broadcast", msg); // Broadcast to all clients
+    });
+
+    socket.on("disconnect", () => {
+        console.log("User disconnected");
+    });
+})};
