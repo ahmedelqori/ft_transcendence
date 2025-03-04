@@ -1,6 +1,6 @@
 import { Model } from "objection";
 
-class notif extends Model {
+export default class notif extends Model {
     static get tableName() {
         return 'notif';
     }

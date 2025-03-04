@@ -4,6 +4,7 @@ import knexConfig from './knexfile.cjs';
 import routes from './routes.js'
 import Knex from "knex";
 import { Model } from "objection";
+import ws from '@fastify/websocket';
 
 
 const knex = Knex(knexConfig);
@@ -12,7 +13,7 @@ Model.knex(knex);
 
 const prettyStream = PinoPretty({
     colorize: true,
-    ignore: 'pid,hostname,res,req,reqId,responseTime',
+    ignore: 'responseTime,reqId,res,req,pid,hostname',
   });
 
 
@@ -23,7 +24,8 @@ const fastify = Fastify({
   },
 });
 
-fastify.register(routes);
+fastify.register(ws);
+fastify.register(routes, {prefix: '/api/notif/'});
 
 fastify.listen({port: 3003, host: '127.0.0.1'}, function (err, address){
     if (err){

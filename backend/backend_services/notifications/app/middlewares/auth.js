@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export default async function auth(req, res) {
-    const authorization = req.headers.authorization;
+    const authorization = req.headers.authorization || req.query.authorization;
     if (!authorization) {
         res.code(401).send({ message: 'Unauthorized' });
         return;
@@ -15,9 +15,8 @@ export default async function auth(req, res) {
         if (response.status !== 200) {
             res.code(401).send({ message: 'Unauthorized' });
             return;
-}
-    }
-    catch(err){
+        }
+    }catch(err){
         res.code(401).send({ message: 'Unauthorized' });
         return;
     };
