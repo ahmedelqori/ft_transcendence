@@ -11,6 +11,7 @@ services:
     volumes:
       - profile_images:/app/profile_images
       - user_managment_database:/app/database
+
   friendship:
     build:
       context: ./backend/backend_services/friendship
@@ -23,8 +24,29 @@ services:
     volumes:
       - friendship_database:/app/database
 
+  2fa:
+    build:
+      context: ./backend/backend_services/2FA
+      dockerfile: Dockerfile
+    container_name: 2fa
+    env_file:
+      - ./backend/backend_services/2FA/.env
+    ports:
+      - "3002:3000"
+    volumes:
+      - 2fa_database:/app/database
 
-
+  notification:
+    build:
+      context: ./backend/backend_services/notification
+      dockerfile: Dockerfile
+    container_name: notification
+    env_file:
+      - ./backend/backend_services/notification/.env
+    ports:
+      - "3003:3000"
+    volumes:
+      - notification_database:/app/database
 
 
 volumes:
@@ -33,16 +55,32 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /home/ybouchma/ft_transcendence/others/db_data/user_managment_database
+      device: /home/yoss/ft_transcendence/others/db_data/user_managment_database
+
   friendship_database:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/ybouchma/ft_transcendence/others/db_data/friendship_database
+      device: /home/yoss/ft_transcendence/others/db_data/friendship_database
+
+  2fa_database:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/yoss/ft_transcendence/others/db_data/2FA_database
+
+  notification_database:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/yoss/ft_transcendence/others/db_data/notification_database
+
   profile_images:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/ybouchma/ft_transcendence/others/profile_images
+      device: /home/yoss/ft_transcendence/others/profile_images
