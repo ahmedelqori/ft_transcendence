@@ -32,11 +32,20 @@ if [ -f /vault/data/init.txt ]; then
     #login for create policy and role
     ROOT_TOKEN=$(grep "Initial Root Token" /vault/data/init.txt |  awk '{print $4}')
     vault login $ROOT_TOKEN
-    # enable approle auth
-    vault auth enable approle
 
-    #setup a secrets engine
-    vault secrets enable -path=secret/sqlite kv
+     if ! vault auth list | grep -q "approle/"; then
+        echo "__________________Enabling AppRole auth method...__________________"
+        vault auth enable approle
+    else
+        echo "__________________AppRole auth method is already enabled.__________________"
+    fi
+
+    if ! vault secrets list | grep -q "secret/sqlite"; then
+        echo "__________________Enabling secrets engine for sqlite...__________________"
+        vault secrets enable -path=secret/sqlite kv
+    else
+        echo "__________________Secrets engine for sqlite is already enabled.__________________"
+    fi
 
     #store kv
     vault kv put secret/sqlite/webapp db-name="test" username="test" password="test"
@@ -48,8 +57,7 @@ if [ -f /vault/data/init.txt ]; then
     vault write auth/approle/role/backend token_policies="backend-policy" token_ttl=1h token_max_ttl=4h
 
     #create a secret id and wrap it in a temporary token 
-    vault write -f -wrap-ttl=60s auth/approle/role/backend/secret-id
-
+    vault write -f -wrap-ttl=2m auth/approle/role/backend/secret-id
 
     #NEED TO CHECK IF ITS SAVED IN ENV VARTIABLE OR NOT !!!
 else
