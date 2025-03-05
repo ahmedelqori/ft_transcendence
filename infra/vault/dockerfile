@@ -1,6 +1,6 @@
 FROM hashicorp/vault:latest
 
-RUN apk update && apk add openssl libcap && /usr/sbin/setcap cap_ipc_lock=+ep /bin/vault
+RUN apk update && apk add openssl libcap curl && /usr/sbin/setcap cap_ipc_lock=+ep /bin/vault
 
 RUN mkdir -p /vault/data /vault/tls && \
     openssl req -x509 -nodes -days 365 -newkey rsa:4096 \
@@ -10,11 +10,13 @@ RUN mkdir -p /vault/data /vault/tls && \
     -addext "subjectAltName=DNS:vault"
 
 COPY config.hcl /vault/config/config.hcl
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
-RUN chown -R vault:vault /vault
+RUN chown -R vault:vault /vault && \
+    chmod +x /usr/local/bin/entrypoint.sh
 
 USER vault
 
 EXPOSE 8200
 
-CMD ["vault", "server", "-config=/vault/config/config.hcl"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
