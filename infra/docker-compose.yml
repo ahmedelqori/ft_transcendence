@@ -20,6 +20,8 @@ services:
       - .env
     networks:
       - appNet
+    volumes:
+      - VolumeVault:/vault/data
     ports:
       - "8200:8200"
     cap_add:
@@ -29,3 +31,6 @@ services:
 networks:
   appNet:
     driver: bridge
+
+volumes:
+  VolumeVault:
