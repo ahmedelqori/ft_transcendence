@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soccer Pong Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="scoreboard">
+            <div class="player-info">
+                <div class="player-avatar left-player-avatar"></div>
+                <div class="player-name">Hunter Barrera</div>
+            </div>
+            
+            <div class="score">
+                <span id="left-score">0</span>
+                <span class="score-separator">-</span>
+                <span id="right-score">0</span>
+            </div>
+            
+            <div class="player-info">
+                <div class="player-name">Renata Mason</div>
+                <div class="player-avatar right-player-avatar"></div>
+            </div>
+        </div>
+        
+        <div class="game-board" id="game-board">
+            <div class="paddle left-paddle" id="left-paddle"></div>
+            <div class="ball" id="ball"></div>
+            <div class="center-circle"></div>
+            <div class="center-line"></div>
+            <div class="paddle right-paddle" id="right-paddle"></div>
+            
+            <div class="game-over" id="game-over">
+                <h2 id="winner-text">Game Over</h2>
+                <button id="restart-button">Play Again</button>
+            </div>
+        </div>
+        
+        <div class="status" id="status">Waiting for connection...</div>
+        <div class="controls">
+            <button id="start-button">Start Game</button>
+            <button id="join-button">Join Game</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

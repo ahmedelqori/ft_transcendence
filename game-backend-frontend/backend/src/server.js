@@ -49,7 +49,7 @@ export const fastify = Fastify(({
 const start = async function(){
   const port = process.env.PORT || 3000;
   try {
-      await fastify.listen({port:port, host: "0.0.0.0"})
+      fastify.listen({port:port, host: "0.0.0.0"})
   } catch (error) {
       fastify.log.error(error);
       process.exit(1)
