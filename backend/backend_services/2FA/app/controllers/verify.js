@@ -3,6 +3,7 @@ import speakeazy from 'speakeasy';
 import axios from 'axios';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
+import notif from '../utils/send_notif.js';
 
 
 export default async function verify(req, res) {
@@ -55,6 +56,7 @@ export default async function verify(req, res) {
             res
                 .status(200)
                 .send({ message: '2FA enabled' });
+            notif(req, 'info', '2FA enabled');
             return ;
         }
         catch (err){

@@ -1,6 +1,5 @@
 import fs from '../models.js';
 
-
 export default async function accept(req, res) {
     const user_id = Number(req.params.user_id);
     if (isNaN(user_id)) {

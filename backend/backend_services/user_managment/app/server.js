@@ -23,8 +23,8 @@ const fastify = Fastify({
   },
 });
 
-fastify.register(cookie);
 fastify.register(multipart);
+fastify.register(cookie);
 fastify.register(routes, { prefix: '/api/account/' });
 
 // Run the server!

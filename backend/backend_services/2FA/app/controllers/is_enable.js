@@ -1,6 +1,7 @@
 import db from '../models.js'
 import qrcode from 'qrcode'
 import speakeazy from 'speakeasy'
+import notif from '../utils/send_notif.js'
 
 
 export default async function is_enable(req, res) {

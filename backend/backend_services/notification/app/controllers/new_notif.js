@@ -5,7 +5,6 @@ import ev from './event.js';
 export default async function new_notif(req, res) {
     const {level, message} = req.body;
 
-
     if (!['info', 'warning', 'error'].includes(level)) {
         res.status(400).send({message: 'Invalid level'});
         return;

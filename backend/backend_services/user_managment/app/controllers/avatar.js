@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import Player from '../models.js';
+import notif from '../utils/send_notif.js';
 
 const remove_old_avatar = async (avatar_url) => {
   const filename = avatar_url.split('/').pop();
@@ -28,6 +29,7 @@ const avatar = async (req, reply) => {
     const fileBuffer = await req.fileData.toBuffer();
     const extension = extensions[req.fileData.mimetype];
     if (!extension) {
+      notif(req, 'error', 'Unsupported file type');
       return reply.status(400).send({ error: 'Unsupported file type' });
     }
 

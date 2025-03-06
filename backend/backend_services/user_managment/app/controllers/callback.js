@@ -70,7 +70,6 @@ export default async function callback(req, reply) {
         reply
             .status(200)
             .send({ message: "Go to 2FA verification endpoint to verify", access_token: jwt_access_token });
-        // generate temporary JWT access token and ask to verify 2FA
         return ;
     }
     
