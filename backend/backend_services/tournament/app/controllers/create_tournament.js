@@ -11,14 +11,6 @@ export default async function create_tournament(req, res) {
         return res;
     };
 
-    const players_record = await tournament_players.query().where({nickname});
-    if (players_record.length > 0) {
-        res
-        .status(400)
-        .send({message: 'Nickname already exists'});
-        return res;
-    };
-
     tournament.query().insert({
         owner_id: req.user.id,
         tournament_name,
@@ -28,20 +20,22 @@ export default async function create_tournament(req, res) {
             tournament_id: tournament.id,
             player_id: req.user.id,
             nickname
-        }).then((tournament_player) => {
-            res
-            .status(201)
-            .send({message: 'Tournament created', tournament, tournament_player});
+        }).then((tournament) => {
+            console.log(`Tournament ${tournament_name} created successfully`);
+            console.log(tournament);
         }).catch((err) => {
             console.error(err.message);
             res.code(500).send({message: 'Internal Server Error'});
+            return res;
         });
     }).catch((err) => {
         console.error(err.message);
         res.code(500).send({message: 'Internal Server Error'});
+        return res;
     });
 
-
-
+    res
+        .status(201)
+        .send({message: 'Tournament created successfully'});
 }
 

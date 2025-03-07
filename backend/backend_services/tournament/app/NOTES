@@ -1,0 +1,21 @@
+
+
+
+
+
+tournament backend logic:
+    user can create tournament
+    wen user create tournament join it automatiqually
+    can invite his friends or send join link for others
+    can draft it
+    other users can join tournament with click button in message or the link
+
+
+
+
+pool: {
+    afterCreate: (conn, cb) => {
+    conn.run('PRAGMA foreign_keys = ON', cb); // Enable foreign keys
+    }
+}
+

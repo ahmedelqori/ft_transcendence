@@ -8,5 +8,10 @@ module.exports = {
     connection: {
       filename: './database/sqlite.db'
     },
-    useNullAsDefault: true
+    useNullAsDefault: true,
+    pool: {
+      afterCreate: (conn, cb) => {
+        conn.run('PRAGMA foreign_keys = ON', cb); // Enable foreign keys
+      }
+    }
 };
