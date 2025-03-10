@@ -1,6 +1,7 @@
-import { defaultGameConfig, gameState } from "./gameConfig";
+import { defaultGameConfig, gameState } from "./gameConfig.js";
+import {fastify} from '../server.js';
 
-export function resetBallPaddles() {
+export function resetBallAndPaddles() {
   gameState.ball = {
     x: gameState.boardWidth / 2,
     y: gameState.boardHeight / 2,
@@ -30,20 +31,6 @@ export function updateBallPosition() {
   checkScoring();
 }
 
-function updateAfterPaddleCollision(paddleType){
-  const paddlePos = paddleType === 'up' ? gameState.paddles.up : gameState.paddles.down;
-  const moveSign = paddleType === 'up' ? 1 : -1
-  const collisionPos = (gameState.ball.x - (paddlePos - paddleHalfWidth)) / defaultGameConfig.paddleWidth;
-  const bounceAngle = (collisionPos - 0.5) * Math.PI * 0.7;
-  const speed = Math.sqrt(gameState.ball.xDir ** 2 + gameState.ball.yDir ** 2);
-  const newSpeed = Math.min(speed + 0.5, defaultGameConfig.maxBallSpeed);
-  const ballY = paddleType === 'up' ? upPaddleY + defaultGameConfig.paddleHeight + ballRadius
-  : downPaddleY - ballRadius;
-  gameState.ball.xDir = Math.sin(bounceAngle) * newSpeed;
-  gameState.ball.yDir = moveSign * Math.abs(Math.cos(bounceAngle) * newSpeed);
-  gameState.ball.y = ballY;
-}
-
 export function checkPaddleCollisions() {
   const upPaddleY = defaultGameConfig.upPaddleY;
   const downPaddleY = defaultGameConfig.downPaddleY;
@@ -65,15 +52,30 @@ export function checkPaddleCollisions() {
         updateAfterPaddleCollision('down')
 }
 
+function updateAfterPaddleCollision(paddleType){
+  const paddlePos = paddleType === 'up' ? gameState.paddles.up : gameState.paddles.down;
+  const moveSign = paddleType === 'up' ? 1 : -1
+  const collisionPos = (gameState.ball.x - (paddlePos - paddleHalfWidth)) / defaultGameConfig.paddleWidth;
+  const bounceAngle = (collisionPos - 0.5) * Math.PI * 0.7;
+  const speed = Math.sqrt(gameState.ball.xDir ** 2 + gameState.ball.yDir ** 2);
+  const newSpeed = Math.min(speed + 0.5, defaultGameConfig.maxBallSpeed);
+  const ballY = paddleType === 'up' ? upPaddleY + defaultGameConfig.paddleHeight + ballRadius
+  : downPaddleY - ballRadius;
+  gameState.ball.xDir = Math.sin(bounceAngle) * newSpeed;
+  gameState.ball.yDir = moveSign * Math.abs(Math.cos(bounceAngle) * newSpeed);
+  gameState.ball.y = ballY;
+}
+
+
 export function checkScoring() {
   const ballRadius = defaultGameConfig.ballSize / 2;
   if (gameState.ball.y - ballRadius < 0) {
     gameState.score.secondPlayer += 1;
-    resetBallPaddles();
+    resetBallAndPaddles();
   } 
   else if (gameState.ball.y + ballRadius > gameState.boardHeight) {
     gameState.score.mainPlayer += 1;
-    resetBallPaddles();
+    resetBallAndPaddles();
   }
   if (gameState.score.mainPlayer === defaultGameConfig.scoreToWin || gameState.score.secondPlayer === defaultGameConfig.scoreToWin){
     gameState.ended = true;
@@ -82,9 +84,8 @@ export function checkScoring() {
 
 }
 
-// New implementation with requestAnimationFrame
 let lastTime = 0;
-let frameTime = 1000 / 60; // Default 60fps
+let frameTime = 1000 / 60;
 let animationId = null;
 let onUpdateCallback = null;
 
@@ -116,6 +117,7 @@ export function startGameLoop(fps = 60, onUpdate = null) {
   lastTime = performance.now();
   animationId = requestAnimationFrame(gameLoop);
 }
+
 export function stopGameLoop() {
   if (animationId) {
     cancelAnimationFrame(animationId);
@@ -135,16 +137,13 @@ export function resumeGame() {
     gameState.inProgress = true;
   }
 }
-// update the paddle position based on the user input
+
 export function updatePaddlePosition(playerType, position) {
-  // Safety check - make sure position is a number
   if (typeof position !== 'number' || isNaN(position)) {
     return false;
   }
-
   const paddleHalfWidth = defaultGameConfig.paddleWidth / 2;
   
-  // Apply boundary limits - don't allow paddles to go off-screen
   let newPosition = position;
   if (newPosition < paddleHalfWidth) {
     newPosition = paddleHalfWidth;
@@ -152,7 +151,6 @@ export function updatePaddlePosition(playerType, position) {
     newPosition = gameState.boardWidth - paddleHalfWidth;
   }
   
-  // Update the appropriate paddle
   if (playerType === 'mainPlayer') {
     gameState.paddles.down = newPosition;
     return true;
@@ -163,6 +161,7 @@ export function updatePaddlePosition(playerType, position) {
   
   return false;
 }
+
 // // For WebSocket integration:
 // startGameLoop(60, (gameState) => {
 //   // Send updated game state to connected clients

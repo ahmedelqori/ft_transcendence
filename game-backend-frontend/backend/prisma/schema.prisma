@@ -8,11 +8,17 @@ datasource db {
 }
 
 enum Status {
+  PENDING
+  ACCEPTED
   IN_PROGRESS
   FINISHED
   CANCELED
 }
 
+model User {
+  id        Int @id    
+  score    Int @default(0)
+}
 
 model Game {
   id                 Int   @id @default(autoincrement())
@@ -23,7 +29,7 @@ model Game {
   winnerId           Int @default(-1)     
   startedAt          DateTime @default(now())
   endedAt            DateTime?
-  status             Status @default(IN_PROGRESS)
+  status             Status @default(PENDING)
   tournementId         Int @default(0)
 }
 

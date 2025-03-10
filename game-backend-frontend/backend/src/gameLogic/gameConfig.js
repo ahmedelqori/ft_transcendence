@@ -1,3 +1,4 @@
+
 export const defaultGameConfig = {
     playersNumber: 2,
     ballSpeed: 5,

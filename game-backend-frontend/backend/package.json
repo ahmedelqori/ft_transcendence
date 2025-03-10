@@ -12,9 +12,11 @@
   "type": "module",
   "description": "",
   "dependencies": {
+    "@fastify/cors": "^11.0.0",
     "@prisma/client": "^6.4.1",
-    "axios": "^1.7.9",
-    "fastify": "^4.29.0",
+    "axios": "^1.8.1",
+    "cors": "^2.8.5",
+    "fastify": "^5.2.1",
     "fastify-plugin": "^5.0.1",
     "fastify-socket.io": "^5.1.0",
     "nodemon": "^3.1.9",
