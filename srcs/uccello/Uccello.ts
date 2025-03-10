@@ -1,3 +1,4 @@
+type ELEMENT_HTML = HTMLElement | Text | undefined;
 interface DOM_TYPES_INTER {
   TEXT: string;
   ELEMENT: string;
@@ -22,7 +23,7 @@ interface ELEMENT_INTER {
   value?: string;
   children?: ELEMENT_INTER[];
   listeners?: LISTENERS_INTER;
-  el?: HTMLElement | DocumentFragment | Text;
+  el?: ELEMENT_HTML;
 }
 
 const DOM_TYPES: DOM_TYPES_INTER = {
@@ -176,4 +177,88 @@ function setClass(el: HTMLElement, className: string[] | string) {
   if (Array.isArray(className)) {
     el.classList.add(...className);
   }
+}
+
+export function setStyle(el: HTMLElement, name: string, value: string) {
+  el.style[name as any] = value;
+}
+
+export function removeStyle(el: HTMLElement, name: any) {
+  delete el.style[name];
+}
+
+export function setAttribute(
+  el: HTMLElement,
+  name: string,
+  value: string | null
+) {
+  if (value == null) {
+    removeAttribute(el, name);
+  } else if (name.startsWith("data-") || name in el) {
+    el.setAttribute(name, value);
+  } else {
+    (el as any)[name] = value;
+  }
+}
+
+export function removeAttribute(el: HTMLElement, name: string) {
+  if (name in el) {
+    (el as any)[name] = "";
+  }
+  el.removeAttribute(name);
+}
+
+export function destroyDOM(vdom: ELEMENT_INTER) {
+  const { type } = vdom;
+
+  switch (type) {
+    case DOM_TYPES.TEXT: {
+      removeTextNode(vdom);
+      break;
+    }
+
+    case DOM_TYPES.ELEMENT: {
+      removeElementNode(vdom);
+      break;
+    }
+
+    case DOM_TYPES.FRAGMENT: {
+      removeFragmentNodes(vdom);
+      break;
+    }
+
+    default: {
+      throw new Error(`Can't destroy DOM of type: ${type}`);
+    }
+  }
+
+  delete vdom.el;
+}
+
+function removeTextNode(vdom: ELEMENT_INTER) {
+  const el = vdom.el;
+  el?.remove();
+}
+function removeElementNode(vdom: ELEMENT_INTER) {
+  const { el, children, listeners } = vdom;
+
+  el?.remove();
+  children?.forEach(destroyDOM);
+
+  if (listeners) {
+    removeEventListeners(listeners, el);
+    delete vdom.listeners;
+  }
+}
+export function removeEventListeners(
+  listeners: LISTENERS_INTER = {},
+  el: ELEMENT_HTML
+) {
+  Object.entries(listeners).forEach(([eventName, handler]) => {
+    el?.removeEventListener(eventName, handler);
+  });
+}
+function removeFragmentNodes(vdom: ELEMENT_INTER) {
+  const { children } = vdom;
+  children?.forEach(destroyDOM);
 }

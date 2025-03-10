@@ -108,3 +108,69 @@ function setClass(el, className) {
         el.classList.add(...className);
     }
 }
+export function setStyle(el, name, value) {
+    el.style[name] = value;
+}
+export function removeStyle(el, name) {
+    delete el.style[name];
+}
+export function setAttribute(el, name, value) {
+    if (value == null) {
+        removeAttribute(el, name);
+    }
+    else if (name.startsWith("data-") || name in el) {
+        el.setAttribute(name, value);
+    }
+    else {
+        el[name] = value;
+    }
+}
+export function removeAttribute(el, name) {
+    if (name in el) {
+        el[name] = "";
+    }
+    el.removeAttribute(name);
+}
+export function destroyDOM(vdom) {
+    const { type } = vdom;
+    switch (type) {
+        case DOM_TYPES.TEXT: {
+            removeTextNode(vdom);
+            break;
+        }
+        case DOM_TYPES.ELEMENT: {
+            removeElementNode(vdom);
+            break;
+        }
+        case DOM_TYPES.FRAGMENT: {
+            removeFragmentNodes(vdom);
+            break;
+        }
+        default: {
+            throw new Error(`Can't destroy DOM of type: ${type}`);
+        }
+    }
+    delete vdom.el;
+}
+function removeTextNode(vdom) {
+    const el = vdom.el;
+    el?.remove();
+}
+function removeElementNode(vdom) {
+    const { el, children, listeners } = vdom;
+    el?.remove();
+    children?.forEach(destroyDOM);
+    if (listeners) {
+        removeEventListeners(listeners, el);
+        delete vdom.listeners;
+    }
+}
+export function removeEventListeners(listeners = {}, el) {
+    Object.entries(listeners).forEach(([eventName, handler]) => {
+        el?.removeEventListener(eventName, handler);
+    });
+}
+function removeFragmentNodes(vdom) {
+    const { children } = vdom;
+    children?.forEach(destroyDOM);
+}

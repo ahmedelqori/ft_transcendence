@@ -17,7 +17,7 @@ const vdom = Uccello.createFragment([
         "div",
         {
           on: {
-            click: () => console.log("hi"),
+            click: () => Uccello.destroyDOM(vdom),
           },
         },
         ["Hello"]
@@ -25,5 +25,3 @@ const vdom = Uccello.createFragment([
     ]
   ),
 ]);
-
-Uccello.mountDOM(vdom, ROOT);
