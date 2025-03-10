@@ -43,3 +43,22 @@ export class tournament_players extends Model {
     };
   }
 }
+
+export class tournament_settings extends Model {
+  static get tableName() {
+    return 'tournament_settings';
+  }
+
+  static get jsonSchema() {
+    return {
+      type: 'object',
+      required: ['tournament_id', 'code'],
+
+      properties: {
+        id: { type: 'integer' },
+        tournament_id: { type: 'integer' },
+        code: { type: 'integer' },
+      }
+    };
+  }
+}

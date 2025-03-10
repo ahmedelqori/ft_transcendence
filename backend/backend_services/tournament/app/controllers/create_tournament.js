@@ -1,4 +1,5 @@
-import { tournament, tournament_players} from '../models.js'
+import { tournament, tournament_players, tournament_settings} from '../models.js'
+import random from 'random';
 
 export default async function create_tournament(req, res) {
     const {tournament_name, nickname, players_number} = req.body;
@@ -16,17 +17,25 @@ export default async function create_tournament(req, res) {
         tournament_name,
         players_number
     }).then((tournament) => {
-        tournament_players.query().insert({
+        console.log(`Tournament ${tournament_name} created successfully`);
+        console.log(tournament);
+        tournament_settings.query().insert({
             tournament_id: tournament.id,
-            player_id: req.user.id,
-            nickname
-        }).then((tournament) => {
-            console.log(`Tournament ${tournament_name} created successfully`);
-            console.log(tournament);
+            code: random.int(0, 9999)
+        }).then((tournament_settings) => {
+            tournament_players.query().insert({
+                tournament_id: tournament.id,
+                player_id: req.user.id,
+                nickname
+            }).catch((err) => {
+                console.error(err.message);
+                res.code(500).send({message: 'Internal Server Error'});
+                return ;
+            });
         }).catch((err) => {
             console.error(err.message);
             res.code(500).send({message: 'Internal Server Error'});
-            return res;
+            return ;
         });
     }).catch((err) => {
         console.error(err.message);

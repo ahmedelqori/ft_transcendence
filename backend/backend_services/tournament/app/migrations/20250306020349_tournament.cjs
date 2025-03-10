@@ -23,6 +23,14 @@ exports.up = function(knex) {
         table.integer('player_id').unsigned();
         table.string('nickname');
         table.timestamp('created_at').defaultTo(knex.fn.now());
+    }).createTable('tournament_settings', (table) => {
+        table.increments('id').primary();
+        table.integer('tournament_id').unsigned()
+          .references('id')
+          .inTable('tournament')
+          .onDelete('CASCADE')
+        table.integer('code');
+        // add more settings here
     })
 };
 
