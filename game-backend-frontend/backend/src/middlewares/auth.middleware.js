@@ -26,7 +26,7 @@ import { getUserById } from './user.data.js';
 
 
 export async function authenticate(req, reply) {
-  fastify.log.info("Authenticating http request");
+  fastify.log.info(`Authenticating http request ${req.headers.path}`);
   const authorization = req.headers?.authorization;
   if (!authorization) {
     fastify.log.warn("No authorization header provided for http request");
