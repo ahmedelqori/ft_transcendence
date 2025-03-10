@@ -7,6 +7,8 @@ import { authenticate } from "./middlewares/auth.middleware.js";
 import cors from "@fastify/cors";
 import swagger from "@fastify/swagger";
 import swaggerUI from "@fastify/swagger-ui";
+import {socketDocsPlugin, docsPortalPlugin} from './plugins/sockets-docs.plugin.js';
+
 
 export const gameConnections = new Map();
 
@@ -51,6 +53,9 @@ fastify.register(swaggerUI, {
   }
 });
 
+fastify.register(socketDocsPlugin);
+fastify.register(docsPortalPlugin);
+
 fastify.register(cors, {
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -60,7 +65,6 @@ fastify.register(cors, {
 
 fastify.register(prismaPlugin);
 fastify.register(socketIoPlugin, {
-  path: '/api/games/live',
   cors: {
     origin: '*',
     methods: ['GET', 'POST']
@@ -68,14 +72,15 @@ fastify.register(socketIoPlugin, {
 });
 
 fastify.register(gameRoutes, { prefix: "/api/games" });
-
 fastify.addHook('preHandler', async (req, reply) => {
   const path = req.raw.url;
-  if (path.startsWith('/documentation'))
+  if (path.startsWith('/swagger') || path.startsWith('/documentation') || path.startsWith('/socket-docs'))
      return;
   await authenticate(req, reply);
 }); // only for http requests
 fastify.addHook('onReady', setupSocketHandlers); // for socket.io connections
+
+
 
 const start = async function() {
   const port = process.env.PORT || 3000;

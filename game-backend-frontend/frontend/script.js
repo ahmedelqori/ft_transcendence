@@ -60,7 +60,7 @@ async function createNewGame() {
     // Get token from localStorage or your auth system
     const token = localStorage.getItem("authToken") || "dummyToken";
 
-    const response = await fetch("http://localhost:3000/api/games", {
+    const response = await fetch("http://localhost:3000/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
