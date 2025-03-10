@@ -1,3 +1,5 @@
-const ROOT = document.getElementById("root") as HTMLElement;
-import Hello from "./tmp.js";
-ROOT.innerText = Hello;
+import * as Uccello from "./uccello/Uccello.js";
+
+console.log(
+  Uccello.createFragment(["Hello", Uccello.createElement("div", {}, ["Hello"])])
+);
