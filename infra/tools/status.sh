@@ -13,6 +13,7 @@ echo -e "${CYAN}----------------------------------------------------------------
 echo -e "${GREEN}\t\t\t\t\t\t\t\tDocker Compose Status"
 echo -e "${CYAN}------------------------------------------------------------------------------------------------------------------------------------------------${NC}"
 
+cd infra 
 
 docker-compose ps | while read -r line; do
   if [[ $line != *"IMAGE"* ]]; then
@@ -37,7 +38,7 @@ done
 echo -e "${CYAN}------------------------------------------------------------------------------------------------------------------------------------------------${NC}"
 
 
-docker-compose stats --no-stream | while read -r line; do
+docker stats --no-stream | while read -r line; do
   if [[ $line != *"CONTAINER"* ]]; then
     echo -e "${WHITE}$line${NC}"
   else

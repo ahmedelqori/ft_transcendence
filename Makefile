@@ -1,27 +1,32 @@
-# Docker Compose Commands
+CMD = docker-compose -f ./infra/docker-compose.yml -p app
 up:
-	@docker-compose up --build -d
-
+	$(CMD) up -d
+	
 down:
-	@docker-compose down
+	$(CMD) down
+
 
 stop:
-	@docker-compose stop
+	$(CMD) stop
 
 re: down up
 
 ps:
-	@docker-compose ps -a
+	$(CMD) ps -a
 
 logs:
-	@docker-compose logs $(c)
+	$(CMD) logs $(c)
 
 status:
-	@bash ./others/tools/status.sh
+	@bash ./infra/tools/status.sh
 
 shell:
-	@docker-compose exec $(c) bash
+	$(CMD) exec $(c) bash
 
 clean:
-	@docker-compose down --rmi all
-	@#docker container rm -f $(docker container ls -qa)
+	$(CMD) down --rmi all
+
+fclean: down
+	$(CMD) down --rmi all -v --remove-orphans
+	docker system prune -af
+	docker volume prune -f
