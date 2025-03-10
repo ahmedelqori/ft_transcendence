@@ -9,6 +9,8 @@ services:
     networks:
       - appNet
     restart: always
+    volumes:
+      - profile_images:/app/profile_images
     depends_on:
       - vault
 
