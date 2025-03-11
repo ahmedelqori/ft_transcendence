@@ -1,27 +1,23 @@
 import * as Uccello from "./uccello/Uccello.js";
 
 const ROOT = document.getElementById("root") as HTMLElement;
-
-const vdom = Uccello.createFragment([
-  "Hello",
-  Uccello.createElement(
-    "div",
-    {
-      on: {
-        dblclick: () => console.log("1234"),
-      },
+let n = "red";
+const VirtualDom = Uccello.createElement(
+  "div",
+  {
+    style: {
+      color: n,
+      backgroundColor: "#eee",
+      margin: "auto",
+      display: "flex",
+      width: "fit-content",
+      padding: "5px 10px",
     },
-    [
-      "Hello",
-      Uccello.createElement(
-        "div",
-        {
-          on: {
-            click: () => Uccello.destroyDOM(vdom),
-          },
-        },
-        ["Hello"]
-      ),
-    ]
-  ),
-]);
+    on: {
+      click: () => console.log("HI"),
+    },
+  },
+  ["HELLO"]
+);
+
+Uccello.mountDOM(VirtualDom, ROOT);

@@ -5,10 +5,14 @@ interface DOM_TYPES_INTER {
   FRAGMENT: string;
 }
 
+interface STYLE_INTER {
+  [key: string]: string;
+}
+
 interface PROPS_INTER {
   class?: string[] | string;
   on?: object;
-  style?: string[];
+  style?: STYLE_INTER;
   [key: string]: any;
 }
 
