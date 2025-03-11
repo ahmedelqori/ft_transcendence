@@ -1,3 +1,9 @@
+/**
+ * Represents an HTML element, a text node, or undefined.
+ */
+/**
+ * Constants representing different types of DOM nodes.
+ */
 const DOM_TYPES = {
     TEXT: "text",
     ELEMENT: "element",
@@ -351,4 +357,87 @@ export function removeEventListeners(listeners = {}, el) {
 function removeFragmentNodes(vdom) {
     const { children } = vdom;
     children?.forEach(destroyDOM);
+}
+/**
+ * A lightweight event dispatcher that allows subscribing to and dispatching commands with handlers.
+ * Supports multiple handlers per command and global handlers that run after every command execution.
+ */
+export class Dispatcher {
+    subs = new Map();
+    afterHandlers = [];
+    /**
+     * Subscribes a handler to a specific command.
+     *
+     * @param {string} commandName - The name of the command to listen for.
+     * @param {(payload: any) => void} handler - The function to execute when the command is dispatched.
+     * @returns {() => void} A function to unsubscribe the handler from the command.
+     */
+    subscribe(commandName, handler) {
+        if (!this.subs.has(commandName)) {
+            this.subs.set(commandName, []);
+        }
+        const handlers = this.subs.get(commandName);
+        if (handlers?.includes(handler)) {
+            return () => { };
+        }
+        handlers?.push(handler);
+        return () => {
+            const idx = handlers?.indexOf(handler);
+            handlers?.splice(idx, 1);
+        };
+    }
+    /**
+     * Registers a handler to be executed after every dispatched command.
+     *
+     * @param {() => void} handler - The function to execute after each command dispatch.
+     * @returns {() => void} A function to unsubscribe the handler.
+     */
+    afterEveryCommand(handler) {
+        this.afterHandlers.push(handler);
+        return () => {
+            const idx = this.afterHandlers.indexOf(handler);
+            this.afterHandlers.splice(idx, 1);
+        };
+    }
+    /**
+     * Dispatches a command, executing all subscribed handlers for that command.
+     *
+     * @param {string} commandName - The name of the command to dispatch.
+     * @param {any} payload - The data to pass to the handlers.
+     */
+    dispatch(commandName, payload) {
+        if (this.subs.has(commandName)) {
+            this.subs.get(commandName)?.forEach((handler) => handler(payload));
+        }
+        else {
+            console.warn(`No handlers for command: ${commandName}`);
+        }
+        this.afterHandlers.forEach((handler) => handler());
+    }
+}
+export function createApp({ state, view, reducers = {} }) {
+    let parentEl = null;
+    let vdom = null;
+    const dispatcher = new Dispatcher();
+    const subscriptions = [dispatcher.afterEveryCommand(renderApp)];
+    for (const actionName in reducers) {
+        const reducer = reducers[actionName];
+        const subs = dispatcher.subscribe(actionName, (payload) => {
+            state = reducer(state, payload);
+        });
+        subscriptions.push(subs);
+    }
+    function renderApp() {
+        if (vdom) {
+            destroyDOM(vdom);
+        }
+        vdom = view(state);
+        mountDOM(vdom, parentEl);
+    }
+    return {
+        mount(_parentEl) {
+            parentEl = _parentEl;
+            renderApp();
+        },
+    };
 }

@@ -21,3 +21,4 @@ const VirtualDom = Uccello.createElement(
 );
 
 Uccello.mountDOM(VirtualDom, ROOT);
+

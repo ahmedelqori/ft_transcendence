@@ -1,13 +1,29 @@
+/**
+ * Represents an HTML element, a text node, or undefined.
+ */
+
 type ELEMENT_HTML = HTMLElement | Text | undefined;
+
+/**
+ * Defines possible DOM node types.
+ */
 interface DOM_TYPES_INTER {
   TEXT: string;
   ELEMENT: string;
   FRAGMENT: string;
 }
 
+/**
+ * Defines a style object where each key corresponds to a CSS property.
+ */
+
 interface STYLE_INTER {
   [key: string]: string;
 }
+
+/**
+ * Defines properties that can be assigned to an element.
+ */
 
 interface PROPS_INTER {
   class?: string[] | string;
@@ -16,10 +32,17 @@ interface PROPS_INTER {
   [key: string]: any;
 }
 
+/**
+ * Defines event listeners for an element.
+ */
+
 interface LISTENERS_INTER {
   [key: string]: () => void;
 }
 
+/**
+ * Represents an element structure used to create virtual DOM-like components.
+ */
 interface ELEMENT_INTER {
   type: string;
   tag?: string;
@@ -29,6 +52,10 @@ interface ELEMENT_INTER {
   listeners?: LISTENERS_INTER;
   el?: ELEMENT_HTML;
 }
+
+/**
+ * Constants representing different types of DOM nodes.
+ */
 
 const DOM_TYPES: DOM_TYPES_INTER = {
   TEXT: "text",
@@ -469,4 +496,94 @@ export function removeEventListeners(
 function removeFragmentNodes(vdom: ELEMENT_INTER) {
   const { children } = vdom;
   children?.forEach(destroyDOM);
+}
+
+/**
+ * A lightweight event dispatcher that allows subscribing to and dispatching commands with handlers.
+ * Supports multiple handlers per command and global handlers that run after every command execution.
+ */
+export class Dispatcher {
+  private subs = new Map<string, ((payload: any) => void)[]>();
+  private afterHandlers: (() => void)[] = [];
+
+  /**
+   * Subscribes a handler to a specific command.
+   *
+   * @param {string} commandName - The name of the command to listen for.
+   * @param {(payload: any) => void} handler - The function to execute when the command is dispatched.
+   * @returns {() => void} A function to unsubscribe the handler from the command.
+   */
+  subscribe(commandName: string, handler: (payload: any) => void): () => void {
+    if (!this.subs.has(commandName)) {
+      this.subs.set(commandName, []);
+    }
+
+    const handlers = this.subs.get(commandName);
+    if (handlers?.includes(handler)) {
+      return () => {};
+    }
+    handlers?.push(handler);
+    return () => {
+      const idx = handlers?.indexOf(handler);
+      handlers?.splice(idx as number, 1);
+    };
+  }
+
+  /**
+   * Registers a handler to be executed after every dispatched command.
+   *
+   * @param {() => void} handler - The function to execute after each command dispatch.
+   * @returns {() => void} A function to unsubscribe the handler.
+   */
+  afterEveryCommand(handler: () => void): () => void {
+    this.afterHandlers.push(handler);
+    return () => {
+      const idx = this.afterHandlers.indexOf(handler);
+      this.afterHandlers.splice(idx, 1);
+    };
+  }
+
+  /**
+   * Dispatches a command, executing all subscribed handlers for that command.
+   *
+   * @param {string} commandName - The name of the command to dispatch.
+   * @param {any} payload - The data to pass to the handlers.
+   */
+  dispatch(commandName: string, payload: any): void {
+    if (this.subs.has(commandName)) {
+      this.subs.get(commandName)?.forEach((handler) => handler(payload));
+    } else {
+      console.warn(`No handlers for command: ${commandName}`);
+    }
+    this.afterHandlers.forEach((handler) => handler());
+  }
+}
+
+export function createApp({ state, view, reducers = {} }: any) {
+  let parentEl: any = null;
+  let vdom: any = null;
+
+  const dispatcher = new Dispatcher();
+  const subscriptions = [dispatcher.afterEveryCommand(renderApp)];
+
+  for (const actionName in reducers) {
+    const reducer = reducers[actionName];
+    const subs = dispatcher.subscribe(actionName, (payload) => {
+      state = reducer(state, payload);
+    });
+    subscriptions.push(subs);
+  }
+  function renderApp() {
+    if (vdom) {
+      destroyDOM(vdom);
+    }
+    vdom = view(state);
+    mountDOM(vdom, parentEl);
+  }
+  return {
+    mount(_parentEl: any) {
+      parentEl = _parentEl;
+      renderApp();
+    },
+  };
 }
