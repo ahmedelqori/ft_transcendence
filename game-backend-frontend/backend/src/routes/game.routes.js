@@ -32,7 +32,7 @@ const responseGameSchema = {
     winnerId: { type: 'integer' },
     startedAt: { type: 'string', format: 'date-time' },
     endedAt: { type: ['string', 'null'], format: 'date-time' },
-    status: { type: 'string' },
+    status: { type: 'string', enum: ['PENDING', 'ACCEPTED', 'IN_PROGRESS', 'FINISHED', 'CANCELED'] },
     tournementId: { type: 'integer' }
   }
 };
@@ -100,7 +100,7 @@ export const gameRoutes = function(fastify, options, done) {
           },
           tournementId: { 
             type: 'integer',
-            description: 'ID of the tournament if this game is part of one'
+            description: 'ID of the tournament if this game is part of one(0 if it is not part of a tournament)'
           }
         }
       },

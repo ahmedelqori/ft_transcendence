@@ -25,7 +25,19 @@ export const fastify = Fastify({
     }
   }
 });
+fastify.register(cors, {
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'userid'],
+  exposedHeaders: ['Authorization']
+});
 
+fastify.register(socketIoPlugin, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
 // Register Swagger for Api documentation
 fastify.register(swagger, {
   openapi: {
@@ -46,35 +58,20 @@ fastify.register(swagger, {
 });
 
 fastify.register(swaggerUI, {
-  routePrefix: '/documentation',
+  routePrefix: '/api-docs',
   uiConfig: {
     docExpansion: 'list',
-    deepLinking: false
   }
 });
 
 fastify.register(socketDocsPlugin);
 fastify.register(docsPortalPlugin);
-
-fastify.register(cors, {
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'userid'],
-  exposedHeaders: ['Authorization']
-});
-
 fastify.register(prismaPlugin);
-fastify.register(socketIoPlugin, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
-  }
-});
-
 fastify.register(gameRoutes, { prefix: "/api/games" });
+
 fastify.addHook('preHandler', async (req, reply) => {
   const path = req.raw.url;
-  if (path.startsWith('/swagger') || path.startsWith('/documentation') || path.startsWith('/socket-docs'))
+  if (path.startsWith('/swagger') || path.startsWith('/api-docs') || path.startsWith('/socket-docs'))
      return;
   await authenticate(req, reply);
 }); // only for http requests
@@ -87,7 +84,7 @@ const start = async function() {
   try {
     await fastify.listen({ port, host: "0.0.0.0" });
     fastify.log.info(`Server running at http://localhost:${port}`);
-    fastify.log.info(`Documentation available at http://localhost:${port}/documentation`);
+    fastify.log.info(`Documentation available at http://localhost:${port}/swagger`);
   } catch (error) {
     fastify.log.error(error);
     process.exit(1);

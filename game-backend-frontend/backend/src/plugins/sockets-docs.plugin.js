@@ -245,83 +245,11 @@ auth: {
       reply.type('text/html').send(html);
     }
   });
-  
-  // Add link to Socket.IO docs in Swagger UI - with proper error handling
-  fastify.addHook('onReady', () => {
-    try {
-      // Check if swagger and swaggerUI exist
-      if (fastify.swagger && fastify.swaggerUI) {
-        // Get the original UI configuration or initialize an empty object
-        const originalSwaggerUIConfig = fastify.swaggerUI.uiConfig || {};
-        
-        // Create a new configuration with plugins array
-        fastify.swaggerUI.uiConfig = {
-          ...originalSwaggerUIConfig,
-          plugins: [
-            // Include any existing plugins
-            ...(originalSwaggerUIConfig.plugins || []),
-            // Add our custom plugin
-            {
-              name: 'socket-docs-link',
-              fn: function() {
-                return {
-                  components: {
-                    Topbar: function(Original, system) {
-                      return function() {
-                        try {
-                          // Get the original element
-                          const originalElement = Original(system);
-                          
-                          // Create our socket docs link
-                          const socketDocsLink = system.React.createElement(
-                            'a',
-                            {
-                              className: 'btn btn-primary ml-2',
-                              href: '/socket-docs',
-                              target: '_blank',
-                              style: {
-                                marginLeft: '10px'
-                              }
-                            },
-                            'Socket.IO Documentation'
-                          );
-                          
-                          // Safely modify the children if possible
-                          if (originalElement && originalElement.props && Array.isArray(originalElement.props.children)) {
-                            const newChildren = [...originalElement.props.children, socketDocsLink];
-                            return system.React.cloneElement(originalElement, {}, newChildren);
-                          }
-                          
-                          // If we couldn't modify it, return original
-                          return originalElement;
-                        } catch (err) {
-                          // If anything goes wrong, return the original component
-                          fastify.log.error("Error in socket docs custom UI component: " + err.message);
-                          return Original(system);
-                        }
-                      };
-                    }
-                  }
-                };
-              }
-            }
-          ]
-        };
-        
-        fastify.log.info("Socket.IO documentation link added to Swagger UI");
-      } else {
-        fastify.log.info("Swagger UI not available - Socket.IO docs link not added");
-      }
-    } catch (err) {
-      fastify.log.error("Failed to add Socket.IO docs link: " + err.message);
-    }
-  });
-  
+
   done();
 }
 
-export  function docsPortalPlugin(fastify, options, done) {
-  // Add a root route that shows links to both docs
+export function docsPortalPlugin(fastify, options, done) {
   fastify.get('/swagger', (request, reply) => {
     const html = `
     <!DOCTYPE html>
@@ -334,9 +262,7 @@ export  function docsPortalPlugin(fastify, options, done) {
       </head>
       <body>
         <div class="container mt-5">
-          <h1>API Documentation Portal</h1>
           <p class="lead">Choose the documentation you want to view:</p>
-          
           <div class="row mt-4">
             <div class="col-md-6">
               <div class="card mb-4">
@@ -345,7 +271,7 @@ export  function docsPortalPlugin(fastify, options, done) {
                 </div>
                 <div class="card-body">
                   <p>View the REST API endpoints documentation with Swagger UI.</p>
-                  <a href="/documentation" class="btn btn-primary">Swagger Documentation</a>
+                  <a href="/api-docs" class="btn btn-primary">REST API Documentation</a>
                 </div>
               </div>
             </div>
