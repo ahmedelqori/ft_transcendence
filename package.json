@@ -19,5 +19,8 @@
   },
   "devDependencies": {
     "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "test_package_meedivo": "^1.0.0"
   }
 }
