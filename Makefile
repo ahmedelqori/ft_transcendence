@@ -1,20 +1,30 @@
 CMD = docker-compose -f ./infra/docker-compose.yml -p app
-all: build up
-
-build:
-	$(CMD) build
-
 up:
 	$(CMD) up -d
-
+	
 down:
 	$(CMD) down
 
-clean:
-	$(CMD) down -v
+
+stop:
+	$(CMD) stop
+
+re: down up
 
 ps:
-	$(CMD) ps
+	$(CMD) ps -a
+
+logs:
+	$(CMD) logs $(c)
+
+status:
+	@bash ./infra/tools/status.sh
+
+shell:
+	$(CMD) exec $(c) bash
+
+clean:
+	$(CMD) down --rmi all
 
 fclean: down
 	$(CMD) down --rmi all -v --remove-orphans

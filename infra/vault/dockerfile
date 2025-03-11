@@ -11,7 +11,7 @@ RUN mkdir -p /vault/data /vault/tls && \
 
 COPY config.hcl /vault/config/config.hcl
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-COPY backend-policy.hcl /vault/config/backend-policy.hcl
+COPY database-access.hcl /vault/config/database-access.hcl
 
 RUN chown -R vault:vault /vault && \
     chmod +x /usr/local/bin/entrypoint.sh

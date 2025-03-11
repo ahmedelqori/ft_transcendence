@@ -121,28 +121,14 @@ cmds:
     - vault auth list
     - vault write auth/approle/role/backend token_policies="backend-policy" token_ttl=1h token_max_ttl=4h
     - vault read auth/approle/role/backend
-   get role-id
-    - vault read auth/approle/role/backend/role-id
-                    role_id    642b472c-cca0-327d-07ab-7eca94c9f99e
-  we need now get secret-id
-    - vault write -f auth/approle/role/backend/secret-id
-                    secret_id  0f353d42-8483-d206-293d-02bb0060a26c
+   get role-id/ $ vault read auth/approle/role/backend/secret-id
+Error reading auth/approle/role/backend/secret-id: Error making API request.
 
-  Log in with RoleID & SecretID :  get a token
-    - vault write auth/approle/login role_id="642b472c-cca0-327d-07ab-7eca94c9f99e" \
-        secret_id="0f353d42-8483-d206-293d-02bb0060a26c"
+URL: GET https://vault:8200/v1/auth/approle/role/backend/secret-id
+Code: 405. Errors:
 
-    get token :  
-    token                   hvs.CAESIFfVtwnlxA2zjYUAxVOggN0E1Rn1-V1768bYxa-SNrdDGh4KHGh2cy5idXc0NU5la2ZqREVNendua05OQVNoejA
-
-    then we can login and see secrets 
-    - vault login hvs.CAESIFfVtwnlxA2zjYUAxVOggN0E1Rn1-V1768bYxa-SNrdDGh4KHGh2cy5idXc0NU5la2ZqREVNendua05OQVNoejA
-
-]
-  
-
-Vault can be manually resealed using the "vault operator seal" command.
-
+* 1 error occurred:
+        * unsupported operation
 
 ----------- after init my vault ----------
 https://developer.hashicorp.com/vault/tutorials/auth-methods/approle

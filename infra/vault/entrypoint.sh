@@ -51,13 +51,14 @@ if [ -f /vault/data/init.txt ]; then
     vault kv put secret/sqlite/webapp db-name="test" username="test" password="test"
 
     #write a new policy
-    vault policy write backend-policy /vault/config/backend-policy.hcl
+    vault policy write database-access /vault/config/database-access.hcl
 
     #create role for this policy (need to add  bound_cidr_list)
-    vault write auth/approle/role/backend token_policies="backend-policy" token_ttl=1h token_max_ttl=4h
-
-    #create a secret id and wrap it in a temporary token 
+    vault write auth/approle/role/backend token_policies="database-access" token_ttl=1h token_max_ttl=4h secret_id_ttl="10m"  # Short-lived SecretID
+    
+    # #create a secret id and wrap it in a temporary token 
     vault write -f -wrap-ttl=2m auth/approle/role/backend/secret-id
+
 
     #NEED TO CHECK IF ITS SAVED IN ENV VARTIABLE OR NOT !!!
 else
