@@ -11,83 +11,83 @@ services:
     restart: always
     volumes:
       - profile_images:/app/profile_images
-    depends_on:
-      - vault
+  #   depends_on:
+  #     - vault
 
-  vault:
-    image: "vault:app"
-    container_name: vault
-    build: ./vault/.
-    hostname: vault 
-    env_file:
-      - .env
-    networks:
-      - appNet
-    volumes:
-      - VolumeVault:/vault/data
-    # ports:
-    #   - "8200:8200"
-    cap_add:
-      - IPC_LOCK
-    restart: always
+  # vault:
+  #   image: "vault:app"
+  #   container_name: vault
+  #   build: ./vault/.
+  #   hostname: vault 
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - VolumeVault:/vault/data
+  #   # ports:
+  #   #   - "8200:8200"
+  #   cap_add:
+  #     - IPC_LOCK
+  #   restart: always
 
-  user_managment:
-    build:
-      context: ./backend_services/user_managment
-      dockerfile: Dockerfile
-    container_name: user_managment
-    env_file:
-      - ./backend_services/user_managment/.env
-    networks:
-      - appNet
-    volumes:
-      - profile_images:/app/profile_images
-      - user_managment_database:/app/database
+  # user_managment:
+  #   build:
+  #     context: ./backend_services/user_managment
+  #     dockerfile: Dockerfile
+  #   container_name: user_managment
+  #   env_file:
+  #     - ./backend_services/user_managment/.env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - profile_images:/app/profile_images
+  #     - user_managment_database:/app/database
 
-  friendship:
-    build:
-      context: ./backend_services/friendship
-      dockerfile: Dockerfile
-    container_name: friendship
-    env_file:
-      - ./backend_services/friendship/.env
-    networks:
-      - appNet
-    volumes:
-      - friendship_database:/app/database
+  # friendship:
+  #   build:
+  #     context: ./backend_services/friendship
+  #     dockerfile: Dockerfile
+  #   container_name: friendship
+  #   env_file:
+  #     - ./backend_services/friendship/.env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - friendship_database:/app/database
 
-  2fa:
-    build:
-      context: ./backend_services/2FA
-      dockerfile: Dockerfile
-    container_name: 2fa
-    env_file:
-      - ./backend_services/2FA/.env
-    networks:
-      - appNet
-    volumes:
-      - 2fa_database:/app/database
+  # 2fa:
+  #   build:
+  #     context: ./backend_services/2FA
+  #     dockerfile: Dockerfile
+  #   container_name: 2fa
+  #   env_file:
+  #     - ./backend_services/2FA/.env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - 2fa_database:/app/database
 
-  notification:
-    build:
-      context: ./backend_services/notification
-      dockerfile: Dockerfile
-    container_name: notification
-    env_file:
-      - ./backend_services/notification/.env
-    networks:
-      - appNet
-    volumes:
-      - notification_database:/app/database
+  # notification:
+  #   build:
+  #     context: ./backend_services/notification
+  #     dockerfile: Dockerfile
+  #   container_name: notification
+  #   env_file:
+  #     - ./backend_services/notification/.env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - notification_database:/app/database
 
 
 volumes:
   profile_images:
-  VolumeVault:
-  user_managment_database:
-  friendship_database:
-  2fa_database:
-  notification_database:
+  # VolumeVault:
+  # user_managment_database:
+  # friendship_database:
+  # 2fa_database:
+  # notification_database:
  
 networks:
   appNet:
