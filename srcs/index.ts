@@ -1,24 +1,14 @@
 import * as Uccello from "./uccello/Uccello.js";
 
-const ROOT = document.getElementById("root") as HTMLElement;
-let n = "red";
-const VirtualDom = Uccello.createElement(
-  "div",
-  {
-    style: {
-      color: n,
-      backgroundColor: "#eee",
-      margin: "auto",
-      display: "flex",
-      width: "fit-content",
-      padding: "5px 10px",
-    },
-    on: {
-      click: () => console.log("HI"),
-    },
+const ROOT: HTMLElement = document.getElementById("root") as HTMLElement;
+
+Uccello.createApp({
+  state: 0,
+  reducers: {
+    add: (state: any, amount: any) => state + amount,
   },
-  ["HELLO"]
-);
-
-Uccello.mountDOM(VirtualDom, ROOT);
-
+  view: (state: any, emit: any) =>
+    Uccello.createElement("button", { on: { click: () => emit("add", 1) } }, [
+      Uccello.createString(state),
+    ]),
+}).mount(ROOT);

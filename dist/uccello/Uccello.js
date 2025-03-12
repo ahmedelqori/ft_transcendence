@@ -161,7 +161,7 @@ function addProps(el, props, vdom) {
  * @param el The HTML element to which the event listeners will be attached.
  * @returns An object containing references to the added event listeners, keyed by event name.
  */
-export function addEventListeners(listeners = {}, el) {
+function addEventListeners(listeners = {}, el) {
     const addedListeners = {};
     Object.entries(listeners).forEach(([eventName, handler]) => {
         const listener = addEventListener(eventName, handler, el);
@@ -191,7 +191,7 @@ function addEventListener(eventName, handler, el) {
  *              - Other properties in the object are treated as standard HTML attributes and will be set using `setAttribute`.
  * @returns void
  */
-export function setAttributes(el, attrs) {
+function setAttributes(el, attrs) {
     const { class: className, style, ...otherAttrs } = attrs;
     if (className) {
         setClass(el, className);
@@ -231,7 +231,7 @@ function setClass(el, className) {
  * @param value The value to assign to the CSS property (e.g., 'red', '16px').
  * @returns void
  */
-export function setStyle(el, name, value) {
+function setStyle(el, name, value) {
     el.style[name] = value;
 }
 /**
@@ -241,7 +241,7 @@ export function setStyle(el, name, value) {
  * @param name The name of the CSS property to remove (e.g., 'color', 'font-size').
  * @returns void
  */
-export function removeStyle(el, name) {
+function removeStyle(el, name) {
     delete el.style[name];
 }
 /**
@@ -254,7 +254,7 @@ export function removeStyle(el, name) {
  *              Otherwise, it will be set as a property on the element.
  * @returns void
  */
-export function setAttribute(el, name, value) {
+function setAttribute(el, name, value) {
     if (value == null) {
         removeAttribute(el, name);
     }
@@ -272,7 +272,7 @@ export function setAttribute(el, name, value) {
  * @param name The name of the attribute or property to remove (e.g., 'id', 'class', 'data-custom').
  * @returns void
  */
-export function removeAttribute(el, name) {
+function removeAttribute(el, name) {
     if (name in el) {
         el[name] = "";
     }
@@ -343,7 +343,7 @@ function removeElementNode(vdom) {
  * @param el The HTML element from which the event listeners will be removed.
  * @returns void
  */
-export function removeEventListeners(listeners = {}, el) {
+function removeEventListeners(listeners = {}, el) {
     Object.entries(listeners).forEach(([eventName, handler]) => {
         el?.removeEventListener(eventName, handler);
     });
@@ -383,6 +383,10 @@ export class Dispatcher {
         handlers?.push(handler);
         return () => {
             const idx = handlers?.indexOf(handler);
+            if (idx == -1) {
+                console.error("Subscribe function");
+                return () => { };
+            }
             handlers?.splice(idx, 1);
         };
     }
@@ -415,11 +419,30 @@ export class Dispatcher {
         this.afterHandlers.forEach((handler) => handler());
     }
 }
-export function createApp({ state, view, reducers = {} }) {
+/**
+ * Creates an application instance with state management and view rendering.
+ *
+ * @param {Object} options - The application options.
+ * @param {any} options.state - The initial state of the application.
+ * @param {Function} options.view - A function that returns the virtual DOM representation of the UI.
+ * @param {Reducers} [options.reducers={}] - An object containing reducer functions for state updates.
+ * @returns {AppInstance} - The application instance with `mount` and `unmount` methods.
+ */
+export function createApp({ state, view, reducers = {}, }) {
     let parentEl = null;
     let vdom = null;
     const dispatcher = new Dispatcher();
     const subscriptions = [dispatcher.afterEveryCommand(renderApp)];
+    /**
+     * Emits an event and dispatches it to the reducer.
+     *
+     * @param {string} eventName - The name of the event.
+     * @param {any} payload - The data to be passed to the reducer.
+     */
+    function emit(eventName, payload) {
+        dispatcher.dispatch(eventName, payload);
+    }
+    // Subscribe reducers to dispatcher events
     for (const actionName in reducers) {
         const reducer = reducers[actionName];
         const subs = dispatcher.subscribe(actionName, (payload) => {
@@ -427,17 +450,36 @@ export function createApp({ state, view, reducers = {} }) {
         });
         subscriptions.push(subs);
     }
+    /**
+     * Renders the application by destroying the previous virtual DOM
+     * and creating a new one from the view function.
+     */
     function renderApp() {
         if (vdom) {
             destroyDOM(vdom);
         }
-        vdom = view(state);
+        vdom = view(state, emit);
         mountDOM(vdom, parentEl);
     }
     return {
+        /**
+         * Mounts the application to the given parent element.
+         *
+         * @param {HTMLElement} _parentEl - The parent DOM element to attach the app to.
+         */
         mount(_parentEl) {
             parentEl = _parentEl;
             renderApp();
+        },
+        /**
+         * Unmounts the application, cleaning up the virtual DOM and subscriptions.
+         */
+        unmount() {
+            if (vdom) {
+                destroyDOM(vdom);
+            }
+            vdom = null;
+            subscriptions.forEach((unsubscribe) => unsubscribe());
         },
     };
 }

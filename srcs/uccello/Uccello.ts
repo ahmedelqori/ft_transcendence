@@ -251,10 +251,7 @@ function addProps(el: HTMLElement, props: PROPS_INTER, vdom: ELEMENT_INTER) {
  * @returns An object containing references to the added event listeners, keyed by event name.
  */
 
-export function addEventListeners(
-  listeners = {},
-  el: HTMLElement
-): LISTENERS_INTER {
+function addEventListeners(listeners = {}, el: HTMLElement): LISTENERS_INTER {
   const addedListeners: LISTENERS_INTER = {};
 
   Object.entries(listeners).forEach(([eventName, handler]) => {
@@ -293,7 +290,7 @@ function addEventListener(
  * @returns void
  */
 
-export function setAttributes(el: HTMLElement, attrs: PROPS_INTER) {
+function setAttributes(el: HTMLElement, attrs: PROPS_INTER) {
   const { class: className, style, ...otherAttrs } = attrs;
 
   if (className) {
@@ -342,7 +339,7 @@ function setClass(el: HTMLElement, className: string[] | string) {
  * @returns void
  */
 
-export function setStyle(el: HTMLElement, name: string, value: string) {
+function setStyle(el: HTMLElement, name: string, value: string) {
   el.style[name as any] = value;
 }
 
@@ -354,7 +351,7 @@ export function setStyle(el: HTMLElement, name: string, value: string) {
  * @returns void
  */
 
-export function removeStyle(el: HTMLElement, name: any) {
+function removeStyle(el: HTMLElement, name: any) {
   delete el.style[name];
 }
 
@@ -369,11 +366,7 @@ export function removeStyle(el: HTMLElement, name: any) {
  * @returns void
  */
 
-export function setAttribute(
-  el: HTMLElement,
-  name: string,
-  value: string | null
-) {
+function setAttribute(el: HTMLElement, name: string, value: string | null) {
   if (value == null) {
     removeAttribute(el, name);
   } else if (name.startsWith("data-") || name in el) {
@@ -391,7 +384,7 @@ export function setAttribute(
  * @returns void
  */
 
-export function removeAttribute(el: HTMLElement, name: string) {
+function removeAttribute(el: HTMLElement, name: string) {
   if (name in el) {
     (el as any)[name] = "";
   }
@@ -477,7 +470,7 @@ function removeElementNode(vdom: ELEMENT_INTER) {
  * @returns void
  */
 
-export function removeEventListeners(
+function removeEventListeners(
   listeners: LISTENERS_INTER = {},
   el: ELEMENT_HTML
 ) {
@@ -525,6 +518,10 @@ export class Dispatcher {
     handlers?.push(handler);
     return () => {
       const idx = handlers?.indexOf(handler);
+      if (idx == -1) {
+        console.error("Subscribe function");
+        return () => {};
+      }
       handlers?.splice(idx as number, 1);
     };
   }
@@ -558,32 +555,90 @@ export class Dispatcher {
     this.afterHandlers.forEach((handler) => handler());
   }
 }
+interface Reducers {
+  [key: string]: (state: any, payload: any) => any;
+}
 
-export function createApp({ state, view, reducers = {} }: any) {
-  let parentEl: any = null;
+interface AppInstance {
+  mount: (parentEl: HTMLElement) => void;
+  unmount: () => void;
+}
+
+/**
+ * Creates an application instance with state management and view rendering.
+ *
+ * @param {Object} options - The application options.
+ * @param {any} options.state - The initial state of the application.
+ * @param {Function} options.view - A function that returns the virtual DOM representation of the UI.
+ * @param {Reducers} [options.reducers={}] - An object containing reducer functions for state updates.
+ * @returns {AppInstance} - The application instance with `mount` and `unmount` methods.
+ */
+export function createApp({
+  state,
+  view,
+  reducers = {},
+}: {
+  state: any;
+  view: any;
+  reducers?: Reducers;
+}): AppInstance {
+  let parentEl: HTMLElement | null = null;
   let vdom: any = null;
 
   const dispatcher = new Dispatcher();
   const subscriptions = [dispatcher.afterEveryCommand(renderApp)];
 
+  /**
+   * Emits an event and dispatches it to the reducer.
+   *
+   * @param {string} eventName - The name of the event.
+   * @param {any} payload - The data to be passed to the reducer.
+   */
+  function emit(eventName: string, payload: any) {
+    dispatcher.dispatch(eventName, payload);
+  }
+
+  // Subscribe reducers to dispatcher events
   for (const actionName in reducers) {
     const reducer = reducers[actionName];
-    const subs = dispatcher.subscribe(actionName, (payload) => {
+    const subs = dispatcher.subscribe(actionName, (payload: any) => {
       state = reducer(state, payload);
     });
     subscriptions.push(subs);
   }
+
+  /**
+   * Renders the application by destroying the previous virtual DOM
+   * and creating a new one from the view function.
+   */
   function renderApp() {
     if (vdom) {
       destroyDOM(vdom);
     }
-    vdom = view(state);
-    mountDOM(vdom, parentEl);
+    vdom = view(state, emit);
+    mountDOM(vdom, parentEl as HTMLElement);
   }
+
   return {
-    mount(_parentEl: any) {
+    /**
+     * Mounts the application to the given parent element.
+     *
+     * @param {HTMLElement} _parentEl - The parent DOM element to attach the app to.
+     */
+    mount(_parentEl: HTMLElement) {
       parentEl = _parentEl;
       renderApp();
+    },
+
+    /**
+     * Unmounts the application, cleaning up the virtual DOM and subscriptions.
+     */
+    unmount() {
+      if (vdom) {
+        destroyDOM(vdom);
+      }
+      vdom = null;
+      subscriptions.forEach((unsubscribe) => unsubscribe());
     },
   };
 }
