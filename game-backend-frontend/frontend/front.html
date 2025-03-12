@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Socket.IO Test</title>
+  <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+  <style>
+    body { margin: 20px; font-family: Arial, sans-serif; }
+    #events { height: 300px; border: 1px solid #ccc; overflow-y: scroll; margin-bottom: 10px; padding: 10px; }
+    #controls { margin-bottom: 20px; }
+    button { margin-right: 5px; }
+    pre { margin: 0; }
+  </style>
+</head>
+<body>
+  <h1>Socket.IO Game Test</h1>
+  
+  <div id="controls">
+    <input id="gameId" type="text" placeholder="Game ID">
+    <input id="userId" type="text" placeholder="User Id">
+    <button id="connect">Connect</button>
+    <button id="disconnect">Disconnect</button>
+  </div>
+  
+  <div id="events">
+    <div>Events will appear here...</div>
+  </div>
+  
+  <div>
+    <button id="joinGame">joinGame</button>
+    <button id="startGame">startGame</button>
+    <button id="paddleMove">paddleMove (random position)</button>
+    <button id="pauseGame">pauseGame</button>
+  </div>
+  
+  <script>
+    let socket;
+    
+    // Function to log events
+    function log(type, message) {
+      const eventsDiv = document.getElementById('events');
+      const now = new Date().toISOString().substr(11, 8);
+      const entry = document.createElement('div');
+      
+      if (typeof message === 'object') {
+        entry.innerHTML = `<pre>[${now}] ${type}: ${JSON.stringify(message, null, 2)}</pre>`;
+      } else {
+        entry.textContent = `[${now}] ${type}: ${message}`;
+      }
+      
+      if (type === 'error') {
+        entry.style.color = 'red';
+      } else if (type === 'emit') {
+        entry.style.color = 'blue';
+      } else if (type === 'receive') {
+        entry.style.color = 'green';
+      }
+      
+      eventsDiv.appendChild(entry);
+      eventsDiv.scrollTop = eventsDiv.scrollHeight;
+    }
+    
+    // Connect button
+    document.getElementById('connect').addEventListener('click', () => {
+      const gameId = document.getElementById('gameId').value;
+      const userId = document.getElementById('userId').value;
+      
+      if (socket) {
+        socket.disconnect();
+      }
+      
+      log('info', `Connecting to socket with gameId=${gameId}, userId=${userId}`);
+      
+      // Create socket connection
+      socket = io("http://localhost:3000/socket/game", {
+        transports: ["websocket"],
+        auth: {
+          gameId: gameId,
+          userId: userId
+        }
+      });
+      
+      // Setup listeners
+      socket.on('connect', () => {
+        log('info', 'Connected to server');
+      });
+      
+      socket.on('disconnect', () => {
+        log('info', 'Disconnected from server');
+      });
+      
+      socket.on('connect_error', (err) => {
+        log('error', `Connection error: ${err.message}`);
+      });
+      
+      // Game specific events
+      socket.on('initGame', (data) => {
+        log('receive', data);
+      });
+      
+      socket.on('joinedGame', (data) => {
+        log('receive', data);
+      });
+      
+      socket.on('playerJoined', (data) => {
+        log('receive', data);
+      });
+      
+      socket.on('readyToStart', (data) => {
+        log('receive', data);
+      });
+      
+      socket.on('gameStarted', () => {
+        log('receive', 'gameStarted event received');
+      });
+      
+      socket.on('gameStateUpdate', (data) => {
+        log('receive', data);
+      });
+      
+      socket.on('gameOver', (data) => {
+        log('receive', data);
+      });
+      
+      socket.on('playerDisconnected', (data) => {
+        log('receive', data);
+      });
+      
+      socket.on('gameError', (data) => {
+        log('error', data);
+      });
+    });
+    
+    // Disconnect button
+    document.getElementById('disconnect').addEventListener('click', () => {
+      if (socket) {
+        socket.disconnect();
+        log('info', 'Manually disconnected');
+      }
+    });
+    
+    // Game events
+    document.getElementById('joinGame').addEventListener('click', () => {
+      if (socket && socket.connected) {
+        socket.emit('joinGame');
+        log('emit', 'joinGame event sent');
+      } else {
+        log('error', 'Not connected');
+      }
+    });
+    
+    document.getElementById('startGame').addEventListener('click', () => {
+      if (socket && socket.connected) {
+        socket.emit('startGame');
+        log('emit', 'startGame event sent');
+      } else {
+        log('error', 'Not connected');
+      }
+    });
+    
+    document.getElementById('paddleMove').addEventListener('click', () => {
+      if (socket && socket.connected) {
+        const position = Math.floor(Math.random() * 400);
+        socket.emit('paddleMove', position);
+        log('emit', `paddleMove event sent with position: ${position}`);
+      } else {
+        log('error', 'Not connected');
+      }
+    });
+    
+    document.getElementById('pauseGame').addEventListener('click', () => {
+      if (socket && socket.connected) {
+        socket.emit('pauseGame');
+        log('emit', 'pauseGame event sent');
+      } else {
+        log('error', 'Not connected');
+      }
+    });
+  </script>
+</body>
+</html>
