@@ -1,11 +1,24 @@
+import Home from "./pages/Home.js";
 import * as Uccello from "./uccello/Uccello.js";
 const ROOT = document.getElementById("root");
 Uccello.createApp({
-    state: 0,
-    reducers: {
-        add: (state, amount) => state + amount,
+    state: {
+        item: "Meedivo",
+        list: ["task one", "task two"],
     },
-    view: (state, emit) => Uccello.createElement("button", { on: { click: () => emit("add", 1) } }, [
-        Uccello.createString(state),
-    ]),
+    reducers: {
+        "add-todo": (state, payload) => ({
+            ...state,
+            list: [payload, ...state.list],
+        }),
+        "input-change": (state, payload) => ({
+            ...state,
+            item: payload,
+        }),
+        "clear-input": (state, payload) => ({
+            ...state,
+            item: "",
+        }),
+    },
+    view: (state, emit) => Home({ state, emit }),
 }).mount(ROOT);

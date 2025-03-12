@@ -583,7 +583,7 @@ export function createApp({
   reducers?: Reducers;
 }): AppInstance {
   let parentEl: HTMLElement | null = null;
-  let vdom: any = null;
+  let vdom: ELEMENT_INTER | null = null;
 
   const dispatcher = new Dispatcher();
   const subscriptions = [dispatcher.afterEveryCommand(renderApp)];
@@ -616,7 +616,7 @@ export function createApp({
       destroyDOM(vdom);
     }
     vdom = view(state, emit);
-    mountDOM(vdom, parentEl as HTMLElement);
+    mountDOM(vdom as ELEMENT_INTER, parentEl as HTMLElement);
   }
 
   return {
