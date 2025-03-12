@@ -64,7 +64,7 @@ export async function verifyUserFromToken(token) {
       fastify.log.warn("Invalid authentication for socket connection");
       return null;
     }
-    return response.data.id;
+    return response.data;
   } catch (error) {
     fastify.log.error("Failed to verify user from token in socket connection:", error.message);
     return null;

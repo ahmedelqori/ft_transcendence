@@ -84,44 +84,31 @@ export function checkScoring() {
 
 }
 
-let lastTime = 0;
-let frameTime = 1000 / 60;
-let animationId = null;
-let onUpdateCallback = null;
+let gameLoopInterval = null;
 
 export function startGameLoop(fps = 60, onUpdate = null) {
-  if (animationId)
-    return;
+  if (gameLoopInterval) return;
   
-  frameTime = 1000 / fps;
+  const frameTime = 1000 / fps;
   gameState.inProgress = true;
-  onUpdateCallback = onUpdate;
   
-  function gameLoop(timestamp) {
-    if (!gameState.inProgress)
-      return;
+  function gameLoop() {
+    if (!gameState.inProgress) return;
     
-    const elapsed = timestamp - lastTime;
-    if (elapsed > frameTime) {
-      lastTime = timestamp - (elapsed % frameTime);
-      updateBallPosition();
-      
-      if (onUpdateCallback) {
-        onUpdateCallback(gameState);
-      }
+    updateBallPosition();
+    
+    if (onUpdate) {
+      onUpdate(gameState);
     }
-    
-    animationId = requestAnimationFrame(gameLoop);
   }
   
-  lastTime = performance.now();
-  animationId = requestAnimationFrame(gameLoop);
+  gameLoopInterval = setInterval(gameLoop, frameTime);
 }
 
 export function stopGameLoop() {
-  if (animationId) {
-    cancelAnimationFrame(animationId);
-    animationId = null;
+  if (gameLoopInterval) {
+    clearInterval(gameLoopInterval);
+    gameLoopInterval = null;
   }
   gameState.inProgress = false;
 }

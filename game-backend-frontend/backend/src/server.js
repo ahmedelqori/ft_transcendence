@@ -71,7 +71,7 @@ fastify.register(gameRoutes, { prefix: "/api/games" });
 
 fastify.addHook('preHandler', async (req, reply) => {
   const path = req.raw.url;
-  if (path.startsWith('/swagger') || path.startsWith('/api-docs') || path.startsWith('/socket-docs'))
+  if (path.startsWith('/swagger') || path.startsWith('/api-docs') || path.startsWith('/socket-docs') || path.startsWith('/api/games'))
      return;
   await authenticate(req, reply);
 }); // only for http requests

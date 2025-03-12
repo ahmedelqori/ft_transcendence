@@ -6,40 +6,40 @@ import {
   resetBallAndPaddles 
 } from '../gameLogic/gameplay.js';
 import { verifyUserFromToken } from "../middlewares/auth.middleware.js";
-
+import {defaultGameConfig} from '../gameLogic/gameConfig.js'
 const gameRooms = new Map();
 
 export const validateSocketConnection = async (socket, next) => {
   try {
     // add an auth object that contain gameId and token
     const gameId = parseInt(socket.handshake.auth.gameId);
-    const token = socket.handshake.auth.token;
-    
-    if (isNaN(gameId))
-      return next(new Error("Invalid game ID"));
-    if (!token)
-      return next(new Error("Authentication required"));
-    const userId = await verifyUserFromToken(token);
-    if (!userId)
+    const userId = parseInt(socket.handshake.auth.userId);
+    // const token = socket.handshake.auth.token;
+    fastify.log.warn(`gameId = ${gameId}`)
+    fastify.log.warn(`userId = ${userId}`)
+    // if (isNaN(gameId))
+    //   return next(new Error("Invalid game ID"));
+    // if (!token)
+    //   return next(new Error("Authentication required"));
+
+    // const user = await verifyUserFromToken(token);
+    const user = {id: userId}
+    if (!user)
       return next(new Error("Invalid authentication token"));
-    socket.gameId = gameId;
-    socket.userId = userId;
     try {
       const game = await fastify.prisma.game.findUnique({
         where: { id: gameId }
       });
-      
       if (!game)
         return next(new Error("Game not found"));
-      
-      if (userId !== game.playerOneId && userId !== game.playerTwoId) 
+      if (user.id !== game.playerOneId && user.id !== game.playerTwoId) 
         return next(new Error("Not a player in this game"));
-      
-      socket.playerType = (userId === game.playerOneId) ? 'mainPlayer' : 'secondPlayer';
-      socket.gameData = game;
+      user.playerType = (user.id === game.playerOneId) ? 'mainPlayer' : 'secondPlayer';
+      socket.user = user
+      socket.game = game;
       next();
-    } catch (dbError) {
-      fastify.log.error(`Database error during socket validation: ${dbError}`);
+    } catch (error) {
+      fastify.log.error(`Database error during socket validation: ${error}`);
       return next(new Error("Failed to validate game"));
     }
   } catch (error) {
@@ -48,49 +48,76 @@ export const validateSocketConnection = async (socket, next) => {
   }
 };
 
-
 export const setupSocketHandlers = () => {
   const io = fastify.io;
   
-  io.use(validateSocketConnection);
-  
+  io.of("socket/game").use(validateSocketConnection);
   io.of("socket/game").on('connection', (socket) => {
-    const userId = socket.userId;
-    const gameId = socket.gameId;
+    const userId = socket.user?.id;
+    const gameId = socket.game?.id;
+    
     fastify.log.info(`User ${userId} connected to game ${gameId}`);    
     socket.join(`user_${userId}`);
+    socket.emit('initGame', {
+      gameConfig:defaultGameConfig
+    })
     // joinGame event handler
     socket.on('joinGame', () => {
-      socket.join(`game_${gameId}`);
-      if (!gameRooms.has(gameId)) {
-        gameRooms.set(gameId, {
+      let gameRoom = gameRooms.get(gameId);      
+      if (!gameRoom) {
+        gameRoom = { 
+          gameId: gameId, 
           players: {},
           gameStarted: false
+        };
+        gameRooms.set(gameId, gameRoom);
+        fastify.log.info(`Created new game room for game ${gameId}`);
+      }      
+      if (!gameRoom.players[userId] && Object.keys(gameRoom.players).length < 2) {
+        socket.join(`game_${gameId}`);        
+        gameRoom.players[userId] = socket.user
+        fastify.log.info(`Player ${userId} joined game ${gameId}`);        
+        socket.emit('joinedGame', { 
+          gameId: gameId,
+          playerType: socket.user.playerType,
+          players: Object.values(gameRoom.players),
+          gameStarted: gameRoom.gameStarted
+        });        
+        socket.to(`game_${gameId}`).emit('playerJoined', {
+          playerType: socket.user.playerType,
+          players: Object.values(gameRoom.players)
         });
-      }
-      
-      const gameRoom = gameRooms.get(gameId);
-      gameRoom.players[userId] = {
-        socketId: socket.id,
-        playerType: socket.playerType
-      };
-      socket.emit('joinedGame', { 
-        playerType: socket.playerType,
-        gameId: gameId
-      });
-      socket.to(`game_${gameId}`).emit('playerJoined', {
-        playerType: socket.playerType
-      });
-      if (Object.keys(gameRoom.players).length === 2) {
-        io.to(`game_${gameId}`).emit('readyToStart');
+        if (Object.keys(gameRoom.players).length === 2) {
+          fastify.log.info(`Game ${gameId} has two players, ready to start`);
+          io.of("socket/game").to(`game_${gameId}`).emit('readyToStart', {
+            gameRoom:gameRoom
+          });
+        }
+      } else if (gameRoom.players[userId]) {
+        fastify.log.info(`Player ${userId} reconnected to game ${gameId}`);
+        socket.emit('joinedGame', { 
+          gameId: gameId,
+          playerType: socket.user.playerType,
+          players: Object.values(gameRoom.players),
+          gameStarted: gameRoom.gameStarted
+        });
+        if (Object.keys(gameRoom.players).length === 2) {
+          io.of("socket/game").to(`game_${gameId}`).emit('readyToStart', {
+            gameRoom:gameRoom
+          });
+        }
+      } else {
+        fastify.log.warn(`Player ${userId} tried to join full game ${gameId}`);
+        socket.emit('gameError', { message: 'Game room is full' });
       }
     });
     // startGame event handler
     socket.on('startGame', async () => {
       const gameRoom = gameRooms.get(gameId);
-      fastify.log.warn(`hellooooo ${gameId}`)
-      if (!gameRoom || gameRoom.gameStarted) return;
-      if (Object.keys(gameRoom.players).length !== 2) return;
+      if (!gameRoom || gameRoom.gameStarted)
+        return;
+      if (Object.keys(gameRoom.players).length !== 2)
+        return;
       try {
         await fastify.prisma.game.update({
           where: { id: gameId },
@@ -113,14 +140,15 @@ export const setupSocketHandlers = () => {
     
     socket.on('paddleMove', (position) => {
       const gameRoom = gameRooms.get(gameId);
-      if (!gameRoom || !gameRoom.gameStarted) return;
-      
+      if (!gameRoom || !gameRoom.gameStarted)
+        return;
       updatePaddlePosition(socket.playerType, position);
     });
     
     socket.on('pauseGame', () => {
       const gameRoom = gameRooms.get(gameId);
-      if (!gameRoom || !gameRoom.gameStarted) return;      
+      if (!gameRoom || !gameRoom.gameStarted)
+        return;      
       io.to(`game_${gameId}`).emit('gamePaused', { pausedBy: userId });
     });    
     socket.on('disconnect', () => {
