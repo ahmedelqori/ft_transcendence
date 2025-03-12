@@ -84,31 +84,28 @@ export function checkScoring() {
 
 }
 
-let gameLoopInterval = null;
+let intervalId = null;
 
-export function startGameLoop(fps = 60, onUpdate = null) {
-  if (gameLoopInterval) return;
-  
+export function startGameLoop(fps = 60, gameEvent = null) {
+  if (intervalId) 
+    return;
   const frameTime = 1000 / fps;
   gameState.inProgress = true;
-  
   function gameLoop() {
-    if (!gameState.inProgress) return;
-    
+    if (!gameState.inProgress)
+      return;
     updateBallPosition();
-    
-    if (onUpdate) {
-      onUpdate(gameState);
+    if (gameEvent) {
+      gameEvent(gameState);
     }
   }
-  
-  gameLoopInterval = setInterval(gameLoop, frameTime);
+  intervalId = setInterval(gameLoop, frameTime);
 }
 
 export function stopGameLoop() {
-  if (gameLoopInterval) {
-    clearInterval(gameLoopInterval);
-    gameLoopInterval = null;
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
   }
   gameState.inProgress = false;
 }
@@ -117,9 +114,9 @@ export function pauseGame() {
   gameState.inProgress = false;
 }
 
-export function resumeGame() {
-  if (!animationId) {
-    startGameLoop(1000 / frameTime, onUpdateCallback);
+export function resumeGame(fps = 60, onUpdate = null) {
+  if (!gameLoopInterval) {
+    startGameLoop(fps, onUpdate);
   } else {
     gameState.inProgress = true;
   }
@@ -145,7 +142,6 @@ export function updatePaddlePosition(playerType, position) {
     gameState.paddles.up = newPosition;
     return true;
   }
-  
   return false;
 }
 

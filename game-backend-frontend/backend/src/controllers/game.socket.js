@@ -125,31 +125,32 @@ export const setupSocketHandlers = () => {
         });
         gameRoom.gameStarted = true;
         resetBallAndPaddles();
-        io.to(`game_${gameId}`).emit('gameStarted');
+        io.of("socket/game").to(`game_${gameId}`).emit('gameStarted');
         startGameLoop(60, (gameState) => {
-          io.to(`game_${gameId}`).emit('gameStateUpdate', gameState);
+          io.of("socket/game").to(`game_${gameId}`).emit('gameStateUpdate', gameState);
           if (gameState.ended) {
             handleGameOver(gameId, gameState);
           }
         });
       } catch (error) {
         fastify.log.error(`Failed to start game ${gameId}: ${error.message}`);
-        io.to(`game_${gameId}`).emit('gameError', { message: 'Failed to start game' });
+        io.of("socket/game").to(`game_${gameId}`).emit('gameError', { message: 'Failed to start game' });
       }
     });
     
     socket.on('paddleMove', (position) => {
       const gameRoom = gameRooms.get(gameId);
-      if (!gameRoom || !gameRoom.gameStarted)
+      const pos = parseInt(position)
+      if (!gameRoom || !gameRoom.gameStarted || isNaN(pos))
         return;
-      updatePaddlePosition(socket.playerType, position);
+      updatePaddlePosition(socket.playerType, pos);
     });
     
     socket.on('pauseGame', () => {
       const gameRoom = gameRooms.get(gameId);
       if (!gameRoom || !gameRoom.gameStarted)
         return;      
-      io.to(`game_${gameId}`).emit('gamePaused', { pausedBy: userId });
+      io.of("socket/game").to(`game_${gameId}`).emit('gamePaused', { pausedBy: userId });
     });    
     socket.on('disconnect', () => {
       fastify.log.info(`User ${userId} disconnected from game ${gameId}`);
@@ -160,12 +161,13 @@ export const setupSocketHandlers = () => {
       if (gameRoom.players[userId]) {
         delete gameRoom.players[userId];
       }      
-      if (gameRoom.gameStarted) {
+      if (gameRoom.gameStarted && !gameRoom.properlyEnded) {
         socket.to(`game_${gameId}`).emit('playerDisconnected', { 
           playerType: socket.playerType
         });        
-        stopGameLoop();
-
+        if (!gameState.ended) {
+          stopGameLoop();
+        }       
         setTimeout(async () => {
           if (!gameRoom.players[userId]) {
             try {
@@ -202,7 +204,10 @@ async function handleGameOver(gameId, gameState) {
     const winnerId = gameState.winner === 'mainPlayer' 
       ? game.playerOneId 
       : game.playerTwoId;
-    
+    const gameRoom = gameRooms.get(gameId);
+      if (gameRoom) {
+        gameRoom.properlyEnded = true;
+      }
     await fastify.prisma.game.update({
       where: { id: gameId },
       data: {
@@ -214,7 +219,7 @@ async function handleGameOver(gameId, gameState) {
       }
     });
     
-    fastify.io.to(`game_${gameId}`).emit('gameOver', {
+    fastify.io.of("socket/game").to(`game_${gameId}`).emit('gameOver', {
       winner: gameState.winner,
       score: gameState.score
     });

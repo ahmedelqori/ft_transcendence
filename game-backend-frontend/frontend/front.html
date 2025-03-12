@@ -109,8 +109,8 @@
         log('receive', data);
       });
       
-      socket.on('gameStarted', () => {
-        log('receive', 'gameStarted event received');
+      socket.on('gameStarted', (data) => {
+        log('receive', data);
       });
       
       socket.on('gameStateUpdate', (data) => {
