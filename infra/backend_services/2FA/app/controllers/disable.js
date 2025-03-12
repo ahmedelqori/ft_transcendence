@@ -36,8 +36,5 @@ export default async function disable(req, res) {
         res.status(500).send({ message: 'Internal Server Error' });
         return;
     };
-
-
-    res.status(200).send({ message: '2FA disabled' });
 }
 

@@ -13,8 +13,6 @@ export default async function routes(fastify) {
     fastify.post('/verify', {preHandler: auth}, verify);
     fastify.get('/is-enable', {preHandler: auth}, is_enable);
     fastify.delete('/disable', {preHandler: auth}, disable);
-
-    
 }
 
 

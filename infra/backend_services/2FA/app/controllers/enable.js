@@ -1,4 +1,3 @@
-// import crypto from 'crypto';
 import speakeasy from 'speakeasy';
 import db from '../models.js';
 import QRCode from 'qrcode';

@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   nginx-modsecurity:
     image: "nginx-modsecurity:app"
@@ -31,63 +30,63 @@ services:
   #     - IPC_LOCK
   #   restart: always
 
-  # user_managment:
-  #   build:
-  #     context: ./backend_services/user_managment
-  #     dockerfile: Dockerfile
-  #   container_name: user_managment
-  #   env_file:
-  #     - ./backend_services/user_managment/.env
-  #   networks:
-  #     - appNet
-  #   volumes:
-  #     - profile_images:/app/profile_images
-  #     - user_managment_database:/app/database
+  user_managment:
+    build:
+      context: ./backend_services/user_managment
+      dockerfile: Dockerfile
+    container_name: user_managment
+    env_file:
+      - ./backend_services/user_managment/.env
+    networks:
+      - appNet
+    volumes:
+      - profile_images:/app/profile_images
+      - user_managment_database:/app/database
 
-  # friendship:
-  #   build:
-  #     context: ./backend_services/friendship
-  #     dockerfile: Dockerfile
-  #   container_name: friendship
-  #   env_file:
-  #     - ./backend_services/friendship/.env
-  #   networks:
-  #     - appNet
-  #   volumes:
-  #     - friendship_database:/app/database
+  friendship:
+    build:
+      context: ./backend_services/friendship
+      dockerfile: Dockerfile
+    container_name: friendship
+    env_file:
+      - ./backend_services/friendship/.env
+    networks:
+      - appNet
+    volumes:
+      - friendship_database:/app/database
 
-  # 2fa:
-  #   build:
-  #     context: ./backend_services/2FA
-  #     dockerfile: Dockerfile
-  #   container_name: 2fa
-  #   env_file:
-  #     - ./backend_services/2FA/.env
-  #   networks:
-  #     - appNet
-  #   volumes:
-  #     - 2fa_database:/app/database
+  2fa:
+    build:
+      context: ./backend_services/2FA
+      dockerfile: Dockerfile
+    container_name: 2fa
+    env_file:
+      - ./backend_services/2FA/.env
+    networks:
+      - appNet
+    volumes:
+      - 2fa_database:/app/database
 
-  # notification:
-  #   build:
-  #     context: ./backend_services/notification
-  #     dockerfile: Dockerfile
-  #   container_name: notification
-  #   env_file:
-  #     - ./backend_services/notification/.env
-  #   networks:
-  #     - appNet
-  #   volumes:
-  #     - notification_database:/app/database
+  notification:
+    build:
+      context: ./backend_services/notification
+      dockerfile: Dockerfile
+    container_name: notification
+    env_file:
+      - ./backend_services/notification/.env
+    networks:
+      - appNet
+    volumes:
+      - notification_database:/app/database
 
 
 volumes:
   profile_images:
+  user_managment_database:
+  friendship_database:
+  2fa_database:
+  notification_database:
   # VolumeVault:
-  # user_managment_database:
-  # friendship_database:
-  # 2fa_database:
-  # notification_database:
  
 networks:
   appNet:

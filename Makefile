@@ -1,4 +1,5 @@
 CMD = docker-compose -f ./infra/docker-compose.yml -p app
+
 up:
 	$(CMD) up -d
 	
@@ -10,6 +11,10 @@ stop:
 	$(CMD) stop
 
 re: down up
+
+rebuild: clean up
+
+fullrebuild: fclean up
 
 ps:
 	$(CMD) ps -a
@@ -29,4 +34,4 @@ clean:
 fclean: down
 	$(CMD) down --rmi all -v --remove-orphans
 	docker system prune -af
-	docker volume prune -f
+	# docker volume prune -f

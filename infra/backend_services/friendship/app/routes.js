@@ -26,14 +26,4 @@ export default async function routes(fastify) {
 };
 
 
-//     # Notifications Managment
-//         /notification                    (GET)       : get list if any user send request to you
-//         /notification/{id}               (POST)      : mark it as read
-
-
-
-
-
-
-
 

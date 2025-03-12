@@ -23,6 +23,15 @@ const fastify = Fastify({
   },
 });
 
+
+// fastify.setErrorHandler((error, request, reply) => {
+//   reply.status(500).send({
+//     statusCode: 500,
+//     error: 'Internal Server Error',
+//     message: 'Something went wrong',
+//   });
+// });
+
 fastify.register(multipart);
 fastify.register(cookie);
 fastify.register(routes, { prefix: '/api/account/' });

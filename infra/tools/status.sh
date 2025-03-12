@@ -15,7 +15,7 @@ echo -e "${CYAN}----------------------------------------------------------------
 
 cd infra 
 
-docker-compose ps | while read -r line; do
+docker-compose -p app ps | while read -r line; do
   if [[ $line != *"IMAGE"* ]]; then
     echo -e "${WHITE}$line${NC}"
   else
@@ -26,7 +26,7 @@ done
 echo -e "${CYAN}------------------------------------------------------------------------------------------------------------------------------------------------${NC}"
 
 
-docker-compose images | while read -r line; do
+docker-compose -p app images | while read -r line; do
   if [[ $line != *"CONTAINER"* ]]; then
     echo -e "${WHITE}$line${NC}"
   else
