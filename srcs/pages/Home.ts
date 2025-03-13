@@ -14,7 +14,7 @@ const Home = ({ state, emit }: any) => {
           on: {
             submit: (event: Event) => {
               event.preventDefault();
-              emit("add-todo", state.item);
+              if (state.item.length) emit("add-todo", state.item);
               emit("clear-input");
             },
           },
@@ -86,3 +86,24 @@ const Home = ({ state, emit }: any) => {
 };
 
 export default Home;
+//  Uccello.createApp({
+//   state: {
+//     item: "Meedivo",
+//     list: ["task one", "task two"],
+//   },
+//   reducers: {
+//     "add-todo": (state: any, payload: string) => ({
+//       ...state,
+//       list: [payload, ...state.list],
+//     }),
+//     "input-change": (state: any, payload: string) => ({
+//       ...state,
+//       item: payload,
+//     }),
+//     "clear-input": (state: any, payload: any) => ({
+//       ...state,
+//       item: "",
+//     }),
+//   },
+//   view: (state: any, emit: any) => Home({ state, emit }),
+// }).mount(ROOT);
