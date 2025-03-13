@@ -6,7 +6,7 @@ import {
   resetBallAndPaddles 
 } from '../gameLogic/gameplay.js';
 import { verifyUserFromToken } from "../middlewares/auth.middleware.js";
-import {defaultGameConfig} from '../gameLogic/gameConfig.js'
+import {defaultGameConfig, gameState} from '../gameLogic/gameConfig.js'
 const gameRooms = new Map();
 
 export const validateSocketConnection = async (socket, next) => {
@@ -59,7 +59,8 @@ export const setupSocketHandlers = () => {
     fastify.log.info(`User ${userId} connected to game ${gameId}`);    
     socket.join(`user_${userId}`);
     socket.emit('initGame', {
-      gameConfig:defaultGameConfig
+      gameConfig:defaultGameConfig,
+      gameState: gameState
     })
     // joinGame event handler
     socket.on('joinGame', () => {
@@ -68,7 +69,8 @@ export const setupSocketHandlers = () => {
         gameRoom = { 
           gameId: gameId, 
           players: {},
-          gameStarted: false
+          gameStarted: false,
+          properlyEnded: false
         };
         gameRooms.set(gameId, gameRoom);
         fastify.log.info(`Created new game room for game ${gameId}`);
@@ -111,41 +113,53 @@ export const setupSocketHandlers = () => {
         socket.emit('gameError', { message: 'Game room is full' });
       }
     });
-    // startGame event handler
-    socket.on('startGame', async () => {
+
+    socket.on('startGame', () => {
       const gameRoom = gameRooms.get(gameId);
-      if (!gameRoom || gameRoom.gameStarted)
-        return;
-      if (Object.keys(gameRoom.players).length !== 2)
-        return;
-      try {
-        await fastify.prisma.game.update({
-          where: { id: gameId },
-          data: { status: 'IN_PROGRESS' }
-        });
-        gameRoom.gameStarted = true;
-        resetBallAndPaddles();
-        io.of("socket/game").to(`game_${gameId}`).emit('gameStarted');
-        startGameLoop(60, (gameState) => {
-          io.of("socket/game").to(`game_${gameId}`).emit('gameStateUpdate', gameState);
-          if (gameState.ended) {
-            handleGameOver(gameId, gameState);
-          }
-        });
-      } catch (error) {
-        fastify.log.error(`Failed to start game ${gameId}: ${error.message}`);
-        io.of("socket/game").to(`game_${gameId}`).emit('gameError', { message: 'Failed to start game' });
+      
+      if (!gameRoom || gameRoom.gameStarted || Object.keys(gameRoom.players).length < 2) {
+        return; // Don't start if already started or not enough players
       }
+      
+      gameRoom.gameStarted = true;
+      
+      // Reset game state for a fresh start
+      resetBallAndPaddles();
+      gameState.score = { mainPlayer: 0, secondPlayer: 0 };
+      gameState.ended = false;
+      gameState.winner = null;
+      
+      // Start the game loop with a callback that sends updates
+      startGameLoop(60, (updatedGameState) => {
+        // Send game state to all players in this game room
+        io.of("socket/game").to(`game_${gameId}`).emit('gameStateUpdate', updatedGameState);
+        
+        // Check if game has ended
+        if (updatedGameState.ended) {
+          handleGameOver(gameId, updatedGameState);
+        }
+      });
+      
+      // Notify all players that game has started
+      io.of("socket/game").to(`game_${gameId}`).emit('gameStarted');
+      fastify.log.info(`Game ${gameId} started`);
     });
-    
+    // In game.socket.js
     socket.on('paddleMove', (position) => {
-      const gameRoom = gameRooms.get(gameId);
-      const pos = parseInt(position)
-      if (!gameRoom || !gameRoom.gameStarted || isNaN(pos))
+      // Convert to number if not already
+      const pos = Number(position);
+      
+      // Validate input
+      if (isNaN(pos)) {
+        fastify.log.warn(`Invalid paddle position from user ${userId}: ${position}`);
         return;
-      updatePaddlePosition(socket.playerType, pos);
+      }
+      
+      fastify.log.debug(`Paddle move from ${userId}: ${pos}`);
+      
+      // Update game state
+      updatePaddlePosition(socket.user.playerType, pos);
     });
-    
     socket.on('pauseGame', () => {
       const gameRoom = gameRooms.get(gameId);
       if (!gameRoom || !gameRoom.gameStarted)
@@ -156,74 +170,94 @@ export const setupSocketHandlers = () => {
       fastify.log.info(`User ${userId} disconnected from game ${gameId}`);
       
       const gameRoom = gameRooms.get(gameId);
-      if (!gameRoom) 
-        return;      
+      if (!gameRoom) return;
+      
+      // Add this check to avoid handling disconnects during normal gameplay
+      if (gameState.ended) {
+        fastify.log.info(`Game ${gameId} already ended normally, ignoring disconnect`);
+        return;
+      }
+      
       if (gameRoom.players[userId]) {
         delete gameRoom.players[userId];
-      }      
-      if (gameRoom.gameStarted && !gameRoom.properlyEnded) {
-        socket.to(`game_${gameId}`).emit('playerDisconnected', { 
-          playerType: socket.playerType
-        });        
-        if (!gameState.ended) {
-          stopGameLoop();
-        }       
-        setTimeout(async () => {
-          if (!gameRoom.players[userId]) {
-            try {
-              await fastify.prisma.game.update({
-                where: { id: gameId },
-                data: { 
-                  status: 'CANCELED', 
-                  endedAt: new Date(),
-                  winnerId: -1
-                }
+        fastify.log.info(`Removed player ${userId} from game ${gameId}`);
+        
+        // Don't immediately stop the game, give a grace period for reconnection
+        if (gameRoom.gameStarted && !gameRoom.properlyEnded) {
+          gameRoom.disconnectTimer = setTimeout(() => {
+            if (Object.keys(gameRoom.players).length < 2) {
+              stopGameLoop();
+              
+              io.of("socket/game").to(`game_${gameId}`).emit('playerDisconnected', {
+                message: "Opponent disconnected, game canceled"
               });
               
-              if (Object.keys(gameRoom.players).length === 0) {
-                gameRooms.delete(gameId);
+              // Update database
+              try {
+                fastify.prisma.game.update({
+                  where: { id: gameId },
+                  data: { 
+                    status: 'CANCELED',
+                    endedAt: new Date()
+                  }
+                }).then(() => {
+                  fastify.log.info(`Game ${gameId} marked as CANCELED due to disconnect`);
+                });
+              } catch (error) {
+                fastify.log.error(`Failed to update game ${gameId} after disconnection: ${error.message}`);
               }
-            } catch (error) {
-              fastify.log.error(`Failed to update game ${gameId} after disconnection: ${error.message}`);
             }
-          }
-        }, 30000);
+          }, 5000);  // 5 second grace period for reconnection
+        }
       }
     });
   });
 };
 
-
-async function handleGameOver(gameId, gameState) {
+async function handleGameOver(gameId, finalGameState) {
   try {
+    // Get game room and mark it as properly ended
+    const gameRoom = gameRooms.get(gameId);
+    if (gameRoom) {
+      gameRoom.properlyEnded = true;
+      
+      // Clear any disconnect timers
+      if (gameRoom.disconnectTimer) {
+        clearTimeout(gameRoom.disconnectTimer);
+      }
+    }
+    
+    // Get game from database
     const game = await fastify.prisma.game.findUnique({
       where: { id: gameId }
     });
-    if (!game) 
-      return;
-    const winnerId = gameState.winner === 'mainPlayer' 
+    
+    if (!game) return;
+    
+    // Determine winner ID
+    const winnerId = finalGameState.winner === 'mainPlayer' 
       ? game.playerOneId 
       : game.playerTwoId;
-    const gameRoom = gameRooms.get(gameId);
-      if (gameRoom) {
-        gameRoom.properlyEnded = true;
-      }
+    
+    // Update database
     await fastify.prisma.game.update({
       where: { id: gameId },
       data: {
         status: 'FINISHED',
         endedAt: new Date(),
-        playerOneScore: gameState.score.mainPlayer,
-        playerTwoScore: gameState.score.secondPlayer,
+        playerOneScore: finalGameState.score.mainPlayer,
+        playerTwoScore: finalGameState.score.secondPlayer,
         winnerId
       }
     });
     
+    // Notify players
     fastify.io.of("socket/game").to(`game_${gameId}`).emit('gameOver', {
-      winner: gameState.winner,
-      score: gameState.score
+      winner: finalGameState.winner,
+      score: finalGameState.score
     });
     
+    // Stop game loop
     stopGameLoop();
     
   } catch (error) {

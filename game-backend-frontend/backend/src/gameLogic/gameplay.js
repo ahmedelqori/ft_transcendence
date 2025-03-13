@@ -53,14 +53,16 @@ export function checkPaddleCollisions() {
 }
 
 function updateAfterPaddleCollision(paddleType){
+  const paddleHalfWidth = defaultGameConfig.paddleWidth / 2;
+  const ballRadius = defaultGameConfig.ballSize / 2;
   const paddlePos = paddleType === 'up' ? gameState.paddles.up : gameState.paddles.down;
   const moveSign = paddleType === 'up' ? 1 : -1
   const collisionPos = (gameState.ball.x - (paddlePos - paddleHalfWidth)) / defaultGameConfig.paddleWidth;
   const bounceAngle = (collisionPos - 0.5) * Math.PI * 0.7;
   const speed = Math.sqrt(gameState.ball.xDir ** 2 + gameState.ball.yDir ** 2);
   const newSpeed = Math.min(speed + 0.5, defaultGameConfig.maxBallSpeed);
-  const ballY = paddleType === 'up' ? upPaddleY + defaultGameConfig.paddleHeight + ballRadius
-  : downPaddleY - ballRadius;
+  const ballY = paddleType === 'up' ? defaultGameConfig.upPaddleY + defaultGameConfig.paddleHeight + ballRadius
+  : defaultGameConfig.downPaddleY - ballRadius;
   gameState.ball.xDir = Math.sin(bounceAngle) * newSpeed;
   gameState.ball.yDir = moveSign * Math.abs(Math.cos(bounceAngle) * newSpeed);
   gameState.ball.y = ballY;
@@ -115,7 +117,7 @@ export function pauseGame() {
 }
 
 export function resumeGame(fps = 60, onUpdate = null) {
-  if (!gameLoopInterval) {
+  if (!intervalId) {
     startGameLoop(fps, onUpdate);
   } else {
     gameState.inProgress = true;

@@ -15,12 +15,12 @@ defaultGameConfig.upPaddleY = defaultGameConfig.boardHeight * 0.05;
 defaultGameConfig.downPaddleY = defaultGameConfig.boardHeight * 0.95 - defaultGameConfig.paddleHeight;
 
 export const gameState = {
-    ball: { x: 0, y: 0, xDir: 0, yDir: 0 }, 
-    paddles: { up: 0, down: 0 }, 
+    ball: { x: defaultGameConfig.boardWidth/2, y: defaultGameConfig.boardHeight/2, xDir: 0, yDir: 0 }, 
+    paddles: { up: defaultGameConfig.boardWidth/2, down: defaultGameConfig.boardWidth/2 }, 
     score: { mainPlayer: 0, secondPlayer: 0 },  
-    inProgress: false,      
     boardWidth: defaultGameConfig.boardWidth,          
     boardHeight: defaultGameConfig.boardHeight,  
+    inProgress: false,      
     winner: null,     
     ended: false,      
 };
