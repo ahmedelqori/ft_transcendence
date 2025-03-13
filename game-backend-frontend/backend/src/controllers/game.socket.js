@@ -49,10 +49,10 @@ export const validateSocketConnection = async (socket, next) => {
 };
 
 export const setupSocketHandlers = () => {
-  const io = fastify.io;
+  const io = fastify.io.of('/socket/game');
   
-  io.of("socket/game").use(validateSocketConnection);
-  io.of("socket/game").on('connection', (socket) => {
+  io.use(validateSocketConnection);
+  io.on('connection', (socket) => {
     const userId = socket.user?.id;
     const gameId = socket.game?.id;
     
@@ -91,7 +91,7 @@ export const setupSocketHandlers = () => {
         });
         if (Object.keys(gameRoom.players).length === 2) {
           fastify.log.info(`Game ${gameId} has two players, ready to start`);
-          io.of("socket/game").to(`game_${gameId}`).emit('readyToStart', {
+          io.to(`game_${gameId}`).emit('readyToStart', {
             gameRoom:gameRoom
           });
         }
@@ -104,7 +104,7 @@ export const setupSocketHandlers = () => {
           gameStarted: gameRoom.gameStarted
         });
         if (Object.keys(gameRoom.players).length === 2) {
-          io.of("socket/game").to(`game_${gameId}`).emit('readyToStart', {
+          io.to(`game_${gameId}`).emit('readyToStart', {
             gameRoom:gameRoom
           });
         }
@@ -132,7 +132,7 @@ export const setupSocketHandlers = () => {
       // Start the game loop with a callback that sends updates
       startGameLoop(60, (updatedGameState) => {
         // Send game state to all players in this game room
-        io.of("socket/game").to(`game_${gameId}`).emit('gameStateUpdate', updatedGameState);
+        io.to(`game_${gameId}`).emit('gameStateUpdate', updatedGameState);
         
         // Check if game has ended
         if (updatedGameState.ended) {
@@ -141,7 +141,7 @@ export const setupSocketHandlers = () => {
       });
       
       // Notify all players that game has started
-      io.of("socket/game").to(`game_${gameId}`).emit('gameStarted');
+      io.to(`game_${gameId}`).emit('gameStarted');
       fastify.log.info(`Game ${gameId} started`);
     });
     // In game.socket.js
@@ -164,7 +164,7 @@ export const setupSocketHandlers = () => {
       const gameRoom = gameRooms.get(gameId);
       if (!gameRoom || !gameRoom.gameStarted)
         return;      
-      io.of("socket/game").to(`game_${gameId}`).emit('gamePaused', { pausedBy: userId });
+      io.to(`game_${gameId}`).emit('gamePaused', { pausedBy: userId });
     });    
     socket.on('disconnect', () => {
       fastify.log.info(`User ${userId} disconnected from game ${gameId}`);
@@ -188,7 +188,7 @@ export const setupSocketHandlers = () => {
             if (Object.keys(gameRoom.players).length < 2) {
               stopGameLoop();
               
-              io.of("socket/game").to(`game_${gameId}`).emit('playerDisconnected', {
+              io.to(`game_${gameId}`).emit('playerDisconnected', {
                 message: "Opponent disconnected, game canceled"
               });
               
@@ -252,7 +252,7 @@ async function handleGameOver(gameId, finalGameState) {
     });
     
     // Notify players
-    fastify.io.of("socket/game").to(`game_${gameId}`).emit('gameOver', {
+    fastify.io.to(`game_${gameId}`).emit('gameOver', {
       winner: finalGameState.winner,
       score: finalGameState.score
     });

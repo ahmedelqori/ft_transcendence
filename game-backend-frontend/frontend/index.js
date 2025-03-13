@@ -30,7 +30,12 @@ let socket;
       d: false
     };
     let paddlePosition = gameConfig.boardWidth/2; // Store paddle position locally
-    
+    window.addEventListener('error', (event) => {
+        console.error('Global error caught:', event.error);
+        // Log the error but don't let it crash the connection
+        log('error', `JavaScript error: ${event.message}`);
+        return true; // Prevents default handling
+      });
     // Canvas setup
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -155,6 +160,7 @@ function gameLoop() {
     
     // Keyboard event listeners
     document.addEventListener('keydown', (event) => {
+        console.log('keydown event:');
       if (event.key.toLowerCase() === 'a') {
         console.log('A key pressed, keyState:', keyState);
         keyState.a = true;
@@ -171,6 +177,7 @@ function gameLoop() {
     
     // Connect button
     document.getElementById('connect').addEventListener('click', () => {
+        console.log('connect button clicked');
       const gameId = document.getElementById('gameId').value;
       const userId = document.getElementById('userId').value;
       
@@ -191,10 +198,12 @@ function gameLoop() {
       
       // Setup listeners
       socket.on('connect', () => {
+        console.log('connected to server');
         log('info', 'Connected to server');
       });
       
       socket.on('disconnect', () => {
+        console.log('disconnected from server');
         log('info', 'Disconnected from server');
         gameStarted = false;
       });
@@ -235,16 +244,24 @@ function gameLoop() {
       });
       
       socket.on('gameOver', (data) => {
-        log('receive', data);
-        gameStarted = false;
-        gameState.ended = true;
-        gameState.winner = data.winner;
-        
-        const winnerText = data.winner === 'mainPlayer' ? 'Player 1' : 'Player 2';
-        document.getElementById('gameStatus').textContent = `Game Over! ${winnerText} wins!`;
+        console.log('gameOver event received', data);
+        try {
+          log('receive', data);
+          gameStarted = false;
+          gameState.ended = true;
+          gameState.winner = data.winner;
+          
+          const winnerText = data.winner === 'mainPlayer' ? 'Player 1' : 'Player 2';
+          document.getElementById('gameStatus').textContent = `Game Over! ${winnerText} wins!`;
+          
+          // Don't do anything that might cause errors or disconnects
+        } catch (err) {
+          console.error('Error handling gameOver event:', err);
+        }
       });
       
       socket.on('playerDisconnected', (data) => {
+        console.log('Player disconnected:', data);  // Fixed the incomplete line
         log('receive', data);
         document.getElementById('gameStatus').textContent = 'Opponent disconnected!';
       });
@@ -254,7 +271,11 @@ function gameLoop() {
       });
     });
     
-    // Disconnect button
+
+
+
+
+    // EVENTS LISTENERS
     document.getElementById('disconnect').addEventListener('click', () => {
       if (socket) {
         socket.disconnect();

@@ -88,7 +88,7 @@ export function checkScoring() {
 
 let intervalId = null;
 
-export function startGameLoop(fps = 60, gameEvent = null) {
+export function startGameLoop(fps, gameEvent) {
   if (intervalId) 
     return;
   const frameTime = 1000 / fps;
@@ -97,9 +97,7 @@ export function startGameLoop(fps = 60, gameEvent = null) {
     if (!gameState.inProgress)
       return;
     updateBallPosition();
-    if (gameEvent) {
-      gameEvent(gameState);
-    }
+    gameEvent(gameState);
   }
   intervalId = setInterval(gameLoop, frameTime);
 }
