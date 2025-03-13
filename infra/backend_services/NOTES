@@ -1,0 +1,43 @@
+
+
+
+User-managment:
+    get     /login/google/
+    get     /login/42/
+    get     /login/callback/
+    post        /login/refresh/
+    get     /whoami/
+    patch       /update-profile/
+    post        /avatar/
+    get     /search/
+    get     /:id
+    get     /users/
+
+
+Notifications:
+    /api/notif/
+    /api/notif/
+    /api/notif/    
+    /api/notif/:id
+    /api/notif/ws
+
+
+Friendship:
+    /api/friends/:user_id/request
+    /api/friends/:user_id/request/accept
+    /api/friends/:user_id/request/reject
+    /api/friends/:user_id/friend
+    /api/friends/:user_id/request
+    /api/friends/:user_id/block
+    /api/friends/:user_id/block
+    /api/friends/:user_id
+    /api/friends/
+    /api/friends/search
+
+
+2FA:
+    /api/2fa/enable
+    /api/2fa/verify
+    /api/2fa/is-enable
+    /api/2fa/disable
+

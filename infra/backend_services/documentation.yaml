@@ -1,0 +1,162 @@
+openapi: 3.0.3
+info:
+  title: ft_transcendence
+  description: |-
+    ft_transcendence is the final project of the 42 curriculum. It is a full-stack web application where you build a real-time multiplayer Pong game with additional features. The goal is to combine backend, frontend, and real-time communication using modern web technologies.
+    
+    Some useful links:
+    - [School subject](https://cdn.intra.42.fr/pdf/pdf/150371/en.subject.pdf)
+    - [github](https://github.com/7h3Y055)
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: youssefbouchmama@hotmail.com
+  license:
+    name: Licens
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.11
+
+servers:
+  - url: https://pingpong.ma/
+
+tags:
+  - name: account
+    description: Operations about user account managments
+      
+  - name: friendship
+    description: Operations about user friendships
+      
+  - name: 2fa
+    description: Operations about user 2fa
+    
+  - name: notifications
+    description: Operations about user notifications
+
+paths:
+      /api/account/login/{provider}/:
+        get:
+          tags:
+            - account
+          summary: Google login
+          operationId: googleLogin
+          responses:
+            '200':
+              description: Successful login
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      access_token:
+                        type: string
+                        example: eyJhbGciOiJSUzI1NiIsInR5cCI5IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpYXQiOjE3NDE4MDg1MTMsImV4cCI6MTc0MTgyNjUxM30.KfAqhAzSU3kp2ZHIKxy7FI6LaaPc0wx10E4S0Rhn2cPQb2dt4DXEUSC5f8QTWOloDu0_J6ZOydWKbHf3jjM2zHEdLEeG6twlOkOKI3gbY_U3lWqbkkbHKaonEfjVCXuMAU9LNyiNAJDxs7M0Pb8t3VIRGoDF-2LCUu95mASUb4GS0w90wKjKfiieZYquREISMXiUIbpxbbiKL2tZBlQbgjTl2q8zuxoP_tGZgL0DjmPz5KbhPpg2QJkibfI0-xdIGMubvR32OSnZWCnCWs56h-rdzv2V51U-uTZnSijrbqdKUk82iJxwfI1FDqT8JBRfO2bJU5rk0PQT4TgL5dcoew
+                      refresh_token:
+                        type: string
+                        example: eyJhbGciOiJSUzI1NiIsInR5cCI5IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpYXQiOjE3NDE4MDg1MTMsImV4cCI6MTc0MjQxMzMxM30.k421vqSYu32FfEhhc_h1fQ_Ay0P3bt2wTZKh-12Y4X2XREjSvmXKVLhWywVFdg8IkXF0w_AUgUJL6x1p1jVi6vPKb69QFXL_fDQZPODsmWA-RX3IJfgXSU3GdB6MRTAeeqKkXFMr7NfZcLD3QD400zDSON1uifaAUgcUW5jFC_PNVaRbkpOzNZLVHRCydhOJStktZbWRVPGrDRgMslEJBTdqPjXIfeo_NA1iNbiid9E3af7nQ0BC8uVgm1mg0_k7ulqaeL2pn8YHeXtlFs6ok5NII_oiIj06XUBPdQntVYzf4-n73mzHbb-_eD9zJzPCJkklQuqo5djgnTLPpiCmxA
+            '400':
+              description: Invalid input
+            '500':
+              description: Internal server error
+
+          parameters:
+            - name: provider
+              in: path
+              required: true
+              schema:
+                type: string
+                enum:
+                  - google
+                  - 42
+
+      /api/account/login/refresh/:
+        post:
+          tags:
+            - account
+          summary: Refresh JWT tokens
+          operationId: refreshLogin
+          responses:
+            '200':
+              description: Token refreshed
+            '401':
+              description: Unauthorized
+
+      /api/account/whoami/:
+        get:
+          tags:
+            - account
+          summary: Get current user
+          operationId: whoAmI
+          responses:
+            '200':
+              description: Current user information
+            '401':
+              description: Unauthorized
+
+      /api/account/update-profile/:
+        patch:
+          tags:
+            - account
+          summary: Update user profile
+          operationId: updateProfile
+          responses:
+            '200':
+              description: Profile updated
+            '400':
+              description: Invalid input
+            '401':
+              description: Unauthorized
+
+      /api/account/avatar/:
+        post:
+          tags:
+            - account
+          summary: Upload avatar
+          operationId: uploadAvatar
+          responses:
+            '200':
+              description: Avatar uploaded
+            '400':
+              description: Invalid input
+            '401':
+              description: Unauthorized
+
+      /api/account/search/:
+        get:
+          tags:
+            - account
+          summary: Search users
+          operationId: searchUsers
+          responses:
+            '200':
+              description: Search results
+            '401':
+              description: Unauthorized
+
+      /api/account/:id:
+        get:
+          tags:
+            - account
+          summary: Get user by ID
+          operationId: getUserById
+          parameters:
+            - name: id
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            '200':
+              description: User information
+            '404':
+              description: User not found
+
+      /api/account/users/:
+        get:
+          tags:
+            - account
+          summary: Get all users
+          operationId: getAllUsers
+          responses:
+            '200':
+              description: List of users
+            '401':
+              description: Unauthorized

@@ -16,7 +16,9 @@ export default async function auth(req, res) {
             res.code(401).send({ message: 'Unauthorized' });
             return;
         }
+        console.log(response.status);
     }catch(err){
+        console.log(err.message);
         res.code(401).send({ message: 'Unauthorized' });
         return;
     };

@@ -23,7 +23,7 @@ const fastify = Fastify({
 
 fastify.register(routes, { prefix: '/api/tournament/' });
 
-fastify.listen({ port: 3004, host: '0.0.0.0' }, function (err, address) {
+fastify.listen({ port: 3001, host: '0.0.0.0' }, function (err, address) {
   if (err) {
     fastify.log.error(err);
     process.exit(1);
