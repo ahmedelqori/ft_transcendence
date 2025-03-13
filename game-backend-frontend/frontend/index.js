@@ -1,117 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Socket.IO Game Test</title>
-  <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
-  <style>
-    body { 
-      margin: 20px; 
-      font-family: Arial, sans-serif; 
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .container {
-      display: flex;
-      gap: 20px;
-    }
-    
-    .left-panel {
-      flex: 1;
-    }
-    
-    .right-panel {
-      flex: 1;
-    }
-    
-    #events { 
-      height: 300px; 
-      border: 1px solid #ccc; 
-      overflow-y: scroll; 
-      margin-bottom: 10px; 
-      padding: 10px; 
-    }
-    
-    #controls { 
-      margin-bottom: 20px; 
-    }
-    
-    button { 
-      margin-right: 5px; 
-    }
-    
-    pre { 
-      margin: 0; 
-    }
-    
-    #gameCanvas {
-      border: 2px solid #333;
-      background-color: #222;
-      margin-top: 10px;
-      cursor: none;
-    }
-    
-    .game-controls {
-      margin-top: 10px;
-      display: flex;
-      gap: 10px;
-    }
-    
-    .scoreboard {
-      margin-top: 10px;
-      display: flex;
-      justify-content: space-between;
-      font-size: 18px;
-      font-weight: bold;
-    }
-    
-    .game-status {
-      text-align: center;
-      margin-top: 10px;
-      font-weight: bold;
-      min-height: 24px;
-    }
-  </style>
-</head>
-<body>
-  <h1>Socket.IO Pong Game</h1>
-  
-  <div class="container">
-    <div class="left-panel">
-      <div id="controls">
-        <input id="gameId" type="text" placeholder="Game ID" value="1">
-        <input id="userId" type="text" placeholder="User Id" value="1">
-        <button id="connect">Connect</button>
-        <button id="disconnect">Disconnect</button>
-      </div>
-      
-      <div id="events">
-        <div>Events will appear here...</div>
-      </div>
-      
-      <div>
-        <button id="joinGame">joinGame</button>
-        <button id="startGame">startGame</button>
-        <button id="paddleMove">paddleMove (random)</button>
-        <button id="pauseGame">pauseGame</button>
-      </div>
-    </div>
-    
-    <div class="right-panel">
-      <div class="scoreboard">
-        <div>Player 1: <span id="score1">0</span></div>
-        <div>Player 2: <span id="score2">0</span></div>
-      </div>
-      
-      <canvas id="gameCanvas" width="800" height="600"></canvas>
-      
-      <div class="game-status" id="gameStatus"></div>
-    </div>
-  </div>
-  
-  <script>
-    // Game variables
-    let socket;
+let socket;
     let gameConfig = {
         playersNumber: 2,
         ballSpeed: 5,
@@ -136,7 +23,6 @@
       winner: null
     };
     let gameStarted = false;
-    let lastPaddlePosition = null;
 
     // Keyboard control variables
     let keyState = {
@@ -173,9 +59,7 @@
       eventsDiv.scrollTop = eventsDiv.scrollHeight;
     }
     
-    // Function to render the game
     function renderGame() {
-      // Clear canvas
       ctx.fillStyle = '#222';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
@@ -243,49 +127,26 @@
     
     // Start rendering loop
     renderGame();
-    
-    // Game loop for paddle movement
-    // Game loop for paddle movement
+
 function gameLoop() {
-  if (gameStarted && !gameState.ended && socket?.connected && playerType) {
-    // Start with current position
-    let currentPosition;
-    
-    if (playerType === 'mainPlayer') {
-      currentPosition = gameState.paddles.down;
-    } else {
-      currentPosition = gameState.paddles.up;
-    }
-    
-    // Store original position to detect movement
-    const originalPosition = currentPosition;
-    
-    // Update paddle position based on key state
-    if (keyState.a) {
-      currentPosition -= gameConfig.paddleSpeed;
-    }
-    if (keyState.d) {
-      currentPosition += gameConfig.paddleSpeed;
-    }
-    
-    // Keep paddle within bounds
-    currentPosition = Math.max(gameConfig.paddleWidth / 2, 
-                   Math.min(canvas.width - gameConfig.paddleWidth / 2, currentPosition));
-    
-    // Only send if the position changed
-    if (currentPosition !== originalPosition) {
-        if (playerType === 'mainPlayer') {
-          gameState.paddles.down = currentPosition;
-        } else {
-          gameState.paddles.up = currentPosition;
+    let paddlemoved = false;
+    if (gameStarted && !gameState.ended && socket?.connected && playerType) {
+        let currentPosition = playerType === 'mainPlayer' ? 
+            gameState.paddles.down : gameState.paddles.up
+        if (keyState.a){
+            currentPosition -= gameConfig.paddleSpeed;
+            paddlemoved = true
         }
-      socket.emit('paddleMove', currentPosition);
-            
-      // Store last position
-      lastPaddlePosition = currentPosition;
+        if (keyState.d){
+            currentPosition += gameConfig.paddleSpeed;
+            paddlemoved = true;
+        }
+        playerType === 'mainPlayer' ? 
+            gameState.paddles.down = currentPosition :
+            gameState.paddles.up = currentPosition;
+        if (paddlemoved)
+            socket.emit('paddleMove', currentPosition);
     }
-  }
-  
   requestAnimationFrame(gameLoop);
 }
     
@@ -342,7 +203,6 @@ function gameLoop() {
         log('error', `Connection error: ${err.message}`);
       });
       
-      // Game specific events
       socket.on('initGame', (data) => {
         log('receive', data);
         if (data.gameConfig && data.gameState) {
@@ -354,31 +214,23 @@ function gameLoop() {
       socket.on('joinedGame', (data) => {
         log('receive', data);
         playerType = data.playerType;
-        log('info', `You are playing as ${playerType}`);
-        
-        document.getElementById('gameStatus').textContent = 'Joined game, waiting for opponent';
+        log('info', `You are playing as ${playerType}`);        
       });
       
       socket.on('playerJoined', (data) => {
         log('receive', data);
-        document.getElementById('gameStatus').textContent = 'Opponent joined, ready to start';
       });
       
       socket.on('readyToStart', (data) => {
         log('receive', data);
-        document.getElementById('gameStatus').textContent = 'Game ready! Press Start Game to begin';
       });
       
       socket.on('gameStarted', () => {
         log('receive', 'Game started');
         gameStarted = true;
-        gameState.ended = false;
-        gameState.winner = null;
-        document.getElementById('gameStatus').textContent = 'Game in progress';
       });
       
       socket.on('gameStateUpdate', (data) => {
-        // Update without logging every frame to avoid console spam
         gameState = data;
       });
       
@@ -430,16 +282,6 @@ function gameLoop() {
       }
     });
     
-    // document.getElementById('paddleMove').addEventListener('click', () => {
-    //   if (socket && socket.connected) {
-    //     const position = Math.floor(Math.random() * canvas.width);
-    //     socket.emit('paddleMove', position);
-    //     log('emit', `paddleMove event sent with position: ${position}`);
-    //   } else {
-    //     log('error', 'Not connected');
-    //   }
-    // });
-    
     document.getElementById('pauseGame').addEventListener('click', () => {
       if (socket && socket.connected) {
         socket.emit('pauseGame');
@@ -449,6 +291,3 @@ function gameLoop() {
         log('error', 'Not connected');
       }
     });
-  </script>
-</body>
-</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Socket.IO Game Test</title>
+  <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Socket.IO Pong Game</h1>
+  <div class="container">
+    <div class="left-panel">
+      <div id="controls">
+        <input id="gameId" type="text" placeholder="Game ID" value="1">
+        <input id="userId" type="text" placeholder="User Id" value="1">
+        <button id="connect">Connect</button>
+        <button id="disconnect">Disconnect</button>
+      </div>
+      <div id="events">
+        <div>Events will appear here...</div>
+      </div>
+      <div>
+        <button id="joinGame">joinGame</button>
+        <button id="startGame">startGame</button>
+        <button id="pauseGame">pauseGame</button>
+        <button id="paddleMove">cancelGame</button>
+      </div>
+    </div>
+    <div class="right-panel">
+      <div class="scoreboard">
+        <div>Player 1: <span id="score1">0</span></div>
+        <div>Player 2: <span id="score2">0</span></div>
+      </div>
+      <canvas id="gameCanvas" width="800" height="600"></canvas>
+      <div class="game-status" id="gameStatus"></div>
+    </div>
+  </div>
+  
+  <script src="index.js"></script>
+</body>
+</html>
