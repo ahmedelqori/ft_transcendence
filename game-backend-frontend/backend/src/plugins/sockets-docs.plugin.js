@@ -1,7 +1,7 @@
 export function socketDocsPlugin(fastify, options, done) {
   fastify.get('/socket-docs', {
     schema: {
-      hide: true // Hide from Swagger UI
+      hide: true 
     },
     handler: (request, reply) => {
       const socketDocs = {

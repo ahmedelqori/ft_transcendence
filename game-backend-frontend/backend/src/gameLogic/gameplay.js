@@ -144,33 +144,3 @@ export function updatePaddlePosition(playerType, position) {
   }
   return false;
 }
-
-// // For WebSocket integration:
-// startGameLoop(60, (gameState) => {
-//   // Send updated game state to connected clients
-//   io.emit('gameStateUpdate', gameState);
-// });
-
-
-// In your socket.io handler file
-// import { updatePaddlePosition } from './gameplay.js';
-
-// io.on('connection', (socket) => {
-//   // When a player joins, assign them to a game room
-//   // ...
-  
-//   // Handle paddle movement from clients
-//   socket.on('paddleMove', (data) => {
-//     const { position, gameId } = data;
-    
-//     // Determine which player is moving (based on socket.id or other tracking)
-//     const playerType = getPlayerTypeFromSocket(socket.id, gameId);
-    
-//     // Update the paddle position
-//     if (updatePaddlePosition(playerType, position)) {
-//       // Optional: if you want immediate feedback, you can emit just the paddle update
-//       // rather than waiting for the next game loop iteration
-//       // io.to(gameId).emit('paddleUpdate', { playerType, position });
-//     }
-//   });
-// });

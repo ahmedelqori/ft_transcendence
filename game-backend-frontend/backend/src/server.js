@@ -12,7 +12,6 @@ import {socketDocsPlugin, docsPortalPlugin} from './plugins/sockets-docs.plugin.
 
 export const gameConnections = new Map();
 
-//register the Pino-pretty logger for ELK
 export const fastify = Fastify({
   logger: {
     transport: {
@@ -38,7 +37,7 @@ fastify.register(socketIoPlugin, {
     methods: ['GET', 'POST']
   }
 });
-// Register Swagger for Api documentation
+
 fastify.register(swagger, {
   openapi: {
     info: {
@@ -74,8 +73,8 @@ fastify.addHook('preHandler', async (req, reply) => {
   if (path.startsWith('/swagger') || path.startsWith('/api-docs') || path.startsWith('/socket-docs') || path.startsWith('/api/games'))
      return;
   await authenticate(req, reply);
-}); // only for http requests
-fastify.addHook('onReady', setupSocketHandlers); // for socket.io connections
+});
+fastify.addHook('onReady', setupSocketHandlers);
 
 
 

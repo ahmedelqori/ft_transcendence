@@ -2,27 +2,44 @@ import axios from 'axios';
 import {fastify} from "../server.js";
 import { getUserById } from './user.data.js';
 
-// export async function verifyUserFromToken(token) {
-//   const userId = parseInt(token, 10);
-//   return userId || null;
-// }
+export const validateSocketConnection = async (socket, next) => {
+  try {
+    // add an auth object that contain gameId and token
+    const gameId = parseInt(socket.handshake.auth.gameId);
+    const userId = parseInt(socket.handshake.auth.userId);
+    // const token = socket.handshake.auth.token;
+    fastify.log.warn(`gameId = ${gameId}`)
+    fastify.log.warn(`userId = ${userId}`)
+    // if (isNaN(gameId))
+    //   return next(new Error("Invalid game ID"));
+    // if (!token)
+    //   return next(new Error("Authentication required"));
 
-// export async function authenticate(req, reply) {
-//   // Get user ID directly from request
-//   const userId = req.headers?.userid || req.query?.userId;
-  
-//   if (!userId) {
-//     return reply.code(401).send({ message: 'User ID required' });
-//   }
-  
-//   const user = getUserById(userId);
-//   if (!user) {
-//     return reply.code(404).send({ message: 'User not found' });
-//   }
-//   req.user = user;
-//   return;
-// }
-
+    // const user = await verifyUserFromToken(token);
+    const user = {id: userId}
+    if (!user)
+      return next(new Error("Invalid authentication token"));
+    try {
+      const game = await fastify.prisma.game.findUnique({
+        where: { id: gameId }
+      });
+      if (!game)
+        return next(new Error("Game not found"));
+      if (user.id !== game.playerOneId && user.id !== game.playerTwoId) 
+        return next(new Error("Not a player in this game"));
+      user.playerType = (user.id === game.playerOneId) ? 'mainPlayer' : 'secondPlayer';
+      socket.user = user
+      socket.game = game;
+      next();
+    } catch (error) {
+      fastify.log.error(`Database error during socket validation: ${error}`);
+      return next(new Error("Failed to validate game"));
+    }
+  } catch (error) {
+    fastify.log.error(`Socket validation error: ${error}`);
+    return next(new Error('Authentication failed'));
+  }
+};
 
 
 export async function authenticate(req, reply) {
