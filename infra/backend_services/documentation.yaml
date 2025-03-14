@@ -31,132 +31,709 @@ tags:
   - name: notifications
     description: Operations about user notifications
 
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
 paths:
-      /api/account/login/{provider}/:
-        get:
-          tags:
-            - account
-          summary: Google login
-          operationId: googleLogin
-          responses:
-            '200':
-              description: Successful login
-              content:
-                application/json:
-                  schema:
-                    type: object
-                    properties:
-                      access_token:
-                        type: string
-                        example: eyJhbGciOiJSUzI1NiIsInR5cCI5IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpYXQiOjE3NDE4MDg1MTMsImV4cCI6MTc0MTgyNjUxM30.KfAqhAzSU3kp2ZHIKxy7FI6LaaPc0wx10E4S0Rhn2cPQb2dt4DXEUSC5f8QTWOloDu0_J6ZOydWKbHf3jjM2zHEdLEeG6twlOkOKI3gbY_U3lWqbkkbHKaonEfjVCXuMAU9LNyiNAJDxs7M0Pb8t3VIRGoDF-2LCUu95mASUb4GS0w90wKjKfiieZYquREISMXiUIbpxbbiKL2tZBlQbgjTl2q8zuxoP_tGZgL0DjmPz5KbhPpg2QJkibfI0-xdIGMubvR32OSnZWCnCWs56h-rdzv2V51U-uTZnSijrbqdKUk82iJxwfI1FDqT8JBRfO2bJU5rk0PQT4TgL5dcoew
-                      refresh_token:
-                        type: string
-                        example: eyJhbGciOiJSUzI1NiIsInR5cCI5IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpYXQiOjE3NDE4MDg1MTMsImV4cCI6MTc0MjQxMzMxM30.k421vqSYu32FfEhhc_h1fQ_Ay0P3bt2wTZKh-12Y4X2XREjSvmXKVLhWywVFdg8IkXF0w_AUgUJL6x1p1jVi6vPKb69QFXL_fDQZPODsmWA-RX3IJfgXSU3GdB6MRTAeeqKkXFMr7NfZcLD3QD400zDSON1uifaAUgcUW5jFC_PNVaRbkpOzNZLVHRCydhOJStktZbWRVPGrDRgMslEJBTdqPjXIfeo_NA1iNbiid9E3af7nQ0BC8uVgm1mg0_k7ulqaeL2pn8YHeXtlFs6ok5NII_oiIj06XUBPdQntVYzf4-n73mzHbb-_eD9zJzPCJkklQuqo5djgnTLPpiCmxA
-            '400':
-              description: Invalid input
-            '500':
-              description: Internal server error
-
-          parameters:
-            - name: provider
-              in: path
-              required: true
+  /api/account/login/{provider}/:
+    get:
+      tags:
+        - account
+      summary: 42/google login
+      operationId: googleLogin
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
               schema:
-                type: string
-                enum:
-                  - google
-                  - 42
-
-      /api/account/login/refresh/:
-        post:
-          tags:
-            - account
-          summary: Refresh JWT tokens
-          operationId: refreshLogin
-          responses:
-            '200':
-              description: Token refreshed
-            '401':
-              description: Unauthorized
-
-      /api/account/whoami/:
-        get:
-          tags:
-            - account
-          summary: Get current user
-          operationId: whoAmI
-          responses:
-            '200':
-              description: Current user information
-            '401':
-              description: Unauthorized
-
-      /api/account/update-profile/:
-        patch:
-          tags:
-            - account
-          summary: Update user profile
-          operationId: updateProfile
-          responses:
-            '200':
-              description: Profile updated
-            '400':
-              description: Invalid input
-            '401':
-              description: Unauthorized
-
-      /api/account/avatar/:
-        post:
-          tags:
-            - account
-          summary: Upload avatar
-          operationId: uploadAvatar
-          responses:
-            '200':
-              description: Avatar uploaded
-            '400':
-              description: Invalid input
-            '401':
-              description: Unauthorized
-
-      /api/account/search/:
-        get:
-          tags:
-            - account
-          summary: Search users
-          operationId: searchUsers
-          responses:
-            '200':
-              description: Search results
-            '401':
-              description: Unauthorized
-
-      /api/account/:id:
-        get:
-          tags:
-            - account
-          summary: Get user by ID
-          operationId: getUserById
-          parameters:
-            - name: id
-              in: path
-              required: true
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: JWT.TOKEN.TEST
+                  refresh_token:
+                    type: string
+                    example: JWT.TOKEN.TEST
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
               schema:
-                type: string
-          responses:
-            '200':
-              description: User information
-            '404':
-              description: User not found
-
-      /api/account/users/:
-        get:
-          tags:
-            - account
-          summary: Get all users
-          operationId: getAllUsers
-          responses:
-            '200':
-              description: List of users
-            '401':
-              description: Unauthorized
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - google
+              - 42
+  /api/account/login/refresh/:
+    post:
+      tags:
+        - account
+      summary: Refresh JWT tokens
+      security:
+        - bearerAuth: []
+      operationId: refreshLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+                  example: JWT.TOKEN.TEST
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: JWT.TOKEN.TEST
+                  refresh_token:
+                    type: string
+                    example: JWT.TOKEN.TEST
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/account/whoami/:
+    get:
+      tags:
+        - account
+      summary: Get current user (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: whoAmI
+      responses:
+        '200':
+          description: Current user information
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/account/update-profile/:
+    patch:
+      tags:
+        - account
+      summary: Update user profile (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: updateProfile
+      responses:
+        '200':
+          description: Profile updated
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/account/avatar/:
+    post:
+      tags:
+        - account
+      summary: Upload avatar (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: uploadAvatar
+      responses:
+        '200':
+          description: Avatar uploaded
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/account/search/:
+    get:
+      tags:
+        - account
+      summary: Search users (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: searchUsers
+      responses:
+        '200':
+          description: Search results
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/account/:id:
+    get:
+      tags:
+        - account
+      summary: Get user by ID (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: getUserById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User information
+        '404':
+          description: User not found
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/account/users/:
+    get:
+      tags:
+        - account
+      summary: Get all users (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: getAllUsers
+      responses:
+        '200':
+          description: List of users
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/notif/:
+    post:
+      tags:
+        - notifications
+      summary: Create a notification (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: createNotification
+      responses:
+        '200':
+          description: Notification created
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+    get:
+      tags:
+        - notifications
+      summary: Get all notifications (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: getAllNotifications
+      responses:
+        '200':
+          description: List of notifications
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+    delete:
+      tags:
+        - notifications
+      summary: Delete all notifications (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: deleteAllNotifications
+      responses:
+        '200':
+          description: All notifications deleted
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/notif/{id}:
+    delete:
+      tags:
+        - notifications
+      summary: Delete notification by ID (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: deleteNotificationById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notification deleted
+        '404':
+          description: Notification not found
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/notif/ws:
+    get:
+      tags:
+        - notifications
+      summary: WebSocket for notifications (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: notificationsWebSocket
+      responses:
+        '101':
+          description: Switching protocols
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/friends/{user_id}/request:
+    post:
+      tags:
+        - friendship
+      summary: Send friend request (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: sendFriendRequest
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Friend request sent
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+    delete:
+      tags:
+        - friendship
+      summary: Cancel friend request (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: cancelFriendRequest
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Friend request canceled
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/friends/{user_id}/request/accept:
+    post:
+      tags:
+        - friendship
+      summary: Accept friend request (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: acceptFriendRequest
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Friend request accepted
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/friends/{user_id}/request/reject:
+    post:
+      tags:
+        - friendship
+      summary: Reject friend request (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: rejectFriendRequest
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Friend request rejected
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/friends/{user_id}/friend:
+    delete:
+      tags:
+        - friendship
+      summary: Remove friend (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: removeFriend
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Friend removed
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/friends/{user_id}/block:
+    post:
+      tags:
+        - friendship
+      summary: Block user (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: blockUser
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User blocked
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+    delete:
+      tags:
+        - friendship
+      summary: Unblock user (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: unblockUser
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User unblocked
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/friends/{user_id}:
+    get:
+      tags:
+        - friendship
+      summary: Get user friends (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: getUserFriends
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of user friends
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/friends/:
+    get:
+      tags:
+        - friendship
+      summary: Get all friends (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: getAllFriends
+      responses:
+        '200':
+          description: List of friends
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/friends/search:
+    get:
+      tags:
+        - friendship
+      summary: Search friends (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: searchFriends
+      responses:
+        '200':
+          description: Search results
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/2fa/enable:
+    post:
+      tags:
+        - 2fa
+      summary: Enable 2FA (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: enable2FA
+      responses:
+        '200':
+          description: 2FA enabled
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/2fa/verify:
+    post:
+      tags:
+        - 2fa
+      summary: Verify 2FA (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: verify2FA
+      responses:
+        '200':
+          description: 2FA verified
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/2fa/is-enable:
+    get:
+      tags:
+        - 2fa
+      summary: Check if 2FA is enabled (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: is2FAEnabled
+      responses:
+        '200':
+          description: 2FA status
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/2fa/disable:
+    delete:
+      tags:
+        - 2fa
+      summary: Disable 2FA (still not complete)
+      security:
+        - bearerAuth: []
+      operationId: disable2FA
+      responses:
+        '200':
+          description: 2FA disabled
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized

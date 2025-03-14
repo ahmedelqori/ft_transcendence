@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
-import path from 'path';
 
 export default async function refresh(req, res) {
     const refresh_token = req.body.refresh_token;
@@ -8,13 +7,14 @@ export default async function refresh(req, res) {
         return res.status(400).send({ error: "refresh is required" });
 
     }
-    const privateKey = fs.readFileSync('./private.pem', 'utf8');
-    const publicKey = fs.readFileSync('./public.pem', 'utf8');
+
+    const privateKey = fs.readFileSync('./private.pem', 'utf8'); // here
+    const publicKey = fs.readFileSync('./public.pem', 'utf8'); // here
 
     try {
 
 
-        const decoded = jwt.verify(refresh_token, publicKey); // Verify the token first
+        const decoded = jwt.verify(refresh_token, publicKey);
         if (!decoded) {
             return res.status(400).send({ error: "invalid refresh token" });
         }

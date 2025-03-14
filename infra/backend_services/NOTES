@@ -15,29 +15,31 @@ User-managment:
 
 
 Notifications:
-    /api/notif/
-    /api/notif/
-    /api/notif/    
-    /api/notif/:id
-    /api/notif/ws
+    /api/notif/ post
+    /api/notif/ get
+    /api/notif/ delete
+    /api/notif/:id delete
+    /api/notif/ws websocket
 
 
 Friendship:
-    /api/friends/:user_id/request
-    /api/friends/:user_id/request/accept
-    /api/friends/:user_id/request/reject
-    /api/friends/:user_id/friend
-    /api/friends/:user_id/request
-    /api/friends/:user_id/block
-    /api/friends/:user_id/block
-    /api/friends/:user_id
-    /api/friends/
-    /api/friends/search
+    /api/friends/:user_id/request post
+    /api/friends/:user_id/request/accept post
+    /api/friends/:user_id/request/reject post
+    /api/friends/:user_id/friend delete
+    /api/friends/:user_id/request delete
+    /api/friends/:user_id/block post
+    /api/friends/:user_id/block delete
+    /api/friends/:user_id get
+    /api/friends/ get
+    /api/friends/search get
 
 
 2FA:
-    /api/2fa/enable
-    /api/2fa/verify
-    /api/2fa/is-enable
-    /api/2fa/disable
+    /api/2fa/enable post
+    /api/2fa/verify post
+    /api/2fa/is-enable get
+    /api/2fa/disable delete
 
+
+    
