@@ -31,6 +31,9 @@ tags:
   - name: notifications
     description: Operations about user notifications
 
+  - name: tournaments
+    description: Operations about tournaments
+
 components:
   securitySchemes:
     bearerAuth:
@@ -130,13 +133,46 @@ paths:
     get:
       tags:
         - account
-      summary: Get current user (still not complete)
+      summary: Get current user
       security:
         - bearerAuth: []
       operationId: whoAmI
       responses:
         '200':
           description: Current user information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  username:
+                    type: string
+                    example: ybouchma
+                  first_name:
+                    type: string
+                    example: Youssef
+                  last_name:
+                    type: string
+                    example: Bouchmama
+                  bio:
+                    type: string
+                    example: "one two three viva algerie"
+                  avatar_url:
+                    type: string
+                    example: https://pingpong.ma/profile_images/ybouchma.jpg
+                  status:
+                    type: string
+                    example: ON
+                  two_FA:
+                    type: integer
+                    example: 0
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: 2025-03-13T07:19:20.993Z
         '401':
           description: Unauthorized
           content:
@@ -147,19 +183,83 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
+
   /api/account/update-profile/:
     patch:
       tags:
         - account
-      summary: Update user profile (still not complete)
+      summary: Update user profile
       security:
         - bearerAuth: []
       operationId: updateProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: ybouchmaAA
+                first_name:
+                  type: string
+                  example: Youssef
+                last_name:
+                  type: string
+                  example: Bouchmama
+                bio:
+                  type: string
+                  example: "one two three viva algerie"
+                status:
+                  type: string
+                  example: ON
       responses:
         '200':
           description: Profile updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  username:
+                    type: string
+                    example: ybouchmaAA
+                  first_name:
+                    type: string
+                    example: Youssef
+                  last_name:
+                    type: string
+                    example: Bouchmama
+                  bio:
+                    type: string
+                    example: "one two three viva algerie"
+                  avatar_url:
+                    type: string
+                    example: https://pingpong.ma/profile_images/ybouchma.jpg
+                  status:
+                    type: string
+                    example: ON
+                  two_FA:
+                    type: integer
+                    example: 0
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: 2025-03-13T07:19:20.993Z
         '400':
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid input
         '401':
           description: Unauthorized
           content:
@@ -170,19 +270,49 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
+
   /api/account/avatar/:
     post:
       tags:
         - account
-      summary: Upload avatar (still not complete)
+      summary: Upload avatar
       security:
         - bearerAuth: []
       operationId: uploadAvatar
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+            encoding:
+                file:
+                  contentType: image/jpeg, image/png, image/gif, image/webp
       responses:
         '200':
           description: Avatar uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  avatar_url:
+                    type: string
+                    example: https://pingpong.ma/profile_images/ybouchmaAA.png
         '400':
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid file type
         '401':
           description: Unauthorized
           content:
@@ -197,13 +327,66 @@ paths:
     get:
       tags:
         - account
-      summary: Search users (still not complete)
+      summary: Search users
       security:
         - bearerAuth: []
       operationId: searchUsers
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 10
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 0
       responses:
         '200':
           description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        username:
+                          type: string
+                          example: ybouchmaAA
+                        first_name:
+                          type: string
+                          example: Youssef
+                        last_name:
+                          type: string
+                          example: Bouchmama
+                        bio:
+                          type: string
+                          example: "one two three viva algerie"
+                        avatar_url:
+                          type: string
+                          example: https://pingpong.ma/profile_images/ybouchmaAA.png
+                        status:
+                          type: string
+                          example: ON
+                        created_at:
+                          type: string
+                          format: date-time
+                          example: 2025-03-13T07:19:20.993Z
         '401':
           description: Unauthorized
           content:
@@ -214,11 +397,21 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
-  /api/account/:id:
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid parameters
+  /api/account/{id}:
     get:
       tags:
         - account
-      summary: Get user by ID (still not complete)
+      summary: Get user by ID
       security:
         - bearerAuth: []
       operationId: getUserById
@@ -231,8 +424,46 @@ paths:
       responses:
         '200':
           description: User information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  username:
+                    type: string
+                    example: ybouchmaAA
+                  first_name:
+                    type: string
+                    example: Youssef
+                  last_name:
+                    type: string
+                    example: Bouchmama
+                  bio:
+                    type: string
+                    example: "one two three viva algerie"
+                  avatar_url:
+                    type: string
+                    example: https://pingpong.ma/profile_images/ybouchmaAA.png
+                  status:
+                    type: string
+                    example: ON
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: 2025-03-13T07:19:20.993Z
         '404':
           description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: User not found
         '401':
           description: Unauthorized
           content:
@@ -247,13 +478,76 @@ paths:
     get:
       tags:
         - account
-      summary: Get all users (still not complete)
+      summary: Get all users
       security:
         - bearerAuth: []
       operationId: getAllUsers
+      parameters:
+        - name: n
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 5
+        - name: sort
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - newest
+              - oldest
       responses:
         '200':
           description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    username:
+                      type: string
+                      example: ybouchmaAA
+                    email:
+                      type: string
+                      example: ybouchma@student.1337.ma
+                    first_name:
+                      type: string
+                      example: Youssef
+                    last_name:
+                      type: string
+                      example: Bouchmama
+                    bio:
+                      type: string
+                      example: "one two three viva algerie"
+                    avatar_url:
+                      type: string
+                      example: https://pingpong.ma/profile_images/ybouchmaAA.png
+                    status:
+                      type: string
+                      example: ON
+                    two_FA:
+                      type: integer
+                      example: 0
+                    created_at:
+                      type: string
+                      format: date-time
+                      example: 2025-03-13T07:19:20.993Z
+        '400':
+          description: Invalid sort parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid sort parameter
         '401':
           description: Unauthorized
           content:
@@ -264,6 +558,19 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
+
+
+
+
+
+
+
+
+
+
+
+
+
   /api/notif/:
     post:
       tags:

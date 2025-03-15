@@ -55,7 +55,7 @@ const update_profile = async (req, reply) => {
         await Player.query().patchAndFetchById(req.user.id, newProfileData);
         const updatedPlayer = await Player.query().findById(req.user.id);
 
-        notif(updatedPlayer.id, 'info', 'Profile updated');
+        notif(req, 'info', 'Profile updated');
         reply.send(updatedPlayer);
     } catch (error) {
         reply.status(400).send({ 'error': error.message });
