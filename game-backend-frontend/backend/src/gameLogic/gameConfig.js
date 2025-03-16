@@ -1,7 +1,7 @@
 
 export const defaultGameConfig = {
     playersNumber: 2,
-    ballSpeed: 5,
+    ballSpeed: 1,
     maxBallSpeed: 10,
     ballSize: 10,
     paddleWidth: 100,

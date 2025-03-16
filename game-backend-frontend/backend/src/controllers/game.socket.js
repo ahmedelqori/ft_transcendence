@@ -9,7 +9,7 @@ import { validateSocketConnection } from "../middlewares/auth.middleware.js";
 import {defaultGameConfig, gameState} from '../gameLogic/gameConfig.js'
 const gameRooms = new Map();
 const defaultGameRoom = { 
-  gameId: -1, 
+  gameId: 0, 
   players: {},
   disconnectedPlayers: {},
   gameStarted: false,
@@ -39,12 +39,14 @@ export const setupSocketHandlers = () => {
 // ******************* JOINGAME EVENT HANDLER *******************
     
     socket.on('joinGame', () => {
-      let gameRoom = gameRooms.get(gameId);      
+      let gameRoom = gameRooms.get(gameId); 
+      // case 1 : first player connects to the game     
       if (!gameRoom) {
         gameRoom = {...defaultGameRoom, gameId:gameId};
         gameRooms.set(gameId, gameRoom);
         fastify.log.info(`Created new game room for game ${gameId}`);
-      }      
+      }
+      // case 2 : where a player is disconnect because of network issue and try to reconnect
       if (gameRoom.disconnectedPlayers && gameRoom.disconnectedPlayers[userId]){
         const disconnectedPlayer = gameRoom.disconnectedPlayers[userId];
         const reconnectTime = Date.now() - disconnectedPlayer.disconnectedAt;
@@ -79,6 +81,7 @@ export const setupSocketHandlers = () => {
           delete gameRoom.disconnectedPlayers[userId]
         }
       }
+      // case 3 : second player joins the game
       if (Object.keys(gameRoom.players).length < 2) {
         if (!gameRoom.players[userId]){
           socket.join(`game_${gameId}`);        
@@ -111,18 +114,10 @@ export const setupSocketHandlers = () => {
 
     socket.on('startGame', () => {
       const gameRoom = gameRooms.get(gameId);
-      
-      if (!gameRoom || gameRoom.gameStarted || Object.keys(gameRoom.players).length < 2) {
+      if (!gameRoom || gameRoom.gameStarted || gameRoom.gamePaused || Object.keys(gameRoom.players).length < 2)
         return;
-      }
-      
       gameRoom.gameStarted = true;
-      
       resetBallAndPaddles();
-      gameState.score = { mainPlayer: 0, secondPlayer: 0 };
-      gameState.ended = false;
-      gameState.winner = null;
-      
       startGameLoop(60, (updatedGameState) => {
         io.to(`game_${gameId}`).emit('gameStateUpdate', updatedGameState);
         
