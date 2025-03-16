@@ -21,5 +21,7 @@ export default async function markAsRead(req, res) {
         return;
     }
 
-    res.send({message: `Marked ${records} notifications as read`});
+    res
+        .status(204)
+        .send({message: `Marked ${records} notifications as read`});
 };

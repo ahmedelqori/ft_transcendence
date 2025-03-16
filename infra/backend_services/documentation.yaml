@@ -569,41 +569,36 @@ paths:
 
 
 
-
-
   /api/notif/:
-    post:
-      tags:
-        - notifications
-      summary: Create a notification (still not complete)
-      security:
-        - bearerAuth: []
-      operationId: createNotification
-      responses:
-        '200':
-          description: Notification created
-        '400':
-          description: Invalid input
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Unauthorized
     get:
       tags:
         - notifications
-      summary: Get all notifications (still not complete)
+      summary: Get all notifications
       security:
         - bearerAuth: []
       operationId: getAllNotifications
       responses:
         '200':
           description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        level:
+                          type: string
+                          example: info
+                        message:
+                          type: string
+                          example: one two three viva la algerie
         '401':
           description: Unauthorized
           content:
@@ -617,13 +612,21 @@ paths:
     delete:
       tags:
         - notifications
-      summary: Delete all notifications (still not complete)
+      summary: Delete all notifications
       security:
         - bearerAuth: []
       operationId: deleteAllNotifications
       responses:
-        '200':
+        '204':
           description: All notifications deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Marked 5 notifications as read
         '401':
           description: Unauthorized
           content:
@@ -638,7 +641,7 @@ paths:
     delete:
       tags:
         - notifications
-      summary: Delete notification by ID (still not complete)
+      summary: Delete notification by ID
       security:
         - bearerAuth: []
       operationId: deleteNotificationById
@@ -647,12 +650,28 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: integer
       responses:
-        '200':
-          description: Notification deleted
+        '204':
+          description: mark notification as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Marked 1 notifications as read
         '404':
           description: Notification not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Notification not found
         '401':
           description: Unauthorized
           content:
@@ -667,7 +686,7 @@ paths:
     get:
       tags:
         - notifications
-      summary: WebSocket for notifications (still not complete)
+      summary: WebSocket for notifications
       security:
         - bearerAuth: []
       operationId: notificationsWebSocket
@@ -684,6 +703,13 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
+
+
+
+
+
+
+
   /api/friends/{user_id}/request:
     post:
       tags:

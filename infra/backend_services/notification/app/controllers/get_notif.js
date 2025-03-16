@@ -7,7 +7,7 @@ export default async function get_notif(req, res) {
         const records = await notif.query()
             .where({to: req.user.id})
             .select('id', 'level', 'message');
-        res.status(201).send({result: records});
+        res.status(200).send({result: records});
     }catch (err){
         console.log.err(err);
         res.status(500).send({error: err.message});
