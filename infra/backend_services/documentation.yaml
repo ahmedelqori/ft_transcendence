@@ -710,6 +710,32 @@ paths:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   /api/friends/{user_id}/request:
     post:
       tags:
@@ -980,19 +1006,60 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   /api/2fa/enable:
     post:
       tags:
         - 2fa
-      summary: Enable 2FA (still not complete)
+      summary: Enable 2FA
       security:
         - bearerAuth: []
       operationId: enable2FA
       responses:
         '200':
           description: 2FA enabled
-        '400':
-          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    example: KRQTELROGAVHMMK2JREGY5J6KVKWGOB2LY7D4TKRFZFEEOTIKFGA
+                  qr:
+                    type: string
+                    example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAAAklEQVR4AewaftIAAAc5SURBVO3BQY4kR3AAQffE/P/Lrr0pdCmg0D1LMhVm9gdrXeKw1kUOa13ksNZFDmtd5LDWRQ5rXeSw1kUOa13ksNZFDmtd5LDWRQ5rXeSw1kUOa13ksNZFfviQyt9U8UTlmyo+oTJVfELlScUTlScVk8rfVPGJw1oXOax1kcNaF/nhyyq+SeUTFZPKk4pJZap4ovJNKk8q/qaKb1L5psNaFzmsdZHDWhf54ZepvFHxhspU8UbFJ1Smik+o/KaKSeUTKm9U/KbDWhc5rHWRw1oX+WH9HypTxaQyVUwqU8UbFZPKE5X1vw5rXeSw1kUOa13kh/9nKp5UvKHyhsqTijcqJpWp4onKTQ5rXeSw1kUOa13kh19W8W+mMlU8qZhU3qiYVCaVJxWTylTxROWbKv5NDmtd5LDWRQ5rXeSHL1P5N1GZKt5QmSqeVEwqU8WTiknlEypTxaTyhsq/2WGtixzWushhrY
         '401':
           description: Unauthorized
           content:
@@ -1007,15 +1074,44 @@ paths:
     post:
       tags:
         - 2fa
-      summary: Verify 2FA (still not complete)
+      summary: Verify 2FA
       security:
         - bearerAuth: []
       operationId: verify2FA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  example: "378866"
       responses:
         '200':
-          description: 2FA verified
+          description: 2FA verification result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpYXQiOjE3NDI0ODEyMzIsImV4cCI6MTc0MjQ5OTIzMn0.b4iUF9JrsemsYy2-TU66TF4wQVHVKz_vdkpy4wfvDo4WWio_GwLe8thxy0o16j-XSrhQRljA_-tGftpm6NkGf5KJVWok03iSaAjKe3KVTwzm8iVE0cIZzgcbEkjMvtqDR8O7ho8Pmfwo-7jfHPLASmbMtyfmh_FhLvTSzSysIfTJPRArI1HmoyEs8xpmJeM1NthlzxIfz6UTXLCyggeuat34IVGq6wq2wolrpv5bVIKQpsquVHzjjRFKyJtcfufRHf196qtcoJ6Ap_21VQE-qfyXXjANbb6mpki0evTMIClTs1WtNlxsFRxguRqJhtUfCWXA54HTcUVe__B594MKWg
+                  refresh_token:
+                    type: string
+                    example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpYXQiOjE3NDI0ODEyMzIsImV4cCI6MTc0MzA4NjAzMn0.dqirY0t7UifhJJ28Uqgr8KUNV5Oj4Xp_TxrTwS9w2L0JdJOEWp1NgVTzNG5pQIJNAO0l5atSMdGUvulw3S-99CmMz3CxdNClv9ydXuynEr22u2egUH1Jgfc6Xm45HDu-osl7HEkUsiOjid8Aqorl_wMtnzQcZQ9ow98Uhp-p27wj2cVV47ydcflF-6Kfy69Ag6ku5JS8taRuVx6ruM0_3zQI7nHfoOMo167H6h-WKxIRf2-ZiVoeWZpUa4_lsU0O89A0urutKKRaea1t9XGDsGvWx-EPP9lHA5Tgb908GfuxptlPTxAoH3tc3giI9j8ty4AMrlVfy1SvZzFQVkNBsQ
         '400':
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verified:
+                    type: boolean
+                    example: false
         '401':
           description: Unauthorized
           content:
@@ -1030,13 +1126,27 @@ paths:
     get:
       tags:
         - 2fa
-      summary: Check if 2FA is enabled (still not complete)
+      summary: Check if 2FA is enabled
       security:
         - bearerAuth: []
       operationId: is2FAEnabled
       responses:
         '200':
           description: 2FA status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  two_fa:
+                    type: boolean
+                    example: false
+                  secret:
+                    type: string
+                    example: EMWDATSSI5TUSUCJLY7F4ZRZGJHF46ZUKQQSYKLTGJCFCXJJKZ4Q
+                  qr:
+                    type: string
+                    example: data:image/png;base64,iVBORw0KGgoa
         '401':
           description: Unauthorized
           content:
@@ -1051,15 +1161,31 @@ paths:
     delete:
       tags:
         - 2fa
-      summary: Disable 2FA (still not complete)
+      summary: Disable 2FA
       security:
         - bearerAuth: []
       operationId: disable2FA
       responses:
         '200':
           description: 2FA disabled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 2FA disabled
         '400':
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 2FA is not enabled
         '401':
           description: Unauthorized
           content:

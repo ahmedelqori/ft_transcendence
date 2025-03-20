@@ -6,7 +6,6 @@ up:
 down:
 	$(CMD) down
 
-
 stop:
 	$(CMD) stop
 
@@ -20,13 +19,10 @@ ps:
 	$(CMD) ps -a
 
 logs:
-	$(CMD) logs $(c)
+	$(CMD) logs $(c) -f
 
 status:
 	@bash ./infra/tools/status.sh
-
-shell:
-	$(CMD) exec $(c) bash
 
 clean:
 	$(CMD) down --rmi all
@@ -34,4 +30,15 @@ clean:
 fclean: down
 	$(CMD) down --rmi all -v --remove-orphans
 	docker system prune -af
-	# docker volume prune -f
+	docker volume prune -f
+
+#!!!!!!!!!!!!!!!!! rules for devlopment !!!!!!!!!!!!!!!!!!#
+
+shell:
+	$(CMD) exec $(c) bash
+
+restart:
+	# $(CMD) stop
+	docker rmi app-2fa -f
+	$(CMD) up -d
+# docker container ls | grep $(c) | awk '{print $$1}' | xargs docker container stop

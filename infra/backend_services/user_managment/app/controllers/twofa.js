@@ -5,7 +5,7 @@ import Player from "../models.js";
 export default async function twoFA(req, res) {
     
     if (req.headers.origin !== process.env.ORIGIN) {
-        res.status(401).send({ message: 'Unauthorized' });
+        res.status(401).send({ message: 'unauthorized' });
     };
 
     const { status } = req.body || {};

@@ -122,14 +122,14 @@ const image_url = async (image_url, username) => {
         if (res.status !== 200 || !extensions[res.headers['content-type']]) {
             throw new Error('Invalid image response');
         }
-        path = process.env.PROFILE_IMAGE_PATH + username.replace(' ', '_') + extensions[res.headers['content-type']];
-        fs.writeFileSync(path, res.data, 'binary');
+        path = username.replace(' ', '_') + extensions[res.headers['content-type']];
+        fs.writeFileSync(process.env.PROFILE_IMAGE_PATH + path, res.data, 'binary');
     } catch (error) {
         console.error('Error fetching image:', error.message);
         path = process.env.PROFILE_IMAGE_PATH + 'default.jpg';
     }
     
-    return process.env.DOMAIN + '/' + path;
+    return process.env.DOMAIN + '/static/' + path;
 }
 
 const create_user = async (user_info, provider) => {

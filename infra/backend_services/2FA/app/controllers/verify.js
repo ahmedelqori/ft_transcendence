@@ -50,6 +50,7 @@ export default async function verify(req, res) {
                 },
             });
             if (r.status !== 200) {
+                console.log(r);
                 res.status(500).send({ message: 'Internal Server Error' });
                 return;
             }

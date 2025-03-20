@@ -80,12 +80,39 @@ services:
       - notification_database:/app/database
 
 
+
+
 volumes:
   profile_images:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/youssef/ft_transcendence/infra/volumes/profile_images
+      o: bind
   user_managment_database:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/youssef/ft_transcendence/infra/volumes/user_managment_database
+      o: bind
   friendship_database:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/youssef/ft_transcendence/infra/volumes/friendship_database
+      o: bind
   2fa_database:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/youssef/ft_transcendence/infra/volumes/2fa_database
+      o: bind
   notification_database:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/youssef/ft_transcendence/infra/volumes/notification_database
+      o: bind
   # VolumeVault:
  
 networks:

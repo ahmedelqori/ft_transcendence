@@ -10,7 +10,13 @@ export default async function auth(req, res) {
     };
 
     const publicKey = fs.readFileSync('./public.pem', 'utf8');
-    const decode = jwt.verify(authorization.split(' ')[1], publicKey, { algorithms: ['RS256'] });
+    let decode;
+    try {
+        decode = jwt.verify(authorization.split(' ')[1], publicKey, { algorithms: ['RS256'] });
+    } catch (err) {
+        res.code(401).send({ message: 'Unauthorized' });
+        return;
+    }
     if (!decode) {
         res.code(401).send({ message: 'Unauthorized' });
         return
