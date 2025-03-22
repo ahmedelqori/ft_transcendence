@@ -38,7 +38,7 @@ shell:
 	$(CMD) exec $(c) bash
 
 restart:
-	# $(CMD) stop
-	docker rmi app-2fa -f
+	#$(CMD) stop 
+	docker rmi $(c) -f
 	$(CMD) up -d
 # docker container ls | grep $(c) | awk '{print $$1}' | xargs docker container stop

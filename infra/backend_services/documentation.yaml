@@ -558,17 +558,6 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
-
-
-
-
-
-
-
-
-
-
-
   /api/notif/:
     get:
       tags:
@@ -740,7 +729,7 @@ paths:
     post:
       tags:
         - friendship
-      summary: Send friend request (still not complete)
+      summary: Send friend request
       security:
         - bearerAuth: []
       operationId: sendFriendRequest
@@ -749,12 +738,38 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Friend request sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: Request Sent Successfully to 7h3_Yosef
         '400':
+          description: Invalid user_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user_id
+        '404':
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: User not found
         '401':
           description: Unauthorized
           content:
@@ -768,7 +783,7 @@ paths:
     delete:
       tags:
         - friendship
-      summary: Cancel friend request (still not complete)
+      summary: Cancel friend request
       security:
         - bearerAuth: []
       operationId: cancelFriendRequest
@@ -781,8 +796,34 @@ paths:
       responses:
         '200':
           description: Friend request canceled
-        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: Request canceled
+        '404':
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request not found
+        '400':
+          description: Invalid user_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user_id
         '401':
           description: Unauthorized
           content:
@@ -797,7 +838,7 @@ paths:
     post:
       tags:
         - friendship
-      summary: Accept friend request (still not complete)
+      summary: Accept friend request
       security:
         - bearerAuth: []
       operationId: acceptFriendRequest
@@ -810,8 +851,34 @@ paths:
       responses:
         '200':
           description: Friend request accepted
-        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: Request accepted
+        '404':
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request not found
+        '400':
+          description: Invalid user_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user_id
         '401':
           description: Unauthorized
           content:
@@ -826,7 +893,7 @@ paths:
     post:
       tags:
         - friendship
-      summary: Reject friend request (still not complete)
+      summary: Reject friend request
       security:
         - bearerAuth: []
       operationId: rejectFriendRequest
@@ -839,8 +906,34 @@ paths:
       responses:
         '200':
           description: Friend request rejected
-        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: Request rejected
+        '404':
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request not found
+        '400':
+          description: Invalid user_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user_id
         '401':
           description: Unauthorized
           content:
@@ -855,7 +948,7 @@ paths:
     delete:
       tags:
         - friendship
-      summary: Remove friend (still not complete)
+      summary: Remove friend
       security:
         - bearerAuth: []
       operationId: removeFriend
@@ -867,9 +960,35 @@ paths:
             type: string
       responses:
         '200':
-          description: Friend removed
-        '400':
+          description: Unfriend
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: Unfriend success
+        '404':
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request not found
+        '400':
+          description: Invalid user_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user_id
         '401':
           description: Unauthorized
           content:
@@ -884,7 +1003,7 @@ paths:
     post:
       tags:
         - friendship
-      summary: Block user (still not complete)
+      summary: Block user
       security:
         - bearerAuth: []
       operationId: blockUser
@@ -897,8 +1016,34 @@ paths:
       responses:
         '200':
           description: User blocked
-        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: User blocked
+        '404':
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request not found
+        '400':
+          description: Invalid user_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user_id
         '401':
           description: Unauthorized
           content:
@@ -912,7 +1057,7 @@ paths:
     delete:
       tags:
         - friendship
-      summary: Unblock user (still not complete)
+      summary: Unblock user
       security:
         - bearerAuth: []
       operationId: unblockUser
@@ -924,9 +1069,35 @@ paths:
             type: string
       responses:
         '200':
-          description: User unblocked
-        '400':
+          description: User not blocked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User not blocked
+        '404':
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request not found
+        '400':
+          description: Invalid user_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user_id
         '401':
           description: Unauthorized
           content:
@@ -941,7 +1112,7 @@ paths:
     get:
       tags:
         - friendship
-      summary: Get user friends (still not complete)
+      summary: Get the relationship between you and the user
       security:
         - bearerAuth: []
       operationId: getUserFriends
@@ -953,7 +1124,35 @@ paths:
             type: string
       responses:
         '200':
-          description: List of user friends
+          description: User relationship [friend, blocked, pending, none]
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  state:
+                    type: string
+                    example: friend
+        '404':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request not found
+        '400':
+          description: Invalid user_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user_id
         '401':
           description: Unauthorized
           content:
@@ -968,13 +1167,71 @@ paths:
     get:
       tags:
         - friendship
-      summary: Get all friends (still not complete)
+      summary: Get all friends
       security:
         - bearerAuth: []
       operationId: getAllFriends
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 10
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 0
       responses:
         '200':
           description: List of friends
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 2
+                        username:
+                          type: string
+                          example: 7h3_Yosef
+                        first_name:
+                          type: string
+                          example: 7h3
+                        last_name:
+                          type: string
+                          example: Yosef
+                        bio:
+                          type: string
+                          example: ""
+                        avatar_url:
+                          type: string
+                          example: https://pingpong.ma/static/7h3_Yosef.png
+                        status:
+                          type: string
+                          example: ON
+                        created_at:
+                          type: string
+                          format: date-time
+                          example: 2025-03-22T21:22:46.164Z
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid parameters
         '401':
           description: Unauthorized
           content:
@@ -989,13 +1246,82 @@ paths:
     get:
       tags:
         - friendship
-      summary: Search friends (still not complete)
+      summary: Search friends
       security:
         - bearerAuth: []
       operationId: searchFriends
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 10
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 0
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+                - blocked
+                - pending
+                - online
+                - offline
+                - in-game
+            example: ON
       responses:
         '200':
-          description: Search results
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      format: int64
+                      example: 2
+                    username:
+                      type: string
+                      example: "7h3_Yosef"
+                    first_name:
+                      type: string
+                      example: "7h3"
+                    last_name:
+                      type: string
+                      example: "Yosef"
+                    bio:
+                      type: string
+                      example: ""
+                    avatar_url:
+                      type: string
+                      format: uri
+                      example: "https://pingpong.ma/static/7h3_Yosef.png"
+                    status:
+                      type: string
+                      example: "ON"
+                    created_at:
+                      type: string
+                      format: date-time
+                      example: "2025-03-22T21:22:46.164Z"
+        '400':
+          description: Invalid status
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: Invalid status
         '401':
           description: Unauthorized
           content:
@@ -1140,7 +1466,7 @@ paths:
                 properties:
                   two_fa:
                     type: boolean
-                    example: false
+                    example: true
                   secret:
                     type: string
                     example: EMWDATSSI5TUSUCJLY7F4ZRZGJHF46ZUKQQSYKLTGJCFCXJJKZ4Q

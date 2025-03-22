@@ -37,14 +37,14 @@ export default async function request(req, res) {
 
         records.filter((record) => {
             if (record.status === "FR") {
-                res.status(400).send({error: "You are already friend with " + user.username});
+                res.status(200).send({message: "You are already friend with " + user.username});
                 return;
             }
         });
 
         records.filter((record) => {
             if (record.status === "PN") {
-                res.status(400).send({error: "Request already sent to " + user.username});
+                res.status(200).send({error: "Request already sent to " + user.username});
                 return;
             }
         });

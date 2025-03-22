@@ -21,7 +21,7 @@ export default async function routes(fastify) {
     fastify.post('/:user_id/block', {preHandler: auth},block);
     fastify.delete('/:user_id/block', {preHandler: auth},unblock);
     fastify.get('/:user_id', {preHandler: auth, preValidation: paginition_validation}, relation_with_user);
-    fastify.get('/', {preHandler: auth},friends);
+    fastify.get('/', {preHandler: auth, preValidation: paginition_validation},friends);
     fastify.get('/search', {preHandler: auth, preValidation: paginition_validation}, search);
 };
 
