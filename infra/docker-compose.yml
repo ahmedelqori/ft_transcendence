@@ -1,94 +1,140 @@
 version: '3.8'
-services:
-  nginx-modsecurity:
-    image: "nginx-modsecurity:app"
-    container_name: nginx-modsecurity
-    build: ./nginx-modsecurity/.
-    ports:
-      - "443:443"
-    networks:
-      - appNet
-    restart: always
-    volumes:
-      - profile_images:/app/profile_images
-    depends_on:
-      - vault
-
-  vault:
-    image: "vault:app"
-    container_name: vault
-    build: ./vault/.
-    hostname: vault 
-    env_file:
-      - .env
-    networks:
-      - appNet
-    volumes:
-      - VolumeVault:/vault/data
-    # ports:
-    #   - "8200:8200"
-    cap_add:
-      - IPC_LOCK
-    restart: always
-
-  user_managment:
-    build:
-      context: ./backend_services/user_managment
-      dockerfile: Dockerfile
-    container_name: user_managment
-    env_file:
-      - ./backend_services/user_managment/.env
-    networks:
-      - appNet
-    volumes:
-      - profile_images:/app/profile_images
-      - user_managment_database:/app/database
-
-  friendship:
-    build:
-      context: ./backend_services/friendship
-      dockerfile: Dockerfile
-    container_name: friendship
-    env_file:
-      - ./backend_services/friendship/.env
-    networks:
-      - appNet
-    volumes:
-      - friendship_database:/app/database
-
-  2fa:
-    build:
-      context: ./backend_services/2FA
-      dockerfile: Dockerfile
-    container_name: 2fa
-    env_file:
-      - ./backend_services/2FA/.env
-    networks:
-      - appNet
-    volumes:
-      - 2fa_database:/app/database
-
-  notification:
-    build:
-      context: ./backend_services/notification
-      dockerfile: Dockerfile
-    container_name: notification
-    env_file:
-      - ./backend_services/notification/.env
-    networks:
-      - appNet
-    volumes:
-      - notification_database:/app/database
-
-
 volumes:
-  profile_images:
-  VolumeVault:
-  user_managment_database:
-  friendship_database:
-  2fa_database:
-  notification_database:
+  shared:
+  # profile_images:
+  # VolumeVault:
+  # user_managment_database:
+  # friendship_database:
+  # 2fa_database:
+  # notification_database:
  
 networks:
   appNet:
     driver: bridge
+
+services:
+  elasticsearch:
+    image: "elasticsearch:app"
+    container_name: elasticsearch
+    build: ./elk/elasticsearch/
+    restart: always
+    ports:
+      - '9600:9600'
+    environment:
+      - ES_JAVA_OPTS=-Xmx256m -Xms256m
+      - discovery.type=single-node
+    networks:
+      - appNet
+    volumes:
+      - shared:/shared
+
+  logstash:
+    image: "logstash:app"
+    container_name: logstash
+    build: ./elk/logstash/
+    restart: always
+    volumes:
+      - ./elk/logs/fastify.log:/var/log/fastify/fastify.log
+    depends_on:
+      - elasticsearch
+    environment:
+      - LS_JAVA_OPTS=-Xmx256m -Xms256m
+    networks:
+      - appNet
+
+  kibana:
+    image: "kibana:app"
+    container_name: kibana
+    build: ./elk/kibana/
+    restart: always
+    ports:
+      - '5601:5601'
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - appNet
+    volumes:
+      - shared:/shared
+  # nginx-modsecurity:
+  #   image: "nginx-modsecurity:app"
+  #   container_name: nginx-modsecurity
+  #   build: ./nginx-modsecurity/.
+  #   ports:
+  #     - "443:443"
+  #   networks:
+  #     - appNet
+  #   restart: always
+  #   volumes:
+  #     - profile_images:/app/profile_images
+  #   depends_on:
+  #     - vault
+
+  # vault:
+  #   image: "vault:app"
+  #   container_name: vault
+  #   build: ./vault/.
+  #   hostname: vault 
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - VolumeVault:/vault/data
+  #   # ports:
+  #   #   - "8200:8200"
+  #   cap_add:
+  #     - IPC_LOCK
+  #   restart: always
+
+  # user_managment:
+  #   build:
+  #     context: ./backend_services/user_managment
+  #     dockerfile: Dockerfile
+  #   container_name: user_managment
+  #   env_file:
+  #     - ./backend_services/user_managment/.env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - profile_images:/app/profile_images
+  #     - user_managment_database:/app/database
+
+  # friendship:
+  #   build:
+  #     context: ./backend_services/friendship
+  #     dockerfile: Dockerfile
+  #   container_name: friendship
+  #   env_file:
+  #     - ./backend_services/friendship/.env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - friendship_database:/app/database
+
+  # 2fa:
+  #   build:
+  #     context: ./backend_services/2FA
+  #     dockerfile: Dockerfile
+  #   container_name: 2fa
+  #   env_file:
+  #     - ./backend_services/2FA/.env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - 2fa_database:/app/database
+
+  # notification:
+  #   build:
+  #     context: ./backend_services/notification
+  #     dockerfile: Dockerfile
+  #   container_name: notification
+  #   env_file:
+  #     - ./backend_services/notification/.env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - notification_database:/app/database
+
+

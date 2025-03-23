@@ -25,6 +25,7 @@ shell:
 
 clean:
 	$(CMD) down --rmi all
+	docker volume prune -f
 
 fclean: down
 	$(CMD) down --rmi all -v --remove-orphans
