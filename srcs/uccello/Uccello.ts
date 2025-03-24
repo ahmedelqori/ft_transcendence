@@ -437,7 +437,7 @@ function removeStyle(el: HTMLElement, name: any) {
 function setAttribute(el: HTMLElement, name: string, value: string | null) {
   if (value == null) {
     removeAttribute(el, name);
-  } else if (name.startsWith("data-") || name in el) {
+  } else if (name.startsWith("data-")) {
     el.setAttribute(name, value);
   } else {
     (el as any)[name] = value;
@@ -574,7 +574,7 @@ export class Dispatcher {
    * @param {(payload: any) => void} handler - The function to execute when the command is dispatched.
    * @returns {() => void} A function to unsubscribe the handler from the command.
    */
-  
+
   subscribe(commandName: string, handler: (payload: any) => void): () => void {
     if (!this.subs.has(commandName)) {
       this.subs.set(commandName, []);
