@@ -1,10 +1,6 @@
 /**
  * Represents an HTML element or a text node.
  */
-
-/**
- * Represents an HTML element or a text node.
- */
 type ELEMENT_HTML = HTMLElement | Text;
 
 /**
@@ -1127,7 +1123,7 @@ function findIndexInParent(
  * @returns {boolean} Returns `true` if the string is not empty, otherwise `false`.
  */
 
-export function isNotEmptyString(str: string) {
+function isNotEmptyString(str: string): boolean {
   return str !== "";
 }
 
@@ -1138,7 +1134,7 @@ export function isNotEmptyString(str: string) {
  * @returns {boolean} Returns `true` if the string is not blank, otherwise `false`.
  */
 
-export function isNotBlankOrEmptyString(str: string): boolean {
+function isNotBlankOrEmptyString(str: string): boolean {
   return isNotEmptyString(str.trim());
 }
 
@@ -1150,7 +1146,7 @@ export function isNotBlankOrEmptyString(str: string): boolean {
  * @returns {void} This function does not return anything, it modifies the existing DOM element directly.
  */
 
-function patchText(oldVdom: ELEMENT_INTER, newVdom: ELEMENT_INTER) {
+function patchText(oldVdom: ELEMENT_INTER, newVdom: ELEMENT_INTER): void {
   const el = oldVdom?.el as Text;
   const { value: oldText } = oldVdom;
   const { value: newText } = newVdom;
