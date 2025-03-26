@@ -1258,6 +1258,7 @@ function patchClasses(
  */
 
 function toClassList(classes: CLASS_TYPE): string[] {
+  if (classes == null) return [];
   return Array.isArray(classes)
     ? classes.filter(isNotBlankOrEmptyString)
     : classes.split(/(\s+)/).filter(isNotBlankOrEmptyString);
@@ -1427,4 +1428,81 @@ function patchDOM(
   }
   patchChildren(oldVdom, newVdom);
   return newVdom;
+}
+
+//********************************************************************************************** */
+//********************************************************************************************** */
+//********************************************************************************************** */
+//********************************************************************************************** */
+//********************************************************************************************** */
+//********************************************************************************************** */
+
+export interface IComponent<State, Props = {}> {
+  state: State;
+  props: Props;
+
+  unmount(): void;
+  render(): ELEMENT_INTER;
+  updateState(state: Partial<State>): void;
+  mount(hostEl: HTMLElement, index: number | null): void;
+}
+
+export function defineComponent<State, Props = {}>({
+  render,
+  state,
+}: {
+  render: () => ELEMENT_INTER;
+  state?: (props: Props) => State;
+}) {
+  class Component implements IComponent<State, Props> {
+    private isMounted: boolean = false;
+    private vdom: ELEMENT_INTER | null = null;
+    private hostEl: HTMLElement | null = null;
+
+    public state: State;
+    public props: Props;
+
+    constructor(props: Props) {
+      this.props = props;
+      this.state = state ? state(props) : ({} as State);
+    }
+
+    render(): ELEMENT_INTER {
+      return render.call(this);
+    }
+
+    mount(hostEl: HTMLElement, index: number | null = null): void {
+      if (this.isMounted) {
+        throw new Error("Component is already mounted");
+      }
+      this.vdom = this.render();
+      mountDOM(this.vdom, hostEl, index);
+      this.hostEl = hostEl;
+      this.isMounted = true;
+    }
+
+    unmount(): void {
+      if (!this.isMounted) {
+        throw new Error("Component is not mounted");
+      }
+      destroyDOM(this.vdom!);
+      this.vdom = null;
+      this.hostEl = null;
+      this.isMounted = false;
+    }
+
+    updateState(state: Partial<State>): void {
+      this.state = { ...this.state, ...state };
+      this.patch();
+    }
+
+    private patch() {
+      if (!this.isMounted) {
+        throw new Error("Component is not mounted");
+      }
+      const vdom = this.render();
+      this.vdom = patchDOM(this.vdom!, vdom, this.hostEl!);
+    }
+  }
+  return Component;
 }
