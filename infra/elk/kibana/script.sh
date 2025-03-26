@@ -9,8 +9,8 @@ ELASTICSEARCH_PORT=${ELASTICSEARCH_PORT:-9200}
 echo "Waiting for Elasticsearch to be reachable at $ELASTICSEARCH_HOST:$ELASTICSEARCH_PORT..."
 
 until curl -s -o /dev/null "http://$ELASTICSEARCH_HOST:$ELASTICSEARCH_PORT"; do
-    echo "Elasticsearch is not reachable yet. Retrying in 3 seconds..."
-    sleep 3
+    echo "Elasticsearch is not reachable yet. Retrying in 2 seconds..."
+    sleep 2
 done
 
 echo "Elasticsearch is reachable! Starting Kibana..."

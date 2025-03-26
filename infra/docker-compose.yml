@@ -18,8 +18,6 @@ services:
     container_name: elasticsearch
     build: ./elk/elasticsearch/
     restart: always
-    ports:
-      - '9600:9600'
     environment:
       - ES_JAVA_OPTS=-Xmx256m -Xms256m
       - discovery.type=single-node
@@ -57,19 +55,21 @@ services:
       - appNet
     volumes:
       - shared:/shared
-  # nginx-modsecurity:
-  #   image: "nginx-modsecurity:app"
-  #   container_name: nginx-modsecurity
-  #   build: ./nginx-modsecurity/.
-  #   ports:
-  #     - "443:443"
-  #   networks:
-  #     - appNet
-  #   restart: always
-  #   volumes:
-  #     - profile_images:/app/profile_images
-  #   depends_on:
-  #     - vault
+
+
+  nginx-modsecurity:
+    image: "nginx-modsecurity:app"
+    container_name: nginx-modsecurity
+    build: ./nginx-modsecurity/.
+    ports:
+      - "443:443"
+    networks:
+      - appNet
+    restart: always
+    # volumes:
+    #   - profile_images:/app/profile_images
+    # depends_on:
+    #   - vault
 
   # vault:
   #   image: "vault:app"

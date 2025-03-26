@@ -2,8 +2,6 @@ FROM kibana:8.17.3
 
 USER root
 
-RUN apt-get update && apt-get install -y gosu
-
 COPY --chown=kibana:kibana kibana.yml /usr/share/kibana/config/kibana.yml
 
 COPY --chown=kibana:kibana script.sh /usr/local/bin/script.sh
