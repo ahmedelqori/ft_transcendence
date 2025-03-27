@@ -2,6 +2,7 @@
 // import { reducers } from "./reducers.js";
 // import { createApp } from "./uccello/Uccello.js";
 // import App from "./app.js";
+import RandomCocktail from "./components/RandomCocktail.js";
 import { Counter } from "./components/tmp.js";
 const ROOT: HTMLElement = document.getElementById("root") as HTMLElement;
 
@@ -11,20 +12,9 @@ const ROOT: HTMLElement = document.getElementById("root") as HTMLElement;
 //   view: (state: any, emit: any) => App(state, emit),
 // }).mount(ROOT);
 
-import {
-  defineComponent,
-  createFragment,
-  createElement,
-  IComponent,
-} from "./uccello/Uccello.js";
+// const fly = new Counter({});
 
-interface TmpState {
-  count: number;
-}
+// fly.mount(ROOT);
 
-
-const fly = new Counter({});
-
-fly.mount(ROOT);
-
-// export { Counter };
+const Comp = new RandomCocktail({});
+Comp.mount(ROOT);

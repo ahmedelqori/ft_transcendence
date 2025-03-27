@@ -17,7 +17,7 @@ const Counter = defineComponent<TmpState>({
   render(this: IComponent<TmpState>) {
     return createFragment([
       createElement("p", {}, [`Count: ${this.state.count}`]),
-      createElement("p", {}, [`Name: ${this.state.name}`]),
+      createElement("p", {}, [`Name: ${this.state.name} + ${this.state.count}`]),
       createElement(
         "button",
         {

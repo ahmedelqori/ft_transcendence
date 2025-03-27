@@ -189,18 +189,20 @@ export function createElement(
 
 /**
  * Mounts a virtual DOM element to a specified parent HTML element.
- * This function supports text nodes, regular DOM elements, and fragments.
+ * This function supports mounting text nodes, regular DOM elements, and fragments.
  *
- * @param {ELEMENT_INTER} vdom - The virtual DOM element to mount.
+ * @param {ELEMENT_INTER} vdom - The virtual DOM element to mount, which can be of type TEXT, ELEMENT, or FRAGMENT.
  * @param {HTMLElement} parentEl - The parent HTML element where the virtual DOM will be appended.
- * @param {number | null | undefined} [index] - The optional index position for inserting the element.
- * @throws {Error} If the virtual DOM type is unsupported.
+ * @param {number | null | undefined} [index] - The optional index position where the element will be inserted. If not provided, the element will be appended to the end.
+ * @param {any} [hostComponent=null] - The optional host component for handling the mounting context. Default is null.
+ * @throws {Error} Throws an error if the virtual DOM type is unsupported.
  */
 
 export function mountDOM(
   vdom: ELEMENT_INTER,
   parentEl: HTMLElement,
-  index?: number | null
+  index?: number | null,
+  hostComponent: any = null
 ): void {
   switch (vdom.type) {
     case DOM_TYPES.TEXT:
@@ -208,11 +210,11 @@ export function mountDOM(
       break;
 
     case DOM_TYPES.ELEMENT:
-      createElementNode(vdom, parentEl, index);
+      createElementNode(vdom, parentEl, index, hostComponent);
       break;
 
     case DOM_TYPES.FRAGMENT:
-      createFragmentNodes(vdom, parentEl, index);
+      createFragmentNodes(vdom, parentEl, index, hostComponent);
       break;
 
     default:
@@ -243,21 +245,23 @@ function createTextNode(
 /**
  * Creates a Fragment node from a virtual DOM element and appends its children to a parent HTML element.
  *
- * @param {ELEMENT_INTER} vdom - The virtual DOM element representing a Fragment node. It must have a `children` property that is an array of `ELEMENT_INTER`.
+ * @param {ELEMENT_INTER} vdom - The virtual DOM element representing a Fragment node. It must have a `children` property that is an array of `ELEMENT_INTER` nodes.
  * @param {HTMLElement} parentEl - The HTML element to which the Fragment's children will be appended.
- * @param {number | null | undefined} index - The optional index position where the first child should be inserted.
- * @returns {void}
+ * @param {number | null | undefined} index - The optional index position where the first child should be inserted. If not provided, children will be appended sequentially.
+ * @param {any} hostComponent - The host component context that may be needed for mounting child elements.
+ * @returns {void} This function does not return a value. It appends the Fragment's children to the parent element.
  */
 
 function createFragmentNodes(
   vdom: ELEMENT_INTER,
   parentEl: HTMLElement,
-  index: number | null | undefined
+  index: number | null | undefined,
+  hostComponent: any
 ): void {
   const children: ELEMENT_INTER[] = vdom.children as ELEMENT_INTER[];
   vdom.el = parentEl;
   children.forEach((child, i) =>
-    mountDOM(child, parentEl, index ? index + i : null)
+    mountDOM(child, parentEl, index ? index + i : null, hostComponent)
   );
 }
 
@@ -266,57 +270,74 @@ function createFragmentNodes(
  *
  * @param {ELEMENT_INTER} vdom - The virtual DOM element representing an Element node. It must have a `tag`, `props`, and `children` properties.
  * @param {HTMLElement} parentEl - The HTML element to which the created Element node will be appended.
- * @param {number | null | undefined} index - The optional index position where the Element node should be inserted.
- * @returns {void}
+ * @param {number | null | undefined} index - The optional index position where the Element node should be inserted. If not provided, the element will be appended at the end.
+ * @param {any} [hostComponent=null] - The optional host component context that may be required for handling properties and lifecycle hooks.
+ * @returns {void} This function does not return a value. It appends the created Element node to the parent element.
  */
 
 function createElementNode(
   vdom: ELEMENT_INTER,
   parentEl: HTMLElement,
-  index: number | null | undefined
+  index: number | null | undefined,
+  hostComponent: any = null
 ): void {
   const tag: string = vdom.tag as string;
   const props: object = vdom.props as PROPS_INTER;
   const children: ELEMENT_INTER[] = vdom.children as ELEMENT_INTER[];
 
   const element: HTMLElement = document.createElement(tag);
-  addProps(element, props, vdom);
+  addProps(element, props, vdom, hostComponent);
   vdom.el = element;
-  children.forEach((child) => mountDOM(child, element));
+  children.forEach((child) => mountDOM(child, element, null, hostComponent));
   insert(element, parentEl, index);
 }
 
 /**
  * Adds properties (attributes and event listeners) to an HTML element.
  *
- * @param el The HTML element to which properties will be added.
- * @param props An object containing attributes and event listeners for the element.
- *              The `on` property contains event listeners, while the rest are treated as attributes.
- * @param vdom The virtual DOM element associated with the HTML element. The event listeners will be stored in this object.
- * @returns void
+ * @param {HTMLElement} el - The HTML element to which properties will be added.
+ * @param {PROPS_INTER} props - An object containing attributes and event listeners for the element.
+ *                The `on` property contains event listeners, while the rest are treated as attributes.
+ * @param {ELEMENT_INTER} vdom - The virtual DOM element associated with the HTML element. The event listeners will be stored in this object.
+ * @param {any} hostComponent - The host component context that may be needed for handling event listeners.
+ * @returns {void} This function does not return a value. It adds attributes and event listeners to the HTML element.
  */
 
-function addProps(el: HTMLElement, props: PROPS_INTER, vdom: ELEMENT_INTER) {
+function addProps(
+  el: HTMLElement,
+  props: PROPS_INTER,
+  vdom: ELEMENT_INTER,
+  hostComponent: any
+): void {
   const { on: events, ...attrs } = props;
 
-  vdom.listeners = addEventListeners(events, el);
+  vdom.listeners = addEventListeners(events, el, hostComponent);
   setAttributes(el, attrs);
 }
 
 /**
  * Attaches event listeners to an HTML element and returns a reference to the added listeners.
  *
- * @param listeners An object where the keys are event names (e.g., 'click', 'mouseover') and the values are corresponding event handler functions.
- *                  Defaults to an empty object if no listeners are provided.
- * @param el The HTML element to which the event listeners will be attached.
- * @returns An object containing references to the added event listeners, keyed by event name.
+ * @param {Object} [listeners={}] - An object where the keys are event names (e.g., 'click', 'mouseover') and the values are corresponding event handler functions. Defaults to an empty object if no listeners are provided.
+ * @param {HTMLElement} el - The HTML element to which the event listeners will be attached.
+ * @param {any} [hostComponent=null] - The optional host component context that may be needed for handling event listeners.
+ * @returns {LISTENERS_INTER} An object containing references to the added event listeners, keyed by event name.
  */
 
-function addEventListeners(listeners = {}, el: HTMLElement): LISTENERS_INTER {
+function addEventListeners(
+  listeners = {},
+  el: HTMLElement,
+  hostComponent: any = null
+): LISTENERS_INTER {
   const addedListeners: LISTENERS_INTER = {};
 
   Object.entries(listeners).forEach(([eventName, handler]) => {
-    const listener = addEventListener(eventName, handler as () => void, el);
+    const listener = addEventListener(
+      eventName,
+      handler as () => void,
+      el,
+      hostComponent
+    );
     addedListeners[eventName] = listener;
   });
   return addedListeners;
@@ -328,18 +349,21 @@ function addEventListeners(listeners = {}, el: HTMLElement): LISTENERS_INTER {
  * @param {string} eventName - The name of the event (e.g., 'click', 'mouseover').
  * @param {(event: Event) => void} handler - The event handler function to be called when the event is triggered.
  * @param {HTMLElement} el - The HTML element to which the event listener will be attached.
- * @returns {(event: Event) => void} The event handler function that was added as the event listener.
+ * @param {any} [hostComponent=null] - The optional host component context that may be needed for handling the event in the context of the component.
+ * @returns {Function} The event handler function that was added as the event listener, with the context of `hostComponent` if provided.
  */
 
 function addEventListener(
   eventName: string,
-  handler: (event: Event) => void,
-  el: HTMLElement
-): (event: Event) => void {
-  function boundHandler(event: any): void {
-    handler(event);
+  handler: (...args: any[]) => void,
+  el: HTMLElement,
+  hostComponent: any = null
+): (...args: any[]) => void {
+  function boundHandler(...args: any[]) {
+    hostComponent ? handler.apply(hostComponent, args) : handler(...args);
   }
-  el.addEventListener(eventName, boundHandler);
+
+  el.addEventListener(eventName, boundHandler as EventListener);
   return boundHandler;
 }
 
@@ -1159,12 +1183,17 @@ function patchText(oldVdom: ELEMENT_INTER, newVdom: ELEMENT_INTER): void {
  * Patches an element in the DOM by updating its attributes, classes, styles, and event listeners based on the differences
  * between the old and new virtual DOM elements.
  *
- * @param {ELEMENT_INTER} oldVdom - The previous virtual DOM element containing the old properties and listeners.
- * @param {ELEMENT_INTER} newVdom - The new virtual DOM element containing the new properties and listeners.
- * @returns {void} This function does not return anything, it modifies the existing DOM element directly.
+ * @param {ELEMENT_INTER} oldVdom - The previous virtual DOM element containing the old properties, classes, and event listeners.
+ * @param {ELEMENT_INTER} newVdom - The new virtual DOM element containing the new properties, classes, and event listeners.
+ * @param {any} hostComponent - The host component context that may be required for handling component-specific changes.
+ * @returns {void} This function does not return anything. It modifies the existing DOM element directly by applying changes.
  */
 
-function patchElement(oldVdom: ELEMENT_INTER, newVdom: ELEMENT_INTER): void {
+function patchElement(
+  oldVdom: ELEMENT_INTER,
+  newVdom: ELEMENT_INTER,
+  hostComponent: any
+): void {
   const el = oldVdom.el;
   const {
     class: oldClass,
@@ -1191,7 +1220,8 @@ function patchElement(oldVdom: ELEMENT_INTER, newVdom: ELEMENT_INTER): void {
     el as HTMLElement,
     oldListeners,
     oldEvents,
-    newEvents
+    newEvents,
+    hostComponent
   );
 }
 
@@ -1296,14 +1326,16 @@ function patchStyles(
  * @param {LISTENERS_INTER} [oldListeners={}] - The old set of event listeners associated with the element. Defaults to an empty object.
  * @param {LISTENERS_INTER} [oldEvents={}] - The old set of event types and handlers from the previous virtual DOM. Defaults to an empty object.
  * @param {LISTENERS_INTER} [newEvents={}] - The new set of event types and handlers from the updated virtual DOM. Defaults to an empty object.
- * @returns {LISTENERS_INTER} - A new object containing the added or updated event listeners.
+ * @param {any} hostComponent - The host component context that may be needed for managing event listener updates.
+ * @returns {LISTENERS_INTER} A new object containing the added or updated event listeners, keyed by event name.
  */
 
 function patchEvents(
   el: HTMLElement,
   oldListeners: LISTENERS_INTER = {},
   oldEvents: LISTENERS_INTER = {},
-  newEvents: LISTENERS_INTER = {}
+  newEvents: LISTENERS_INTER = {},
+  hostComponent: any
 ): LISTENERS_INTER {
   const { removed, added, updated } = objectsDiff(oldEvents, newEvents);
 
@@ -1313,7 +1345,12 @@ function patchEvents(
 
   const addedListeners: LISTENERS_INTER = {};
   for (const eventName of added.concat(updated)) {
-    const listener = addEventListener(eventName, newEvents[eventName], el);
+    const listener = addEventListener(
+      eventName,
+      newEvents[eventName],
+      el,
+      hostComponent
+    );
     addedListeners[eventName] = listener;
   }
 
@@ -1348,9 +1385,15 @@ function extractChildren(vdom: ELEMENT_INTER): ELEMENT_INTER[] {
  *
  * @param {ELEMENT_INTER} oldVdom - The old virtual DOM node to compare against.
  * @param {ELEMENT_INTER} newVdom - The new virtual DOM node to patch.
+ * @param {any} hostComponent - The host component context that may be needed for managing child element updates.
+ * @returns {void} This function does not return anything. It modifies the DOM directly by applying the required operations.
  */
 
-function patchChildren(oldVdom: ELEMENT_INTER, newVdom: ELEMENT_INTER) {
+function patchChildren(
+  oldVdom: ELEMENT_INTER,
+  newVdom: ELEMENT_INTER,
+  hostComponent: any
+): void {
   const oldChildren = extractChildren(oldVdom);
   const newChildren = extractChildren(newVdom);
   const parentEl = oldVdom.el as HTMLElement;
@@ -1362,9 +1405,11 @@ function patchChildren(oldVdom: ELEMENT_INTER, newVdom: ELEMENT_INTER) {
 
   for (const operation of diffSeq) {
     const { originalIndex, index, item } = operation;
+    const offset = hostComponent?.offset ?? 0;
+
     switch (operation.op) {
       case ARRAY_DIFF_OP.ADD: {
-        mountDOM(item, parentEl, index);
+        mountDOM(item, parentEl, index + offset, hostComponent);
         break;
       }
       case ARRAY_DIFF_OP.REMOVE: {
@@ -1372,19 +1417,21 @@ function patchChildren(oldVdom: ELEMENT_INTER, newVdom: ELEMENT_INTER) {
         break;
       }
       case ARRAY_DIFF_OP.MOVE: {
-        const oldChild = oldChildren[originalIndex as number];
+        const oldChild = oldChildren[originalIndex!];
         const newChild = newChildren[index];
         const el = oldChild.el;
-        const elAtTargetIndex = parentEl.childNodes[index];
+        const elAtTargetIndex = parentEl.childNodes[index + offset];
+
         parentEl.insertBefore(el as HTMLElement, elAtTargetIndex);
-        patchDOM(oldChild, newChild, parentEl);
+        patchDOM(oldChild, newChild, parentEl, hostComponent);
         break;
       }
       case ARRAY_DIFF_OP.NOOP: {
         patchDOM(
-          oldChildren[originalIndex as number],
+          oldChildren[originalIndex!],
           newChildren[index],
-          parentEl
+          parentEl,
+          hostComponent
         );
         break;
       }
@@ -1400,18 +1447,20 @@ function patchChildren(oldVdom: ELEMENT_INTER, newVdom: ELEMENT_INTER) {
  * @param {ELEMENT_INTER} oldVdom - The old virtual DOM node to compare against.
  * @param {ELEMENT_INTER} newVdom - The new virtual DOM node to patch.
  * @param {HTMLElement} parentEl - The parent element in which the patching will occur.
- * @returns {ELEMENT_INTER} - The new virtual DOM node after patching.
+ * @param {any} [hostComponent=null] - The optional host component context for handling specific component logic during the patching process.
+ * @returns {ELEMENT_INTER} The new virtual DOM node after patching.
  */
 
 function patchDOM(
   oldVdom: ELEMENT_INTER,
   newVdom: ELEMENT_INTER,
-  parentEl: HTMLElement
+  parentEl: HTMLElement,
+  hostComponent: any = null
 ): ELEMENT_INTER {
   if (!areNodesEqual(oldVdom, newVdom)) {
     const index = findIndexInParent(parentEl, oldVdom?.el as HTMLElement);
     destroyDOM(oldVdom);
-    mountDOM(newVdom, parentEl, index);
+    mountDOM(newVdom, parentEl, index, hostComponent);
     return newVdom;
   }
 
@@ -1422,38 +1471,106 @@ function patchDOM(
       return newVdom;
     }
     case DOM_TYPES.ELEMENT: {
-      patchElement(oldVdom, newVdom);
+      patchElement(oldVdom, newVdom, hostComponent);
       break;
     }
   }
-  patchChildren(oldVdom, newVdom);
+  patchChildren(oldVdom, newVdom, hostComponent);
   return newVdom;
 }
 
-//********************************************************************************************** */
-//********************************************************************************************** */
-//********************************************************************************************** */
-//********************************************************************************************** */
-//********************************************************************************************** */
-//********************************************************************************************** */
+/**
+ * Checks if an object has a property as its own property (not inherited).
+ *
+ * @param {any} obj - The object to check.
+ * @param {string} prop - The property name to check.
+ * @returns {boolean} True if the object has the property as its own property, false otherwise.
+ */
+function hasOwnProperty(obj: any, prop: string) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
 
-export interface IComponent<State, Props = {}> {
+/**
+ * Interface defining a component with state, props, render, and lifecycle methods.
+ *
+ * @template State - The type of the state object.
+ * @template Props - The type of the props object.
+ */
+export interface IComponent<State = {}, Props = {}> {
   state: State;
   props: Props;
 
+  /**
+   * Unmounts the component, cleaning up resources.
+   */
   unmount(): void;
+
+  /**
+   * Renders the component and returns the virtual DOM element.
+   *
+   * @returns {ELEMENT_INTER} The rendered virtual DOM element.
+   */
   render(): ELEMENT_INTER;
+
+  /**
+   * Updates the state of the component with a partial state.
+   *
+   * @param {Partial<State>} state - The partial state to update the component with.
+   */
   updateState(state: Partial<State>): void;
+
+  /**
+   * Mounts the component to a specified host element at an optional index position.
+   *
+   * @param {HTMLElement} hostEl - The HTML element to mount the component to.
+   * @param {number | null} index - The optional index position where the component should be mounted.
+   */
   mount(hostEl: HTMLElement, index: number | null): void;
+
+  /**
+   * Gets all the elements rendered by the component.
+   *
+   * @returns {(ELEMENT_HTML | undefined)[]} An array of elements rendered by the component.
+   */
+  get elements(): (ELEMENT_HTML | undefined)[];
+
+  /**
+   * Gets the first element rendered by the component.
+   *
+   * @returns {ELEMENT_HTML | undefined} The first element rendered by the component.
+   */
+  get firstElement(): ELEMENT_HTML | undefined;
+
+  /**
+   * Gets the offset of the first element in the host element.
+   *
+   * @returns {number} The offset of the first element within the host element.
+   */
+  get offset(): number;
 }
 
-export function defineComponent<State, Props = {}>({
+/**
+ * Defines a component with state and methods, implementing lifecycle methods.
+ *
+ * @template State - The type of the state object.
+ * @template Props - The type of the props object.
+ *
+ * @param {Object} methods - The methods to add to the component class.
+ * @param {() => ELEMENT_INTER} render - The render function for the component that returns the virtual DOM.
+ * @param {State} [state] - A function to derive the initial state from the props.
+ * @returns {typeof Component} The defined component class.
+ */
+export function defineComponent<State = {}, Props = {}>({
   render,
   state,
+  ...methods
 }: {
   render: () => ELEMENT_INTER;
   state?: (props: Props) => State;
-}) {
+} & Record<string, (...args: any[]) => any>) {
+  /**
+   * A class representing a component with lifecycle methods like mount, unmount, and state updates.
+   */
   class Component implements IComponent<State, Props> {
     private isMounted: boolean = false;
     private vdom: ELEMENT_INTER | null = null;
@@ -1462,25 +1579,44 @@ export function defineComponent<State, Props = {}>({
     public state: State;
     public props: Props;
 
+    /**
+     * Constructor to initialize the component with props.
+     *
+     * @param {Props} props - The props to initialize the component with.
+     */
     constructor(props: Props) {
       this.props = props;
       this.state = state ? state(props) : ({} as State);
     }
 
+    /**
+     * Renders the component and returns the virtual DOM.
+     *
+     * @returns {ELEMENT_INTER} The rendered virtual DOM element.
+     */
     render(): ELEMENT_INTER {
       return render.call(this);
     }
 
+    /**
+     * Mounts the component to the given host element.
+     *
+     * @param {HTMLElement} hostEl - The HTML element to mount the component to.
+     * @param {number | null} index - The optional index position where the component should be mounted.
+     */
     mount(hostEl: HTMLElement, index: number | null = null): void {
       if (this.isMounted) {
         throw new Error("Component is already mounted");
       }
       this.vdom = this.render();
-      mountDOM(this.vdom, hostEl, index);
+      mountDOM(this.vdom, hostEl, index, this);
       this.hostEl = hostEl;
       this.isMounted = true;
     }
 
+    /**
+     * Unmounts the component and cleans up resources.
+     */
     unmount(): void {
       if (!this.isMounted) {
         throw new Error("Component is not mounted");
@@ -1491,18 +1627,76 @@ export function defineComponent<State, Props = {}>({
       this.isMounted = false;
     }
 
+    /**
+     * Gets all the elements rendered by the component.
+     *
+     * @returns {(ELEMENT_HTML | undefined)[]} An array of elements rendered by the component.
+     */
+    get elements(): (ELEMENT_HTML | undefined)[] {
+      if (this.vdom == null) {
+        return [];
+      }
+      if (this.vdom.type === DOM_TYPES.FRAGMENT) {
+        return extractChildren(this.vdom).map((child) => child.el);
+      }
+      return [this.vdom.el];
+    }
+
+    /**
+     * Gets the first element rendered by the component.
+     *
+     * @returns {ELEMENT_HTML | undefined} The first element rendered by the component.
+     */
+    get firstElement(): ELEMENT_HTML | undefined {
+      return this.elements[0];
+    }
+
+    /**
+     * Gets the offset of the first element in the host element.
+     *
+     * @returns {number} The offset of the first element within the host element.
+     */
+    get offset(): number {
+      if (this.vdom?.type === DOM_TYPES.FRAGMENT) {
+        if (this.firstElement == undefined) return -1;
+        return Array.from(this.hostEl!.children).indexOf(
+          this.firstElement as HTMLElement
+        );
+      }
+      return 0;
+    }
+
+    /**
+     * Updates the state with a partial state and re-renders the component.
+     *
+     * @param {Partial<State>} state - The partial state to update the component with.
+     */
     updateState(state: Partial<State>): void {
       this.state = { ...this.state, ...state };
       this.patch();
     }
 
-    private patch() {
+    /**
+     * Patches the component by re-rendering it with the updated state.
+     */
+    private patch(): void {
       if (!this.isMounted) {
         throw new Error("Component is not mounted");
       }
       const vdom = this.render();
-      this.vdom = patchDOM(this.vdom!, vdom, this.hostEl!);
+      this.vdom = patchDOM(this.vdom!, vdom, this.hostEl!, this);
     }
   }
+
+  // Add custom methods to the Component class
+  for (const methodName in methods) {
+    if (hasOwnProperty(Component, methodName)) {
+      throw new Error(
+        `Method "${methodName}()" already exists in the component.`
+      );
+    }
+    (Component.prototype as any)[methodName] = methods[methodName];
+  }
+
   return Component;
 }
