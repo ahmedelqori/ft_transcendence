@@ -1735,7 +1735,7 @@ export function defineComponent<State = {}, Props = {}>({
       return 0;
     }
 
-    updateProps(props: Props) {
+    updateProps(props: Partial<Props>) {
       this.props = { ...this.props, ...props };
       this.patch();
     }
