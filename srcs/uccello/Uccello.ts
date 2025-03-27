@@ -36,6 +36,7 @@ interface DOM_TYPES_INTER {
   TEXT: string;
   ELEMENT: string;
   FRAGMENT: string;
+  COMPONENT: string;
 }
 
 /**
@@ -71,12 +72,13 @@ interface LISTENERS_INTER {
 
 interface ELEMENT_INTER {
   type: string;
-  tag?: string;
+  tag?: string | any;
   props?: PROPS_INTER;
   value?: string;
   children?: ELEMENT_INTER[];
   listeners?: LISTENERS_INTER;
   el?: ELEMENT_HTML;
+  component?: any;
 }
 
 /**
@@ -105,6 +107,7 @@ const DOM_TYPES: DOM_TYPES_INTER = {
   TEXT: "text",
   ELEMENT: "element",
   FRAGMENT: "fragment",
+  COMPONENT: "component",
 };
 
 /**
@@ -166,7 +169,7 @@ export function createFragment(
 /**
  * Creates a virtual DOM element with the specified tag, properties, and children.
  *
- * @param tag The tag name of the element (e.g., "div", "span").
+ * @param tag The tag name of the element (e.g., "div", "span") or Component.
  * @param props An optional object containing properties (attributes) to be applied to the element.
  *              Defaults to an empty object if not provided.
  * @param children An optional array of child elements, text nodes, or null/undefined values.
@@ -175,15 +178,17 @@ export function createFragment(
  */
 
 export function createElement(
-  tag: string,
+  tag: string | any,
   props: PROPS_INTER = {},
   children: (ELEMENT_INTER | string | undefined | null)[] = []
 ): ELEMENT_INTER {
+  const type =
+    typeof tag === "string" ? DOM_TYPES.ELEMENT : DOM_TYPES.COMPONENT;
   return {
     tag,
     props,
     children: mapTextNodes(withoutNulls(children)),
-    type: DOM_TYPES.ELEMENT,
+    type,
   };
 }
 
@@ -217,6 +222,10 @@ export function mountDOM(
       createFragmentNodes(vdom, parentEl, index, hostComponent);
       break;
 
+    case DOM_TYPES.COMPONENT: {
+      createComponentNode(vdom, parentEl, index, hostComponent);
+      break;
+    }
     default:
       throw new Error(`Unsupported virtual DOM type: ${vdom.type}`);
   }
@@ -293,6 +302,30 @@ function createElementNode(
 }
 
 /**
+ * Creates and mounts a component node based on the virtual DOM element.
+ *
+ * @param {ELEMENT_INTER} vdom - The virtual DOM element representing the component.
+ * @param {HTMLElement} parentEl - The parent HTML element where the component should be mounted.
+ * @param {number | null | undefined} index - The index position where the component should be inserted.
+ * @param {any} [hostComponent=null] - The host component that owns this component instance.
+ */
+
+function createComponentNode(
+  vdom: ELEMENT_INTER,
+  parentEl: HTMLElement,
+  index: number | null | undefined,
+  hostComponent: any = null
+) {
+  const Component = vdom.tag!;
+  const { props, events } = extractPropsAndEvents(vdom);
+  const component = new Component(props, events, hostComponent);
+
+  component.mount(parentEl, index);
+  vdom.component = component;
+  vdom.el = component.firstElement;
+}
+
+/**
  * Adds properties (attributes and event listeners) to an HTML element.
  *
  * @param {HTMLElement} el - The HTML element to which properties will be added.
@@ -313,6 +346,18 @@ function addProps(
 
   vdom.listeners = addEventListeners(events, el, hostComponent);
   setAttributes(el, attrs);
+}
+
+/**
+ * Extracts props and event handlers from a virtual DOM element.
+ *
+ * @param {ELEMENT_INTER} vdom - The virtual DOM element containing properties and events.
+ * @returns {{ props: object, events: object }} An object containing separated props and event handlers.
+ */
+
+export function extractPropsAndEvents(vdom: ELEMENT_INTER) {
+  const { on: events = {}, ...props } = vdom.props!;
+  return { props, events };
 }
 
 /**
@@ -504,6 +549,11 @@ export function destroyDOM(vdom: ELEMENT_INTER) {
 
     case DOM_TYPES.FRAGMENT: {
       removeFragmentNodes(vdom);
+      break;
+    }
+
+    case DOM_TYPES.COMPONENT: {
+      vdom.component.unmount();
       break;
     }
 
@@ -1440,6 +1490,21 @@ function patchChildren(
 }
 
 /**
+ * Updates an existing component with new virtual DOM properties.
+ *
+ * @param {ELEMENT_INTER} oldVdom - The previous virtual DOM element containing the existing component instance.
+ * @param {ELEMENT_INTER} newVdom - The new virtual DOM element with updated properties.
+ */
+
+function patchComponent(oldVdom: ELEMENT_INTER, newVdom: ELEMENT_INTER) {
+  const { component } = oldVdom;
+  const { props } = extractPropsAndEvents(newVdom);
+  component.updateProps(props);
+  newVdom.component = component;
+  newVdom.el = component.firstElement;
+}
+
+/**
  * Patches a DOM node by comparing the old and new virtual DOM nodes.
  * If the nodes are different, it destroys the old node and mounts the new one.
  * If they are the same, it updates the properties, attributes, and children of the existing node.
@@ -1472,6 +1537,10 @@ function patchDOM(
     }
     case DOM_TYPES.ELEMENT: {
       patchElement(oldVdom, newVdom, hostComponent);
+      break;
+    }
+    case DOM_TYPES.COMPONENT: {
+      patchComponent(oldVdom, newVdom);
       break;
     }
   }
@@ -1518,6 +1587,21 @@ export interface IComponent<State = {}, Props = {}> {
    * @param {Partial<State>} state - The partial state to update the component with.
    */
   updateState(state: Partial<State>): void;
+
+  /**
+   * Updates the State with Props of the component with a partial state.
+   *
+   * @param {Props} props - The Props to update the component with.
+   */
+  updateProps(props: Props): void;
+
+  /**
+   * Emits an event with the specified name and payload.
+   *
+   * @param {string} eventName - The name of the event to emit.
+   * @param {any} payload - The data to send with the event.
+   */
+  emit(eventName: string, payload: any):void;
 
   /**
    * Mounts the component to a specified host element at an optional index position.
@@ -1576,6 +1660,12 @@ export function defineComponent<State = {}, Props = {}>({
     private vdom: ELEMENT_INTER | null = null;
     private hostEl: HTMLElement | null = null;
 
+    private eventHandlers: any = null;
+    private parentComponent: any = null;
+
+    private dispatcher: any = new Dispatcher();
+    private subscriptions: any[] = [];
+
     public state: State;
     public props: Props;
 
@@ -1584,9 +1674,11 @@ export function defineComponent<State = {}, Props = {}>({
      *
      * @param {Props} props - The props to initialize the component with.
      */
-    constructor(props: Props) {
+    constructor(props: Props, eventHandlers = {}, parentComponent = null) {
       this.props = props;
       this.state = state ? state(props) : ({} as State);
+      this.eventHandlers = eventHandlers;
+      this.parentComponent = parentComponent;
     }
 
     /**
@@ -1610,6 +1702,7 @@ export function defineComponent<State = {}, Props = {}>({
       }
       this.vdom = this.render();
       mountDOM(this.vdom, hostEl, index, this);
+      this.wireEventHandlers();
       this.hostEl = hostEl;
       this.isMounted = true;
     }
@@ -1622,9 +1715,11 @@ export function defineComponent<State = {}, Props = {}>({
         throw new Error("Component is not mounted");
       }
       destroyDOM(this.vdom!);
+      this.subscriptions.forEach((unsubscribe) => unsubscribe());
       this.vdom = null;
       this.hostEl = null;
       this.isMounted = false;
+      this.subscriptions = [];
     }
 
     /**
@@ -1637,7 +1732,12 @@ export function defineComponent<State = {}, Props = {}>({
         return [];
       }
       if (this.vdom.type === DOM_TYPES.FRAGMENT) {
-        return extractChildren(this.vdom).map((child) => child.el);
+        return extractChildren(this.vdom).flatMap((child) => {
+          if (child.type === DOM_TYPES.COMPONENT) {
+            return child.component.elements;
+          }
+          return [child.el];
+        });
       }
       return [this.vdom.el];
     }
@@ -1666,6 +1766,11 @@ export function defineComponent<State = {}, Props = {}>({
       return 0;
     }
 
+    updateProps(props: Props) {
+      this.props = { ...this.props, ...props };
+      this.patch();
+    }
+
     /**
      * Updates the state with a partial state and re-renders the component.
      *
@@ -1674,6 +1779,10 @@ export function defineComponent<State = {}, Props = {}>({
     updateState(state: Partial<State>): void {
       this.state = { ...this.state, ...state };
       this.patch();
+    }
+
+    emit(eventName: string, payload: any) {
+      this.dispatcher.dispatch(eventName, payload);
     }
 
     /**
@@ -1686,9 +1795,24 @@ export function defineComponent<State = {}, Props = {}>({
       const vdom = this.render();
       this.vdom = patchDOM(this.vdom!, vdom, this.hostEl!, this);
     }
+
+    private wireEventHandlers() {
+      this.subscriptions = Object.entries(this.eventHandlers).map(
+        ([eventName, handler]) => this.wireEventHandler(eventName, handler)
+      );
+    }
+
+    private wireEventHandler(eventName: string, handler: any) {
+      return this.dispatcher.subscribe(eventName, (payload: any) => {
+        if (this.parentComponent) {
+          handler.call(this.parentComponent, payload);
+        } else {
+          handler(payload);
+        }
+      });
+    }
   }
 
-  // Add custom methods to the Component class
   for (const methodName in methods) {
     if (hasOwnProperty(Component, methodName)) {
       throw new Error(

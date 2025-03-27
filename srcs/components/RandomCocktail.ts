@@ -19,6 +19,28 @@ async function fetchRandomCocktail() {
   return data.drinks[0];
 }
 
+interface LoadingCocktailInterface {
+  n: number;
+}
+
+const LoadingCocktail = defineComponent<
+  LoadingCocktailInterface,
+  { isLoading: boolean }
+>({
+  state(): LoadingCocktailInterface {
+    return { n: 1 };
+  },
+  render(this: IComponent<LoadingCocktailInterface, { isLoading: boolean }>) {
+    console.log(this.props.isLoading);
+    return createFragment([
+      createElement("h1", { class: ["text-xl", "font-bold", "mb-4"] }, [
+        "Random Cocktail",
+      ]),
+      createElement("p", { class: ["text-lg", "italic"] }, ["Loading..."]),
+    ]);
+  },
+});
+
 const RandomCocktail = defineComponent<RandomState>({
   state(): RandomState {
     return {
@@ -31,12 +53,7 @@ const RandomCocktail = defineComponent<RandomState>({
     const { isLoading, cocktail } = this.state;
 
     if (isLoading) {
-      return createFragment([
-        createElement("h1", { class: ["text-xl", "font-bold", "mb-4"] }, [
-          "Random Cocktail",
-        ]),
-        createElement("p", { class: ["text-lg", "italic"] }, ["Loading..."]),
-      ]);
+      return createElement(LoadingCocktail, { isLoading });
     }
 
     if (!cocktail) {
