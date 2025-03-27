@@ -55,6 +55,7 @@ interface PROPS_INTER {
   class?: CLASS_TYPE;
   on?: LISTENERS_INTER;
   style?: STYLE_INTER;
+  key?: any;
   [key: string]: any;
 }
 
@@ -63,14 +64,14 @@ interface PROPS_INTER {
  */
 
 interface LISTENERS_INTER {
-  [key: string]: (event: Event) => void;
+  [key: string]: (event: any) => void;
 }
 
 /**
  * Represents an element structure used to create virtual DOM-like components.
  */
 
-interface ELEMENT_INTER {
+export interface ELEMENT_INTER {
   type: string;
   tag?: string | any;
   props?: PROPS_INTER;
@@ -291,11 +292,11 @@ function createElementNode(
   hostComponent: any = null
 ): void {
   const tag: string = vdom.tag as string;
-  const props: object = vdom.props as PROPS_INTER;
+  // const props: object = vdom.props as PROPS_INTER;
   const children: ELEMENT_INTER[] = vdom.children as ELEMENT_INTER[];
 
   const element: HTMLElement = document.createElement(tag);
-  addProps(element, props, vdom, hostComponent);
+  addProps(element, vdom, hostComponent);
   vdom.el = element;
   children.forEach((child) => mountDOM(child, element, null, hostComponent));
   insert(element, parentEl, index);
@@ -338,11 +339,10 @@ function createComponentNode(
 
 function addProps(
   el: HTMLElement,
-  props: PROPS_INTER,
   vdom: ELEMENT_INTER,
   hostComponent: any
 ): void {
-  const { on: events, ...attrs } = props;
+  const { props: attrs, events } = extractPropsAndEvents(vdom);
 
   vdom.listeners = addEventListeners(events, el, hostComponent);
   setAttributes(el, attrs);
@@ -357,6 +357,7 @@ function addProps(
 
 export function extractPropsAndEvents(vdom: ELEMENT_INTER) {
   const { on: events = {}, ...props } = vdom.props!;
+  delete props.key;
   return { props, events };
 }
 
@@ -715,80 +716,36 @@ interface AppInstance {
  * @returns {AppInstance} - The application instance with `mount` and `unmount` methods.
  */
 
-export function createApp({
-  state,
-  view,
-  reducers = {},
-}: {
-  state: any;
-  view: any;
-  reducers?: Reducers;
-}): AppInstance {
+export function createApp(RootComponent: any, props: any = {}): AppInstance {
   let parentEl: HTMLElement | null = null;
   let vdom: ELEMENT_INTER | null = null;
+  let isMounted: boolean = false;
 
-  const dispatcher = new Dispatcher();
-  const subscriptions = [dispatcher.afterEveryCommand(renderApp)];
-
-  /**
-   * Emits an event and dispatches it to the reducer.
-   *
-   * @param {string} eventName - The name of the event.
-   * @param {any} payload - The data to be passed to the reducer.
-   */
-  function emit(eventName: string, payload: any) {
-    dispatcher.dispatch(eventName, payload);
+  function reset() {
+    parentEl = null;
+    isMounted = false;
+    vdom = null;
   }
-
-  for (const actionName in reducers) {
-    const reducer = reducers[actionName];
-    const subs = dispatcher.subscribe(actionName, (payload: any) => {
-      state = reducer(state, payload);
-    });
-    subscriptions.push(subs);
-  }
-
-  /**
-   * Renders the application by destroying the previous virtual DOM
-   * and creating a new one from the view function.
-   *
-   * This function generates a new virtual DOM tree using the `view` function,
-   * then updates the existing virtual DOM by applying the necessary changes
-   * using the `patchDOM` function.
-   */
-
-  function renderApp() {
-    const newVdom = view(state, emit);
-    vdom = patchDOM(
-      vdom as ELEMENT_INTER,
-      newVdom as ELEMENT_INTER,
-      parentEl as HTMLElement
-    );
-  }
-
   return {
-    /**
-     * Mounts the application to the given parent element.
-     *
-     * @param {HTMLElement} _parentEl - The parent DOM element to attach the app to.
-     */
+    mount(_parentEl) {
+      if (isMounted) {
+        throw new Error("The application is already mounted");
+      }
 
-    mount(_parentEl: HTMLElement) {
       parentEl = _parentEl;
-      vdom = view(state, emit);
-      mountDOM(vdom as ELEMENT_INTER, parentEl);
+      vdom = createElement(RootComponent, props);
+      mountDOM(vdom, parentEl);
+
+      isMounted = true;
     },
 
-    /**
-     * Unmounts the application, cleaning up the virtual DOM and subscriptions.
-     */
-
     unmount() {
-      if (vdom) {
-        destroyDOM(vdom);
+      if (!isMounted) {
+        throw new Error("The application is not mounted");
       }
-      vdom = null;
-      subscriptions.forEach((unsubscribe) => unsubscribe());
+
+      destroyDOM(vdom!);
+      reset();
     },
   };
 }
@@ -1166,7 +1123,19 @@ function areNodesEqual(
   if (nodeOne.type === DOM_TYPES.ELEMENT) {
     const { tag: tagOne } = nodeOne;
     const { tag: tagTwo } = nodeTwo;
-    return tagOne === tagTwo;
+
+    const keyOne: string = nodeOne?.props?.key;
+    const keyTwo: string = nodeTwo?.props?.key;
+
+    return tagOne === tagTwo && keyOne === keyTwo;
+  }
+  if (nodeOne.type === DOM_TYPES.COMPONENT) {
+    const keyOne: string = nodeOne?.props?.key;
+    const keyTwo: string = nodeTwo?.props?.key;
+
+    const { tag: componentOne } = nodeOne;
+    const { tag: componentTwo } = nodeTwo;
+    return componentOne === componentTwo && keyOne === keyTwo;
   }
   return true;
 }
@@ -1601,7 +1570,7 @@ export interface IComponent<State = {}, Props = {}> {
    * @param {string} eventName - The name of the event to emit.
    * @param {any} payload - The data to send with the event.
    */
-  emit(eventName: string, payload: any):void;
+  emit(eventName: string, payload: any): void;
 
   /**
    * Mounts the component to a specified host element at an optional index position.
