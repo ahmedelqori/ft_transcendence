@@ -225,6 +225,7 @@ export function mountDOM(
 
     case DOM_TYPES.COMPONENT: {
       createComponentNode(vdom, parentEl, index, hostComponent);
+      enqueueJob(() => vdom.component.onMounted());
       break;
     }
     default:
@@ -555,6 +556,7 @@ export function destroyDOM(vdom: ELEMENT_INTER) {
 
     case DOM_TYPES.COMPONENT: {
       vdom.component.unmount();
+      enqueueJob(() => vdom.component.onUnmounted());
       break;
     }
 
@@ -1603,6 +1605,11 @@ export interface IComponent<State = {}, Props = {}> {
 }
 
 /**
+ * Define Empty Function
+ */
+const emptyFn = () => {};
+
+/**
  * Defines a component with state and methods, implementing lifecycle methods.
  *
  * @template State - The type of the state object.
@@ -1616,6 +1623,8 @@ export interface IComponent<State = {}, Props = {}> {
 export function defineComponent<State = {}, Props = {}>({
   render,
   state,
+  onMounted = emptyFn,
+  onUnmounted = emptyFn,
   ...methods
 }: {
   render: () => ELEMENT_INTER;
@@ -1735,6 +1744,10 @@ export function defineComponent<State = {}, Props = {}>({
       return 0;
     }
 
+    /**
+     * Updates the component's props with the given partial properties and triggers a patch.
+     * @param {Partial<Props>} props - The partial properties to update.
+     */
     updateProps(props: Partial<Props>) {
       this.props = { ...this.props, ...props };
       this.patch();
@@ -1750,6 +1763,11 @@ export function defineComponent<State = {}, Props = {}>({
       this.patch();
     }
 
+    /**
+     * Emits an event by dispatching it with the specified payload.
+     * @param {string} eventName - The name of the event to emit.
+     * @param {any} payload - The data to send with the event.
+     */
     emit(eventName: string, payload: any) {
       this.dispatcher.dispatch(eventName, payload);
     }
@@ -1765,13 +1783,24 @@ export function defineComponent<State = {}, Props = {}>({
       this.vdom = patchDOM(this.vdom!, vdom, this.hostEl!, this);
     }
 
+    /**
+     * Wires all event handlers by subscribing them to their respective events.
+     * @private
+     */
     private wireEventHandlers() {
       this.subscriptions = Object.entries(this.eventHandlers).map(
         ([eventName, handler]) => this.wireEventHandler(eventName, handler)
       );
     }
 
-    private wireEventHandler(eventName: string, handler: any) {
+    /**
+     * Wires a single event handler by subscribing it to the specified event.
+     * @private
+     * @param {string} eventName - The name of the event to subscribe to.
+     * @param {any} handler - The function to handle the event.
+     * @returns {any} A subscription reference from the dispatcher.
+     */
+    private wireEventHandler(eventName: string, handler: any): any {
       return this.dispatcher.subscribe(eventName, (payload: any) => {
         if (this.parentComponent) {
           handler.call(this.parentComponent, payload);
@@ -1779,6 +1808,22 @@ export function defineComponent<State = {}, Props = {}>({
           handler(payload);
         }
       });
+    }
+
+    /**
+     * Lifecycle hook that runs when the component is mounted.
+     * @returns {Promise<void>} A promise that resolves when the mounted hook is executed.
+     */
+    onMounted(): Promise<void> {
+      return Promise.resolve(onMounted.call(this));
+    }
+
+    /**
+     * Lifecycle hook that runs when the component is unmounted.
+     * @returns {Promise<void>} A promise that resolves when the unmounted hook is executed.
+     */
+    onUnmounted(): Promise<void> {
+      return Promise.resolve(onUnmounted.call(this));
     }
   }
 
@@ -1792,4 +1837,46 @@ export function defineComponent<State = {}, Props = {}>({
   }
 
   return Component;
+}
+
+let isScheduled = false;
+const jobs: any[] = [];
+
+/**
+ * Enqueues a job to be processed in the next microtask.
+ * @param {any} job - The job function to enqueue.
+ */
+export function enqueueJob(job: any) {
+  jobs.push(job);
+  scheduleUpdate();
+}
+
+/**
+ * Schedules the job processing if it is not already scheduled.
+ * Ensures that job execution happens in the next microtask.
+ * @private
+ */
+function scheduleUpdate() {
+  if (isScheduled) return;
+  isScheduled = true;
+  queueMicrotask(processJobs);
+}
+
+/**
+ * Processes the queued jobs in order. Each job is executed and its result
+ * is handled as a resolved or rejected promise.
+ * @private
+ */
+function processJobs() {
+  while (jobs.length > 0) {
+    const job = jobs.shift();
+    const result = job();
+    Promise.resolve(result).then(
+      () => {},
+      (error) => {
+        console.error(`[scheduler]: ${error}`);
+      }
+    );
+  }
+  isScheduled = false;
 }

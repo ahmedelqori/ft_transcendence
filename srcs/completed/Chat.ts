@@ -340,4 +340,6 @@ const App = defineComponent<IApp>({
   },
 });
 
-createApp(App).mount(ROOT);
+export default App;
+
+// createApp(App).mount(ROOT);

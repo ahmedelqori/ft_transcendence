@@ -373,53 +373,87 @@
 
 // createApp(App).mount(ROOT);
 
+// import {
+//   createApp,
+//   createElement,
+//   defineComponent,
+//   IComponent,
+// } from "./uccello/Uccello.js";
+
+// const ROOT: HTMLElement = document.getElementById("root")!;
+
+// interface IApp {
+//   nameApp: string;
+// }
+
+// interface ISubComp {
+//   n: boolean;
+// }
+// interface PSubComp {
+//   test: string;
+// }
+// const SubComp = defineComponent({
+//   render(this: IComponent) {
+//     console.log(this.props);
+//     console.log(this.state);
+//     return createElement("h1");
+//   },
+// });
+
+// const App = defineComponent<IApp>({
+//   state: () => {
+//     return { nameApp: "Meedivo" };
+//   },
+//   render(this: IComponent<IApp>) {
+//     return createElement(
+//       "input",
+//       {
+//         on: {
+//           click: () => {
+//             this.updateState({ nameApp: "Hello Word" });
+//           },
+//         },
+//       },
+//       [this.state.nameApp, createElement(SubComp, { test: "ahmed" })]
+//     );
+//   },
+// });
+
+// createApp(App).mount(ROOT);
+
+// import App from "./completed/Chat.js";
+// import { createApp } from "./uccello/Uccello.js";
+
+// createApp(App).mount(ROOT);
+
 import {
   createApp,
   createElement,
+  createFragment,
   defineComponent,
   IComponent,
 } from "./uccello/Uccello.js";
-
-const ROOT: HTMLElement = document.getElementById("root")!;
-
-interface IApp {
-  nameApp: string;
-}
-
-interface ISubComp {
-  n: boolean;
-}
-interface PSubComp {
-  test: string;
-}
-const SubComp = defineComponent<ISubComp>({
-  state() {
-    return { n: true };
+let i = 0;
+const NameComponent = defineComponent({
+  onMounted() {
+    i += 2000;
+    setTimeout(() => {
+      console.log(`Component mounted with name: ${this.props.name}`);
+    }, i);
   },
-  render(this: IComponent<ISubComp & PSubComp>) {
-    console.log(this.props);
-    console.log(this.state);
-    return createElement("h1");
+  render() {
+    return createElement("p", {}, [this.props.name]);
   },
 });
-
-const App = defineComponent<IApp>({
-  state: () => {
-    return { nameApp: "Meedivo" };
-  },
-  render(this: IComponent<IApp>) {
-    return createElement(
-      "input",
-      {
-        on: {
-          click: () => {
-            this.updateState({ nameApp: "Hello Word" });
-          },
-        },
-      },
-      [this.state.nameApp, createElement(SubComp, { test: "ahmed" })]
-    );
+const App = defineComponent({
+  render() {
+    return createFragment([
+      createElement(NameComponent, { name: "Alice" }),
+      createElement(NameComponent, { name: "Bob" }),
+      createElement(NameComponent, { name: "Charlie" }),
+      createElement(NameComponent, { name: "Diana" }),
+      createElement(NameComponent, { name: "Eve" }),
+    ]);
   },
 });
-
-createApp(App).mount(ROOT);
+createApp(App).mount(document.body);
