@@ -1,3 +1,5 @@
+TODO:
+    if user already in a started tournament, he can't create or join a new one
 
 
 
@@ -17,5 +19,121 @@ pool: {
     afterCreate: (conn, cb) => {
     conn.run('PRAGMA foreign_keys = ON', cb); // Enable foreign keys
     }
+}
+
+
+
+
+
+
+
+
+create tournament
+POST /api/tournament/
+
+{
+    "tournament_name": "t1212",
+    "nickname": "7h323",
+    "players_number": 12
+}
+
+response:
+
+201
+{
+    "message": "Tournament created successfully"
+}
+
+400
+{
+    "message": "You can only create a tournament with 4, 8, or 16 players."
+}
+
+
+
+
+
+DELETE /api/tournament/:tournament_id
+
+response:
+
+200
+{
+    "message": "Tournament deleted successfully"
+}
+404
+{
+    "message": "Tournament not found"
+}
+
+400
+{
+    "message": "Invalid id"
+}
+
+
+
+GET /api/tournament/list
+
+
+response:
+
+200
+[
+    {
+        "id": 12,
+        "name": "t1212",
+        "owner": {
+            "id": 1,
+            "username": "ybouchma",
+            "first_name": "Youssef",
+            "last_name": "Bouchmama",
+            "bio": "",
+            "avatar_url": "https://pingpong.ma/profile_images/ybouchma.jpg",
+            "status": "ON",
+            "created_at": "2025-03-18T21:34:29.780Z"
+        },
+        "total_places": 4,
+        "total_players": 1,
+        "status": "CREATED",
+        "created_at": "2025-03-24 15:36:09"
+    }
+]
+
+
+
+
+POST /api/tournament/:tournament_id/join?code=1234
+
+{
+    "nickname": "7h3"
+}
+
+200
+{
+    "message": "joined"
+}
+
+400
+{
+    "error": "wrong code"
+}
+
+404
+{
+    "error": "tournament not found"
+}
+
+
+POST /api/tournament/12/leave
+
+200
+{
+    "message": "left"
+}
+
+400
+{
+    "error": "not joined"
 }
 

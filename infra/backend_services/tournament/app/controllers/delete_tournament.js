@@ -3,7 +3,7 @@ import { tournament } from "../models.js";
 export default async function delete_tournament(req, res) {
     const id = Number(req.params.id);
 
-    if (isNaN(id)) {
+    if (isNaN(id) || id < 0) {
         return res
             .status(400)
             .send({message: 'Invalid id'});
@@ -13,7 +13,6 @@ export default async function delete_tournament(req, res) {
         id,
         owner_id: req.user.id
     }).delete();
-    console.log(n);
     if (n === 0) {
         return res
             .status(404)

@@ -43,41 +43,41 @@ services:
       - profile_images:/app/profile_images
       - user_managment_database:/app/database
 
-  friendship:
-    build:
-      context: ./backend_services/friendship
-      dockerfile: Dockerfile
-    container_name: friendship
-    env_file:
-      - ./backend_services/friendship/.env
-    networks:
-      - appNet
-    volumes:
-      - friendship_database:/app/database
+  # friendship:
+  #   build:
+  #     context: ./backend_services/friendship
+  #     dockerfile: Dockerfile
+  #   container_name: friendship
+  #   env_file:
+  #     - ./backend_services/friendship/.env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - friendship_database:/app/database
 
-  2fa:
-    build:
-      context: ./backend_services/2FA
-      dockerfile: Dockerfile
-    container_name: 2fa
-    env_file:
-      - ./backend_services/2FA/.env
-    networks:
-      - appNet
-    volumes:
-      - 2fa_database:/app/database
+  # 2fa:
+  #   build:
+  #     context: ./backend_services/2FA
+  #     dockerfile: Dockerfile
+  #   container_name: 2fa
+  #   env_file:
+  #     - ./backend_services/2FA/.env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - 2fa_database:/app/database
 
-  notification:
-    build:
-      context: ./backend_services/notification
-      dockerfile: Dockerfile
-    container_name: notification
-    env_file:
-      - ./backend_services/notification/.env
-    networks:
-      - appNet
-    volumes:
-      - notification_database:/app/database
+  # notification:
+  #   build:
+  #     context: ./backend_services/notification
+  #     dockerfile: Dockerfile
+  #   container_name: notification
+  #   env_file:
+  #     - ./backend_services/notification/.env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - notification_database:/app/database
 
 
 
@@ -95,24 +95,24 @@ volumes:
       type: none
       device: /home/youssef/ft_transcendence/infra/volumes/user_managment_database
       o: bind
-  friendship_database:
-    driver: local
-    driver_opts:
-      type: none
-      device: /home/youssef/ft_transcendence/infra/volumes/friendship_database
-      o: bind
-  2fa_database:
-    driver: local
-    driver_opts:
-      type: none
-      device: /home/youssef/ft_transcendence/infra/volumes/2fa_database
-      o: bind
-  notification_database:
-    driver: local
-    driver_opts:
-      type: none
-      device: /home/youssef/ft_transcendence/infra/volumes/notification_database
-      o: bind
+  # friendship_database:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     device: /home/youssef/ft_transcendence/infra/volumes/friendship_database
+  #     o: bind
+  # 2fa_database:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     device: /home/youssef/ft_transcendence/infra/volumes/2fa_database
+  #     o: bind
+  # notification_database:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     device: /home/youssef/ft_transcendence/infra/volumes/notification_database
+  #     o: bind
   # VolumeVault:
  
 networks:

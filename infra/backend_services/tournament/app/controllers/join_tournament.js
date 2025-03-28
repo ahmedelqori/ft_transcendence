@@ -41,7 +41,12 @@ export default async function join_tournament(req, res) {
         return;
     }
 
-    const nickname = req.body.nickname;
+    let nickname;
+    try {
+        nickname = req.body.nickname;
+    }catch(e){
+        res.status(400).send({error: "nickname is required"}); return;
+    }
 
     if (nickname && typeof nickname === 'string'){
         if (nickname.length < 3 || nickname.length > 20){

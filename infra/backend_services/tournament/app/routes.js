@@ -17,11 +17,16 @@ export default function routes(fastify) {
     fastify.get('/list', list_tournaments);
     fastify.post('/:id/join', join_tournament);
     fastify.post('/:id/leave', leave_tournament);
+
+    // DONE
+
     fastify.get('/:id', get_tournament);
+    // add on the response
+    // 
+    
+    
     
     fastify.patch('/:id', update_tournament);
-
-
     // invite player to tournament by send a link in the chat
 
     // fastify.get('/:id/results', results_tournament);
@@ -29,3 +34,20 @@ export default function routes(fastify) {
     
 
 }
+
+// user can create a tournament
+// user can delete a tournament
+// user can list all tournaments
+// user can join a tournament
+// user can leave a tournament
+// user can update a tournament
+// user can get a tournament (5sek tkon already in the tournament)
+// user can invite a player to a tournament (means send (message or notifaication) to the player to join the tournament)
+// user can start a tournament
+
+
+
+
+
+
+
