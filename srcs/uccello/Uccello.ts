@@ -1881,11 +1881,23 @@ function processJobs() {
   isScheduled = false;
 }
 
+/**
+ * Schedules an update and then flushes any pending promises.
+ * This function allows for executing tasks in the next event loop cycle after the update.
+ *
+ * @returns {Promise} A promise that resolves once all pending promises are flushed.
+ */
 export function nextTick() {
   scheduleUpdate();
   return flushPromises();
 }
 
+/**
+ * Flushes any pending promises by resolving them after a delay.
+ * This ensures that any tasks scheduled in the event loop are executed.
+ *
+ * @returns {Promise} A promise that resolves after the next event loop cycle.
+ */
 function flushPromises() {
   return new Promise((resolve) => setTimeout(resolve));
 }
