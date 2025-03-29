@@ -15,11 +15,15 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "tsc -w"
+    "dev": "tsc -w",
+    "test": "vitest"
   },
   "devDependencies": {
+    "@types/node": "^22.13.14",
+    "jsdom": "^26.0.0",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.9"
   },
   "dependencies": {
     "test_package_meedivo": "^1.0.0"

@@ -426,6 +426,71 @@
 
 // createApp(App).mount(ROOT);
 
+// import {
+//   createApp,
+//   createElement,
+//   createFragment,
+//   defineComponent,
+//   IComponent,
+// } from "./uccello/Uccello.js";
+// let i = 0;
+// const NameComponent = defineComponent({
+//   onMounted() {
+//     i += 2000;
+//     if (i == 6000) i = 0;
+//     setTimeout(() => {
+//       console.log(`Component mounted with name: ${this.props.name}`);
+//     }, i);
+//   },
+//   render() {
+//     return createElement("p", {}, [this.props.name]);
+//   },
+// });
+// const App = defineComponent({
+//   render() {
+//     return createFragment([
+//       createElement(NameComponent, { name: "Alice" }),
+//       createElement(NameComponent, { name: "Bob" }),
+//       createElement(NameComponent, { name: "Charlie" }),
+//       createElement(NameComponent, { name: "Diana" }),
+//       createElement(NameComponent, { name: "Eve" }),
+//     ]);
+//   },
+// });
+// createApp(App).mount(document.body);
+
+// import {
+//   createApp,
+//   createElement,
+//   createFragment,
+//   defineComponent,
+//   IComponent,
+// } from "./uccello/Uccello.js";
+
+// let i = 0;
+
+// const NameComponent = defineComponent({
+//   async onMounted() {
+
+//   },
+//   render() {
+//     return createElement("p", {}, [this.props.name]);
+//   },
+// });
+
+// const App = defineComponent({
+//   render() {
+//     return createFragment([
+//       createElement(NameComponent, { name: "Alice" }),
+//       createElement(NameComponent, { name: "Bob" }),
+//       createElement(NameComponent, { name: "Charlie" }),
+//       createElement(NameComponent, { name: "Diana" }),
+//       createElement(NameComponent, { name: "Eve" }),
+//     ]);
+//   },
+// });
+
+// createApp(App).mount(document.body);
 import {
   createApp,
   createElement,
@@ -433,27 +498,101 @@ import {
   defineComponent,
   IComponent,
 } from "./uccello/Uccello.js";
-let i = 0;
-const NameComponent = defineComponent({
-  onMounted() {
-    i += 2000;
-    setTimeout(() => {
-      console.log(`Component mounted with name: ${this.props.name}`);
-    }, i);
-  },
-  render() {
-    return createElement("p", {}, [this.props.name]);
-  },
-});
-const App = defineComponent({
-  render() {
-    return createFragment([
-      createElement(NameComponent, { name: "Alice" }),
-      createElement(NameComponent, { name: "Bob" }),
-      createElement(NameComponent, { name: "Charlie" }),
-      createElement(NameComponent, { name: "Diana" }),
-      createElement(NameComponent, { name: "Eve" }),
-    ]);
-  },
-});
-createApp(App).mount(document.body);
+
+// interface NameComponentProps {
+//   name: string;
+// }
+
+// interface NameComponentState {
+//   avatarUrl: string | null;
+//   isLoading: boolean;
+// }
+
+// const NameComponent = defineComponent<NameComponentState, NameComponentProps>({
+//   state() {
+//     return {
+//       avatarUrl: null,
+//       isLoading: true,
+//     };
+//   },
+
+//   async onMounted() {
+//     try {
+//       // Set loading state immediately
+//       this.updateState({
+//         isLoading: true,
+//         avatarUrl: null,
+//       });
+
+//       // Simulate a minimum loading time to show animation
+//       await new Promise((resolve) => setTimeout(resolve, 500));
+
+//       // Fetch avatar from the specified API
+//       const response = await fetch(
+//         `https://avatar.iran.liara.run/username?username=${this.props.name.toLowerCase()}`
+//       );
+
+//       if (!response.ok) {
+//         throw new Error("Failed to fetch avatar");
+//       }
+
+//       // Update the state with the avatar URL
+//       this.updateState({
+//         avatarUrl: response.url,
+//         isLoading: false,
+//       });
+//     } catch (error) {
+//       console.error(`Error fetching avatar for ${this.props.name}:`, error);
+//       this.updateState({
+//         avatarUrl: null,
+//         isLoading: false,
+//       });
+//     }
+//   },
+
+//   render(this: IComponent<NameComponentState, NameComponentProps>) {
+//     return createElement("div", { class: "flex items-center space-x-4 p-2" }, [
+//       this.state.isLoading
+//         ? createElement("div", {
+//             class: "w-12 h-12 rounded-full bg-gray-300 animate-pulse",
+//           })
+//         : createElement("img", {
+//             src: this.state.avatarUrl || `/api/placeholder/50/50`,
+//             alt: `${this.props.name}'s avatar`,
+//             class: "w-12 h-12 rounded-full",
+//           }),
+//       createElement("div", { class: "flex flex-col" }, [
+//         createElement(
+//           "p",
+//           {
+//             class: `font-medium ${
+//               this.state.isLoading
+//                 ? "bg-gray-300 animate-pulse h-4 w-24 rounded"
+//                 : ""
+//             }`,
+//           },
+//           [this.state.isLoading ? "" : this.props.name]
+//         ),
+//       ]),
+//     ]);
+//   },
+// });
+
+// const App = defineComponent({
+//   render() {
+//     return createFragment([
+//       createElement(NameComponent, { name: "Alice" }),
+//       createElement(NameComponent, { name: "Bob" }),
+//       createElement(NameComponent, { name: "Charlie" }),
+//       createElement(NameComponent, { name: "Diana" }),
+//       createElement(NameComponent, { name: "Eve" }),
+//     ]);
+//   },
+// });
+
+// createApp(App).mount(document.body);
+
+import { Counter } from "./components/Counter.js";
+import { test, expect, beforeEach, afterEach } from "vitest";
+
+createApp(Counter).mount(document.getElementById("root")!);
