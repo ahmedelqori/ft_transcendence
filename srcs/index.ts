@@ -495,6 +495,7 @@ import {
   createApp,
   createElement,
   createFragment,
+  createSlot,
   defineComponent,
   IComponent,
 } from "./uccello/Uccello.js";
@@ -592,7 +593,50 @@ import {
 
 // createApp(App).mount(document.body);
 
-import { Counter } from "./components/Counter.js";
-import { test, expect, beforeEach, afterEach } from "vitest";
+// import { Counter } from "./components/Counter.js";
+// import { test, expect, beforeEach, afterEach } from "vitest";
 
-createApp(Counter).mount(document.getElementById("root")!);
+// createApp(Counter).mount(document.getElementById("root")!);
+
+interface IState {
+  show: boolean;
+}
+
+const Comp = defineComponent<null>({
+  state() {
+    return null;
+  },
+  render(this: IComponent<null>) {
+    return createElement("section", {}, [
+      createElement("p", {}, ["Zero paragraph"]),
+      createSlot(),
+    ]);
+  },
+});
+
+const App = defineComponent<IState>({
+  state() {
+    return { show: true };
+  },
+  render(this: IComponent<IState>) {
+    return createElement("div", {}, [
+      createElement(
+        "button",
+        {
+          on: {
+            click: () => {
+              this.updateState({ show: !this.state.show });
+            },
+          },
+        },
+        ["Click Me"]
+      ),
+      createElement(Comp, {}, [
+        createElement("p", {}, ["First paragraph"]),
+        createElement("p", {}, ["Second paragraph"]),
+      ]),
+    ]);
+  },
+});
+
+createApp(App).mount(document.getElementById("root")!);

@@ -1,4 +1,11 @@
 /**
+ * @type {boolean}
+ * @description Indicates whether the slot has been created.
+ */
+
+let createSlotCalled: boolean = false;
+
+/**
  * Represents an HTML element or a text node.
  */
 type ELEMENT_HTML = HTMLElement | Text;
@@ -33,6 +40,7 @@ interface SEQUEN_INTER {
  * Defines possible DOM node types.
  */
 interface DOM_TYPES_INTER {
+  SLOT: string;
   TEXT: string;
   ELEMENT: string;
   FRAGMENT: string;
@@ -105,6 +113,7 @@ interface ARRAY_DIFF_INTER {
  */
 
 const DOM_TYPES: DOM_TYPES_INTER = {
+  SLOT: "slot",
   TEXT: "text",
   ELEMENT: "element",
   FRAGMENT: "fragment",
@@ -133,7 +142,13 @@ function withoutNulls(
 
 function mapTextNodes(children: (ELEMENT_INTER | string)[]): ELEMENT_INTER[] {
   return children.map((child) =>
-    typeof child === "string" ? createString(child) : child
+    typeof child === "string" ||
+    typeof child === "number" ||
+    typeof child === "boolean" ||
+    typeof child === "bigint" ||
+    typeof child === "symbol"
+      ? createString(child)
+      : child
   );
 }
 
@@ -190,6 +205,23 @@ export function createElement(
     props,
     children: mapTextNodes(withoutNulls(children)),
     type,
+  };
+}
+
+/**
+ * Creates a slot element with the given children.
+ *
+ * @param {Array<ELEMENT_INTER | string | undefined | null>} [children=[]] - The children elements of the slot.
+ * @returns {ELEMENT_INTER} The created slot element.
+ */
+
+export function createSlot(
+  children: (ELEMENT_INTER | string | undefined | null)[] = []
+): ELEMENT_INTER {
+  createSlotCalled = true;
+  return {
+    type: DOM_TYPES.SLOT,
+    children: mapTextNodes(withoutNulls(children) ),
   };
 }
 
@@ -319,9 +351,10 @@ function createComponentNode(
   hostComponent: any = null
 ) {
   const Component = vdom.tag!;
+  const children = vdom.children;
   const { props, events } = extractPropsAndEvents(vdom);
   const component = new Component(props, events, hostComponent);
-
+  component.setExternalContent(children);
   component.mount(parentEl, index);
   vdom.component = component;
   vdom.el = component.firstElement;
@@ -1469,7 +1502,10 @@ function patchChildren(
 
 function patchComponent(oldVdom: ELEMENT_INTER, newVdom: ELEMENT_INTER) {
   const { component } = oldVdom;
+  const { children } = newVdom;
   const { props } = extractPropsAndEvents(newVdom);
+
+  component.setExternalContent(children);
   component.updateProps(props);
   newVdom.component = component;
   newVdom.el = component.firstElement;
@@ -1643,6 +1679,7 @@ export function defineComponent<State = {}, Props = {}>({
 
     private dispatcher: any = new Dispatcher();
     private subscriptions: any[] = [];
+    private children: (ELEMENT_INTER | string | undefined | null)[] = [];
 
     public state: State;
     public props: Props;
@@ -1665,7 +1702,24 @@ export function defineComponent<State = {}, Props = {}>({
      * @returns {ELEMENT_INTER} The rendered virtual DOM element.
      */
     render(): ELEMENT_INTER {
-      return render.call(this);
+      const vdom = render.call(this);
+      if (didCreateSlot()) {
+        fillSlots(vdom, this.children);
+        resetDidCreateSlot();
+      }
+      return vdom;
+    }
+
+    /**
+     * Sets the external content for this element.
+     *
+     * @param {Array<ELEMENT_INTER | string | undefined | null>} children - The new children elements.
+     */
+
+    setExternalContent(
+      children: (ELEMENT_INTER | string | undefined | null)[]
+    ) {
+      this.children = children;
     }
 
     /**
@@ -1900,4 +1954,103 @@ export function nextTick() {
  */
 function flushPromises() {
   return new Promise((resolve) => setTimeout(resolve));
+}
+
+/**
+ * Performs a depth-first traversal on the virtual DOM.
+ *
+ * @param {ELEMENT_INTER | null} vdom - The virtual DOM node to traverse.
+ * @param {Function} processNode - The function to process each node.
+ * @param {Function} [shouldSkipBranch=() => false] - A function to determine if a branch should be skipped.
+ * @param {ELEMENT_INTER | null} [parentNode=null] - The parent node.
+ * @param {number | null} [index=null] - The index of the current node in its parent's children array.
+ */
+
+function traverseDFS(
+  vdom: ELEMENT_INTER | null,
+  processNode: any,
+  shouldSkipBranch: any = () => false,
+  parentNode: ELEMENT_INTER | null = null,
+  index: number | null = null
+) {
+  if (shouldSkipBranch(vdom)) return;
+
+  processNode(vdom, parentNode, index);
+
+  if (vdom?.children) {
+    vdom.children.forEach((child, i) =>
+      traverseDFS(child, processNode, shouldSkipBranch, vdom, i)
+    );
+  }
+}
+
+/**
+ * Fills slots in the virtual DOM with external content.
+ *
+ * @param {ELEMENT_INTER | null} vdom - The virtual DOM node.
+ * @param {any[]} [externalContent=[]] - The external content to insert into slots.
+ */
+
+function fillSlots(vdom: ELEMENT_INTER | null, externalContent: any = []) {
+  function processNode(node: any, parent: any, index: any) {
+    insertViewInSlot(node, parent, index, externalContent);
+  }
+
+  traverseDFS(vdom, processNode, shouldSkipBranch);
+}
+
+/**
+ * Inserts external content into a slot node in the virtual DOM.
+ *
+ * @param {any} node - The current node being processed.
+ * @param {any} parent - The parent node of the slot.
+ * @param {any} index - The index of the slot in the parent's children.
+ * @param {any} externalContent - The external content to insert.
+ */
+
+function insertViewInSlot(
+  node: any,
+  parent: any,
+  index: any,
+  externalContent: any
+) {
+  if (node.type !== DOM_TYPES.SLOT) return;
+
+  const defaultContent = node.children;
+  const views = externalContent.length > 0 ? externalContent : defaultContent;
+
+  const hasContent = views.length > 0;
+  if (hasContent) {
+    parent.children.splice(index, 1, createFragment(views));
+  } else {
+    parent.children.splice(index, 1);
+  }
+}
+
+/**
+ * Determines if a branch should be skipped during traversal.
+ *
+ * @param {ELEMENT_INTER} node - The node to check.
+ * @returns {boolean} True if the branch should be skipped, otherwise false.
+ */
+
+function shouldSkipBranch(node: ELEMENT_INTER): boolean {
+  return node.type === DOM_TYPES.COMPONENT;
+}
+
+/**
+ * Checks if a slot was created.
+ *
+ * @returns {boolean} True if a slot was created, otherwise false.
+ */
+function didCreateSlot(): boolean {
+  return createSlotCalled;
+}
+
+/**
+ * Resets the slot creation flag.
+ */
+
+function resetDidCreateSlot() {
+  createSlotCalled = false;
 }
