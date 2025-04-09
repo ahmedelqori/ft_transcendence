@@ -208,23 +208,6 @@ const App = defineComponent<IApp>({
       [
         createElement(NavBarConnect),
         createElement(RouterOutlet),
-        // createElement(Hero),
-        // createElement(Login),
-        // createElement(
-        //   "input",
-        //   {
-        //     class: ["text-black"],
-        //     on: {
-        //       input: ({ target }) => {
-        //         console.log(target);
-        //         this.updateState({ value: target.value });
-        //         console.log(this.state.value);
-        //       },
-        //     },
-        //     value: this.state.value,
-        //   },
-        //   []
-        // ),
         createElement(Explore),
       ]
     );
