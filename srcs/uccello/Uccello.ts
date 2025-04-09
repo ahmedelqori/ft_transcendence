@@ -221,7 +221,7 @@ export function createSlot(
   createSlotCalled = true;
   return {
     type: DOM_TYPES.SLOT,
-    children: mapTextNodes(withoutNulls(children) ),
+    children: mapTextNodes(withoutNulls(children)),
   };
 }
 
@@ -355,6 +355,7 @@ function createComponentNode(
   const { props, events } = extractPropsAndEvents(vdom);
   const component = new Component(props, events, hostComponent);
   component.setExternalContent(children);
+  component.setAppContext(hostComponent?.appContext ?? {});
   component.mount(parentEl, index);
   vdom.component = component;
   vdom.el = component.firstElement;
@@ -751,10 +752,18 @@ interface AppInstance {
  * @returns {AppInstance} - The application instance with `mount` and `unmount` methods.
  */
 
-export function createApp(RootComponent: any, props: any = {}): AppInstance {
+export function createApp(
+  RootComponent: any,
+  props: any = {},
+  options: any = {}
+): AppInstance {
   let parentEl: HTMLElement | null = null;
   let vdom: ELEMENT_INTER | null = null;
   let isMounted: boolean = false;
+
+  const context = {
+    router: options.router || new NoopRouter(),
+  };
 
   function reset() {
     parentEl = null;
@@ -769,8 +778,8 @@ export function createApp(RootComponent: any, props: any = {}): AppInstance {
 
       parentEl = _parentEl;
       vdom = createElement(RootComponent, props);
-      mountDOM(vdom, parentEl);
-
+      mountDOM(vdom, parentEl, null, { appContext: context });
+      context.router.init();
       isMounted = true;
     },
 
@@ -780,6 +789,7 @@ export function createApp(RootComponent: any, props: any = {}): AppInstance {
       }
 
       destroyDOM(vdom!);
+      context.router.destroy();
       reset();
     },
   };
@@ -1638,6 +1648,7 @@ export interface IComponent<State = {}, Props = {}> {
    * @returns {number} The offset of the first element within the host element.
    */
   get offset(): number;
+  get getAppContext(): any;
 }
 
 /**
@@ -1680,6 +1691,7 @@ export function defineComponent<State = {}, Props = {}>({
     private dispatcher: any = new Dispatcher();
     private subscriptions: any[] = [];
     private children: (ELEMENT_INTER | string | undefined | null)[] = [];
+    private appContext: any = null;
 
     public state: State;
     public props: Props;
@@ -1879,6 +1891,24 @@ export function defineComponent<State = {}, Props = {}>({
     onUnmounted(): Promise<void> {
       return Promise.resolve(onUnmounted.call(this));
     }
+
+    /**
+     * Sets the application context for the current instance.
+     *
+     * @param appContext - The application context to be set.
+     */
+    setAppContext(appContext: any) {
+      this.appContext = appContext;
+    }
+
+    /**
+     * Gets the current application context.
+     *
+     * @returns The application context associated with the current instance.
+     */
+    get getAppContext() {
+      return this.appContext;
+    }
   }
 
   for (const methodName in methods) {
@@ -2054,3 +2084,555 @@ function didCreateSlot(): boolean {
 function resetDidCreateSlot() {
   createSlotCalled = false;
 }
+
+const CATCH_ALL_ROUTE = "*";
+
+/**
+ * Creates a route matcher function based on whether the given route contains parameters.
+ *
+ * @param route - The route pattern, which can be a string or object representing a path.
+ * @returns A matcher function that can be used to check if a path matches the given route,
+ *          with or without parameters.
+ */
+
+export function makeRouteMatcher(route: any) {
+  return routeHasParams(route)
+    ? makeMatcherWithParams(route)
+    : makeMatcherWithoutParams(route);
+}
+
+/**
+ * Checks if the given route path contains parameters.
+ *
+ * @param param0 - An object containing the route path as a string.
+ * @param param0.path - The route path to inspect.
+ * @returns `true` if the path includes a parameter (denoted by ':'), otherwise `false`.
+ */
+
+function routeHasParams({ path }: { path: string }) {
+  return path.includes(":");
+}
+
+/**
+ * Creates a route matcher for routes that contain dynamic parameters.
+ *
+ * @param route - The route object which includes a path with parameters and optionally a redirect.
+ * @returns An object containing:
+ *  - `route`: The original route object.
+ *  - `isRedirect`: A boolean indicating if the route has a redirect.
+ *  - `checkMatch`: A function that tests if a given path matches the route's regex.
+ *  - `extractParams`: A function that extracts dynamic parameters from the path.
+ *  - `extractQuery`: A function to extract query parameters from the path.
+ */
+
+export function makeMatcherWithParams(route: any) {
+  const regex = makeRouteWithParamsRegex(route);
+  const isRedirect = typeof route.redirect === "string";
+
+  return {
+    route,
+    isRedirect,
+    checkMatch(path: string) {
+      return regex.test(path);
+    },
+    extractParams(path: string) {
+      const { groups } = regex.exec(path)!;
+      return groups;
+    },
+    extractQuery,
+  };
+}
+
+/**
+ * Converts a route path with parameters into a regular expression with named capture groups.
+ *
+ * @param param0 - An object containing the route path as a string.
+ * @param param0.path - The route path that may include parameters prefixed with ':'.
+ * @returns A `RegExp` that matches the path and captures parameter values in named groups.
+ */
+
+function makeRouteWithParamsRegex({ path }: { path: string }) {
+  const regex = path.replace(
+    /:([^/]+)/g,
+    (_, paramName) => `(?<${paramName}>[^/]+)`
+  );
+
+  return new RegExp(`^${regex}$`);
+}
+
+/**
+ * Creates a route matcher for static routes that do not contain dynamic parameters.
+ *
+ * @param route - The route object which includes a static path and optionally a redirect.
+ * @returns An object containing:
+ *  - `route`: The original route object.
+ *  - `isRedirect`: A boolean indicating if the route has a redirect.
+ *  - `checkMatch`: A function that tests if a given path matches the static route.
+ *  - `extractParams`: A function that returns an empty object, as there are no parameters to extract.
+ *  - `extractQuery`: A function to extract query parameters from the path.
+ */
+
+export function makeMatcherWithoutParams(route: any) {
+  const regex = makeRouteWithoutParamsRegex(route);
+  const isRedirect = typeof route.redirect === "string";
+
+  return {
+    route,
+    isRedirect,
+    checkMatch(path: string) {
+      return regex.test(path);
+    },
+    extractParams() {
+      return {};
+    },
+    extractQuery,
+  };
+}
+
+/**
+ * Converts a static route path into a regular expression.
+ * If the route path is a catch-all route, it returns a regular expression that matches any path.
+ *
+ * @param param0 - An object containing the route path as a string.
+ * @param param0.path - The static route path to convert into a regular expression.
+ * @returns A `RegExp` that matches the static path, or a catch-all regular expression if the path is a wildcard.
+ */
+
+function makeRouteWithoutParamsRegex({ path }: { path: string }) {
+  if (path === CATCH_ALL_ROUTE) {
+    return new RegExp("^.*$");
+  }
+
+  return new RegExp(`^${path}$`);
+}
+
+/**
+ * Extracts query parameters from a URL path.
+ *
+ * @param path - The URL path which may include query parameters after a '?' character.
+ * @returns An object where the keys are query parameter names and the values are their corresponding values.
+ *          If no query parameters are found, an empty object is returned.
+ */
+
+function extractQuery(path: string) {
+  const queryIndex = path.indexOf("?");
+
+  if (queryIndex === -1) {
+    return {};
+  }
+
+  const search = new URLSearchParams(path.slice(queryIndex + 1));
+
+  return Object.fromEntries(search.entries());
+}
+/**
+ * A class that implements a hash-based router for navigating between routes in a web application.
+ * It supports route matching, subscribing to route changes, and handling query parameters.
+ */
+const ROUTER_EVENT = "router-event";
+
+/**
+ * HashRouter class for managing routes based on the URL hash.
+ * Provides functionality for subscribing to route changes, navigating to different routes,
+ * and handling route parameters and query strings.
+ */
+export class HashRouter {
+  private matchers: any[] = [];
+  private isInitialized: boolean = false;
+  private onPopState = () => this.matchCurrentRoute();
+
+  private matchedRoute: any = null;
+
+  private params: object = {};
+  private query: object = {};
+
+  private dispatcher = new Dispatcher();
+  private subscriptions = new WeakMap();
+  private subscriberFns = new Set();
+
+  /**
+   * Subscribes a handler function to router events.
+   *
+   * @param handler - The function to handle route change events.
+   */
+  subscribe(handler: any) {
+    const unsubscribe = this.dispatcher.subscribe(ROUTER_EVENT, handler);
+    this.subscriptions.set(handler, unsubscribe);
+    this.subscriberFns.add(handler);
+  }
+
+  /**
+   * Unsubscribes a handler function from router events.
+   *
+   * @param handler - The handler function to unsubscribe.
+   */
+  unsubscribe(handler: any) {
+    const unsubscribe = this.subscriptions.get(handler);
+    if (unsubscribe) {
+      unsubscribe();
+      this.subscriptions.delete(handler);
+      this.subscriberFns.delete(handler);
+    }
+  }
+
+  /**
+   * Getter for the currently matched route.
+   *
+   * @returns The currently matched route.
+   */
+  get getMatchedRoute() {
+    return this.matchedRoute;
+  }
+
+  /**
+   * Getter for the route parameters extracted from the current path.
+   *
+   * @returns An object containing the route parameters.
+   */
+  get getParams() {
+    return this.params;
+  }
+
+  /**
+   * Getter for the query parameters extracted from the current path.
+   *
+   * @returns An object containing the query parameters.
+   */
+  get getQuery() {
+    return this.query;
+  }
+
+  /**
+   * Constructor that initializes the router with a list of routes.
+   *
+   * @param routes - An array of route objects used to create route matchers.
+   */
+  constructor(routes: any[] = []) {
+    this.matchers = routes.map(makeRouteMatcher);
+  }
+
+  /**
+   * Initializes the router by setting up event listeners and ensuring the current route is matched.
+   */
+  async init() {
+    if (this.isInitialized) {
+      return;
+    }
+    if (document.location.hash === "") {
+      window.history.replaceState({}, "", "#/");
+    }
+
+    window.addEventListener("popstate", this.onPopState);
+    await this.matchCurrentRoute();
+    this.isInitialized = true;
+  }
+
+  /**
+   * Destroys the router instance by removing event listeners and cleaning up subscriptions.
+   */
+  destroy() {
+    if (!this.isInitialized) {
+      return;
+    }
+    window.removeEventListener("popstate", this.onPopState);
+    Array.from(this.subscriberFns).forEach(this.unsubscribe, this);
+    this.isInitialized = false;
+  }
+
+  /**
+   * Navigates to a specific path and matches the appropriate route.
+   *
+   * @param path - The path to navigate to.
+   * @returns A promise that resolves when the route has been matched.
+   */
+  async navigateTo(path: string): Promise<any> {
+    const matcher = this.matchers.find((matcher) => matcher.checkMatch(path));
+
+    if (matcher == null) {
+      console.warn(`[Router] No route matches path "${path}"`);
+      this.matchedRoute = null;
+      this.params = {};
+      this.query = {};
+      return;
+    }
+    if (matcher.isRedirect) {
+      return this.navigateTo(matcher.route.redirect);
+    }
+    const from = this.matchedRoute;
+    const to = matcher.route;
+    const {
+      shouldNavigate,
+      shouldRedirect,
+      redirectPath,
+    }: {
+      shouldNavigate: boolean;
+      shouldRedirect: boolean;
+      redirectPath: string | null;
+    } = await this.canChangeRoute(from, to);
+
+    if (shouldRedirect) {
+      return this.navigateTo(redirectPath!);
+    }
+    if (shouldNavigate) {
+      this.matchedRoute = matcher.route;
+      this.params = matcher.extractParams(path);
+      this.query = matcher.extractQuery(path);
+      this.pushState(path);
+      this.dispatcher.dispatch(ROUTER_EVENT, { from, to, router: this });
+    }
+  }
+
+  /**
+   * Navigates the browser history back.
+   */
+  back() {
+    window.history.back();
+  }
+
+  /**
+   * Navigates the browser history forward.
+   */
+  forward() {
+    window.history.forward();
+  }
+
+  /**
+   * Gets the current route hash from the URL, excluding the '#' character.
+   *
+   * @returns The current route hash.
+   */
+  private get currentRouteHash() {
+    const hash = document.location.hash;
+
+    if (hash === "") {
+      return "/";
+    }
+
+    return hash.slice(1);
+  }
+
+  /**
+   * Matches the current route based on the current hash in the URL.
+   *
+   * @returns A promise that resolves when the route has been matched.
+   */
+  private async matchCurrentRoute() {
+    return this.navigateTo(this.currentRouteHash);
+  }
+
+  /**
+   * Pushes a new state to the browser history with the given path.
+   *
+   * @param path - The path to push to the history.
+   */
+  private pushState(path: string) {
+    window.history.pushState({}, "", `#${path}`);
+  }
+
+  /**
+   * Checks if the route can change from one route to another, based on any guards defined in the route.
+   *
+   * @param from - The route the user is navigating from.
+   * @param to - The route the user is navigating to.
+   * @returns An object indicating whether navigation should proceed, whether a redirect should occur,
+   *          and the path to redirect to (if applicable).
+   */
+  async canChangeRoute(from: any, to: any) {
+    const guard = to.beforeEnter;
+
+    if (typeof guard !== "function") {
+      return {
+        shouldRedirect: false,
+        shouldNavigate: true,
+        redirectPath: null,
+      };
+    }
+
+    const result = await guard(from?.path, to?.path);
+    if (result === false) {
+      return {
+        shouldRedirect: false,
+        shouldNavigate: false,
+        redirectPath: null,
+      };
+    }
+
+    if (typeof result === "string") {
+      return {
+        shouldRedirect: true,
+        shouldNavigate: false,
+        redirectPath: result,
+      };
+    }
+
+    return {
+      shouldRedirect: false,
+      shouldNavigate: true,
+      redirectPath: null,
+    };
+  }
+}
+/**
+ * A no-operation router class that provides empty implementations for router methods.
+ * Can be used as a fallback or mock implementation for routing functionality.
+ */
+export class NoopRouter {
+  /**
+   * Initializes the NoopRouter. Does nothing in this implementation.
+   */
+  init() {}
+
+  /**
+   * Destroys the NoopRouter. Does nothing in this implementation.
+   */
+  destroy() {}
+
+  /**
+   * Navigates to a specified path. Does nothing in this implementation.
+   */
+  navigateTo() {}
+
+  /**
+   * Navigates back in the browser history. Does nothing in this implementation.
+   */
+  back() {}
+
+  /**
+   * Navigates forward in the browser history. Does nothing in this implementation.
+   */
+  forward() {}
+
+  /**
+   * Subscribes to router events. Does nothing in this implementation.
+   */
+  subscribe() {}
+
+  /**
+   * Unsubscribes from router events. Does nothing in this implementation.
+   */
+  unsubscribe() {}
+}
+
+/**
+ * Props for the RouterLink component.
+ * Defines a `to` property to specify the target route to navigate to.
+ */
+interface RouterLinkProps {
+  /**
+   * The target path or route to navigate to when the link is clicked.
+   */
+  to: string;
+}
+
+/**
+ * RouterLink component that renders an anchor (`<a>`) element.
+ * When clicked, it prevents the default anchor behavior and navigates to the specified `to` path.
+ */
+export const RouterLink = defineComponent<void, RouterLinkProps>({
+  /**
+   * Renders the RouterLink component as an anchor (`<a>`) element.
+   * Prevents the default click behavior and triggers navigation using the router.
+   */
+  render(this: IComponent<void, RouterLinkProps>) {
+    const { to } = this.props!;
+
+    return createElement(
+      "a",
+      {
+        href: to,
+        on: {
+          /**
+           * Handles the click event by preventing the default anchor behavior
+           * and triggering navigation using the router.
+           *
+           * @param e - The click event object.
+           */
+          click: (e: any) => {
+            e.preventDefault();
+            this.getAppContext.router.navigateTo(to);
+          },
+        },
+      },
+      [createSlot()]
+    );
+  },
+});
+
+/**
+ * State for the RouterOutlet component.
+ * Holds the matched route and the subscription to router events.
+ */
+interface RouterOutletState {
+  /**
+   * The currently matched route object.
+   */
+  matchedRoute: any;
+
+  /**
+   * The subscription object to listen for route changes.
+   */
+  subscription: any;
+}
+
+/**
+ * RouterOutlet component that renders the component for the currently matched route.
+ * Subscribes to router events and updates the displayed component when the route changes.
+ */
+export const RouterOutlet = defineComponent<RouterOutletState>({
+  /**
+   * Initializes the state of the RouterOutlet component.
+   */
+  state() {
+    return {
+      matchedRoute: null,
+      subscription: null,
+    };
+  },
+
+  /**
+   * Subscribes to route changes when the component is mounted.
+   * Updates the component's state with the matched route.
+   */
+  onMounted(
+    this: IComponent<RouterOutletState> & {
+      handleRouteChange: (any: any) => void;
+    }
+  ) {
+    const subscription = this.getAppContext?.router?.subscribe(
+      ({ to }: { to: any }) => {
+        this.handleRouteChange(to);
+      }
+    );
+
+    this.updateState({ subscription });
+  },
+
+  /**
+   * Unsubscribes from route changes when the component is unmounted.
+   */
+  onUnmounted(this: IComponent<RouterOutletState>) {
+    const { subscription } = this.state;
+    this.getAppContext.router.unsubscribe(subscription);
+  },
+
+  /**
+   * Updates the component's state with the matched route.
+   *
+   * @param matchedRoute - The route object that is matched.
+   */
+  handleRouteChange(matchedRoute) {
+    this.updateState({ matchedRoute });
+  },
+
+  /**
+   * Renders the component based on the current matched route.
+   * If a matched route exists, its component is rendered inside the router outlet.
+   */
+  render(this: IComponent<RouterOutletState>) {
+    const { matchedRoute } = this.state;
+
+    return createElement("div", { id: "router-outlet" }, [
+      matchedRoute ? createElement(matchedRoute.component) : null,
+    ]);
+  },
+});
