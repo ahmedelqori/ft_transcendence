@@ -26,6 +26,8 @@
     "vitest": "^3.0.9"
   },
   "dependencies": {
+    "axios": "^1.8.4",
     "test_package_meedivo": "^1.0.0"
-  }
+  },
+  "keywords": []
 }
