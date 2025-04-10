@@ -26,7 +26,7 @@ const App = defineComponent<void>({
           { class: ["h-full", "w-full", "container-grid"] },
           [
             createElement(SideBar, { class: ["containerd-grid-sidebar"] }),
-            createElement(RouterOutlet, { class: "containerd-grid-router" }),
+            createElement(RouterOutlet, { class: ["containerd-grid-router"] }),
           ]
         ),
         createElement(Footer),

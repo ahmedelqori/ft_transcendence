@@ -98,7 +98,7 @@ const NavigationBar = defineComponent<void>({
                 {
                   class: ["text-[#878787]"],
                 },
-                ["Chat"]
+                ["Tournament"]
               ),
             ]
           ),
