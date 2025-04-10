@@ -6,9 +6,9 @@ import Welcome from "../pages/Welcome.js";
 import Settings from "../pages/Settings.js";
 import NotFound from "../pages/NotFound.js";
 import Dashboard from "../pages/Dashboard.js";
-import { HashRouter } from "../uccello/Uccello.js";
-import LeaderBoard from "../pages/LeaderBoard.js";
 import Tournament from "../pages/Tournament.js";
+import LeaderBoard from "../pages/LeaderBoard.js";
+import { HashRouter } from "../uccello/Uccello.js";
 
 const routes: any[] = [
   {

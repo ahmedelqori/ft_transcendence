@@ -3,20 +3,21 @@
 @tailwind utilities;
 
 @import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
 :root {
-  --background-color: #232323;
-  --light-yellow: #ddf247;
   --light-grey: #878787;
   --dark-black: #111111;
   --main-color: #ffffff;
+  --light-yellow: #ddf247;
+  --background-color: #232323;
 }
 
 * {
   margin: 0;
   padding: 0;
+  font-style: normal;
   box-sizing: border-box;
   font-family: "Poppins", sans-serif;
-  font-style: normal;
 }
 
 body {
@@ -31,36 +32,61 @@ body {
 }
 
 #root::before {
-  position: absolute;
-  content: "";
+  top: -400px;
+  left: 300px;
   width: 500px;
   height: 500px;
+  content: "";
+  position: absolute;
   border-radius: 50%;
-  background-color: var(--main-color);
-  top: -403px;
-  left: 300px;
   filter: blur(306px);
+  background-color: var(--main-color);
 }
 
 #root::after {
-  position: absolute;
-  content: "";
-  width: 700px;
-  height: 700px;
-  border-radius: 50%;
-  background-color: var(--light-yellow);
   top: 150px;
+  width: 700px;
   right: -250px;
+  height: 700px;
+  content: "";
+  border-radius: 50%;
   filter: blur(306px);
+  position: absolute;
+  background-color: var(--light-yellow);
 }
 
 .containerd {
+  width: 90%;
+  height: 90%;
   margin: auto;
   margin-top: 50px;
-  height: 90%;
-  width: 90%;
+}
+
+div {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 a {
   cursor: pointer;
+  text-decoration: none;
 }
+
+p {
+  font-size: 1.2rem;
+}
+
+ul {
+  list-style: none;
+}
+
+i {
+  cursor: pointer;
+}
+
+img {
+  cursor: pointer;
+}
+/* ******************* Custom ******************* */

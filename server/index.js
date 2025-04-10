@@ -14,6 +14,10 @@ const quotes = [
 
 app.use(cors());
 
+app.get("/auth", (req, res) => {
+  res.json({ auth: true });
+});
+
 app.get("/quote", (req, res) => {
   const randomIndex = Math.floor(Math.random() * quotes.length);
   res.json({ quote: quotes[randomIndex] });

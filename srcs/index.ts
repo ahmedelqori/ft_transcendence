@@ -1,3 +1,4 @@
+import Header from "./components/Header/Header.js";
 import { router } from "./router/Router.js";
 import {
   createApp,
@@ -11,7 +12,13 @@ const ROOT = document.getElementById("root");
 const App = defineComponent<void>({
   state() {},
   render() {
-    return createElement("div", {}, [createElement(RouterOutlet)]);
+    return createElement(
+      "div",
+      {
+        class: ["h-[90%]", "m-auto", "w-[95%]"],
+      },
+      [createElement(Header), createElement(RouterOutlet)]
+    );
   },
 });
 
