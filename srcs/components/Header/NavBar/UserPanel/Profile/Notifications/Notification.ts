@@ -17,12 +17,12 @@ const Notifications = defineComponent<NotificationsState>({
       handleClickOutSide: (e: MouseEvent) => void;
     }
   ) {
-    const socket = new WebSocket("ws://localhost:3001");
+    // const socket = new WebSocket("ws://localhost:3001");
     this.handleClickOutSide = this.handleClickOutSide.bind(this);
     document.addEventListener("mousedown", this.handleClickOutSide);
-    socket.addEventListener("message", ({ data }) => {
-      this.updateState({ notifications: [...this.state.notifications, data] });
-    });
+    // socket.addEventListener("message", ({ data }) => {
+    //   this.updateState({ notifications: [...this.state.notifications, data] });
+    // });
   },
 
   onUnmounted(
@@ -104,8 +104,8 @@ const Notifications = defineComponent<NotificationsState>({
                   "absolute",
                   "bottom-[-80px]",
                   "right-[10px]",
-                  "w-[260px]",
-                  "h-[60px]",
+                  "w-fit",
+                  "h-fit",
                   "bg-black",
                   "rounded-[20px]",
                   "px-[10px]",

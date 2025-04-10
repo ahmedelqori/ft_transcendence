@@ -11,12 +11,12 @@ const Profile = defineComponent<void>({
     return createElement(
       "div",
       {
-        class: ["flex", "flex-row", "gap-4"],
+        class: ["flex", "flex-row", "gap-6"],
       },
       [
         createElement(Notifications),
         createElement(User),
-        createElement("p", {}, ["Meedivo"]),
+        createElement("p", {}, ["ael-qori"]),
       ]
     );
   },

@@ -14,6 +14,7 @@ const User = defineComponent<void>({
           "rounded-full",
           "z-10",
           "cursor-pointer",
+          // "outline-coloe"
         ],
         src: "../../../../../../../public/assets/avatar.png",
       }),
