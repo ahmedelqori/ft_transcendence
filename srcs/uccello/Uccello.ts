@@ -1649,6 +1649,7 @@ export interface IComponent<State = {}, Props = {}> {
    */
   get offset(): number;
   get getAppContext(): any;
+  get getHtmlElement(): any;
 }
 
 /**
@@ -1908,6 +1909,10 @@ export function defineComponent<State = {}, Props = {}>({
      */
     get getAppContext() {
       return this.appContext;
+    }
+
+    get getHtmlElement() {
+      return this.vdom?.el!;
     }
   }
 
