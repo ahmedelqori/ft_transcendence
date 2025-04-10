@@ -15,11 +15,11 @@ interface NavBarState {
 const NavBar = defineComponent<NavBarState>({
   async onMounted(this: IComponent<NavBarState>) {
     try {
-      const res: Response = await fetch("http://localhost:3000/auth");
+      // const res: Response = await fetch("http://localhost:3000/auth");
 
-      const data = await res.json();
+      // const data = await res.json();
       this.updateState({
-        isAuthenticated: data.auth,
+        isAuthenticated: true,
         isLoading: false,
       });
     } catch (error) {
