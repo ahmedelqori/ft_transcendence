@@ -6,15 +6,22 @@ import {
 import ReceivedMessage from "./ReceivedMessage/ReceivedMessage.js";
 import SentMessage from "./SentMessage/SentMessage.js";
 
-const Messages = defineComponent<void>({
-  onMounted(this: IComponent<void>) {
+interface MessagesProps {
+  messages: (string | null)[];
+}
+
+const Messages = defineComponent<void, MessagesProps>({
+  onMounted(this: IComponent<void, MessagesProps>) {
     const el = this.getHtmlElement;
     setTimeout(() => {
       el.scrollTop = el.scrollHeight;
     }, 50);
   },
   state() {},
-  render() {
+  render(this: IComponent<void, MessagesProps>) {
+    setTimeout(() => {
+      this.getHtmlElement.scrollTop = this.getHtmlElement.scrollHeight;
+    }, 0);
     return createElement(
       "div",
       {
@@ -25,7 +32,7 @@ const Messages = defineComponent<void>({
           "overflow-x-hidden",
           "gap-4",
           "px-4",
-          "scroll-smooth", 
+          "scroll-smooth",
           "[&::-webkit-scrollbar]:w-1",
           "[&::-webkit-scrollbar-track]:rounded-full",
           "[&::-webkit-scrollbar-track]:bg-gray-100",
@@ -37,60 +44,64 @@ const Messages = defineComponent<void>({
         ],
       },
       [
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(SentMessage),
-        createElement(SentMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(SentMessage),
-        createElement(SentMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(SentMessage),
-        createElement(SentMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(SentMessage),
-        createElement(SentMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(SentMessage),
-        createElement(SentMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(SentMessage),
-        createElement(SentMessage),
-        createElement(SentMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(SentMessage),
-        createElement(SentMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(SentMessage),
-        createElement(SentMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(SentMessage),
-        createElement(SentMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(ReceivedMessage),
-        createElement(SentMessage),
-        createElement(SentMessage),
+        ...this.props.messages.map((e) =>
+          createElement(SentMessage, { message: e })
+        ),
       ]
     );
   },
 });
 
 export default Messages;
+
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(SentMessage),
+// createElement(SentMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(SentMessage),
+// createElement(SentMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(SentMessage),
+// createElement(SentMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(SentMessage),
+// createElement(SentMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(SentMessage),
+// createElement(SentMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(SentMessage),
+// createElement(SentMessage),
+// createElement(SentMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(SentMessage),
+// createElement(SentMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(SentMessage),
+// createElement(SentMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(SentMessage),
+// createElement(SentMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(ReceivedMessage),
+// createElement(SentMessage),
+// createElement(SentMessage),

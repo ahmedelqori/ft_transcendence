@@ -1,11 +1,12 @@
 import {
   createElement,
   defineComponent,
+  IComponent,
 } from "../../../../../uccello/Uccello.js";
 
-const ReceivedMessage = defineComponent<void>({
+const ReceivedMessage = defineComponent<void, { message: string }>({
   state() {},
-  render() {
+  render(this: IComponent<void, { message: string }>) {
     return createElement(
       "div",
       {
@@ -20,13 +21,13 @@ const ReceivedMessage = defineComponent<void>({
           "rounded-br-xl",
           "rounded-t-xl",
           "max-w-[40%]",
-          "w-fit",
+          "w-auto",
           "text-[14px]",
+          "min-h-[auto]",
+          "break-all",
         ],
       },
-      [
-        "Ready, set, serve! Let the ping pong game begin now, and Play hard, aim high, and never stop chasing the win!",
-      ]
+      [this.props.message]
     );
   },
 });

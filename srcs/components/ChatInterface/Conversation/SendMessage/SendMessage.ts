@@ -4,15 +4,22 @@ import {
   IComponent,
 } from "../../../../uccello/Uccello.js";
 
-interface SearchState {
+interface SendState {
   inputValue: string;
 }
 
-const SendMessage = defineComponent<SearchState>({
+interface SendProps {
+  messages: (string | null)[];
+  onSendMessage: (message: string) => void; // Add callback for sending messages
+}
+
+const SendMessage = defineComponent<SendState, SendProps>({
   state() {
     return { inputValue: "" };
   },
-  render(this: IComponent<SearchState>) {
+  render(
+    this: IComponent<SendState, SendProps> & { handleSendMessage: () => void }
+  ) {
     return createElement(
       "div",
       {
@@ -33,10 +40,15 @@ const SendMessage = defineComponent<SearchState>({
         createElement("input", {
           value: this.state.inputValue,
           placeholder: "Message...",
+          autofocus: true,
           on: {
             input: ({ target }) => {
               this.updateState({ inputValue: target.value });
-              console.log(this.state.inputValue);
+            },
+            keydown: (e) => {
+              if (e.key == "Enter") {
+                this.handleSendMessage();
+              }
             },
           },
           class: [
@@ -63,9 +75,20 @@ const SendMessage = defineComponent<SearchState>({
             "right-[20px]",
             "hover:text-[#828c3a]",
           ],
+          on: {
+            click: this.handleSendMessage,
+          },
         }),
       ]
     );
+  },
+  handleSendMessage(
+    this: IComponent<SendState, SendProps> & { sendMessage: () => void }
+  ) {
+    if (this.state.inputValue) {
+      this.props.onSendMessage(this.state.inputValue);
+      this.updateState({ inputValue: "" });
+    }
   },
 });
 
