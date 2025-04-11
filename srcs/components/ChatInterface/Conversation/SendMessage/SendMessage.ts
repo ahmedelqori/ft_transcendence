@@ -60,6 +60,7 @@ const SendMessage = defineComponent<SendState, SendProps>({
             "border-[#878787]",
             "px-4",
             "py-4",
+            "pr-[60px]",
             "text-[#878787]",
             "focus:outline-none",
             "border-opacity-[30%]",
@@ -85,10 +86,10 @@ const SendMessage = defineComponent<SendState, SendProps>({
   handleSendMessage(
     this: IComponent<SendState, SendProps> & { sendMessage: () => void }
   ) {
-    if (this.state.inputValue) {
+    if (this.state.inputValue && this.state.inputValue.trim().length) {
       this.props.onSendMessage(this.state.inputValue);
       this.updateState({ inputValue: "" });
-    }
+    } else this.updateState({ inputValue: "" });
   },
 });
 
