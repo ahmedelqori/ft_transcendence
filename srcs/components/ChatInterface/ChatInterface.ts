@@ -1,4 +1,6 @@
 import { createElement, defineComponent } from "../../uccello/Uccello.js";
+import Conversation from "./Conversation/Conversation.js";
+import Friends from "./Friends/Friends.js";
 
 const ChatInterface = defineComponent<void>({
   state() {},
@@ -7,17 +9,23 @@ const ChatInterface = defineComponent<void>({
       "section",
       {
         class: [
-          "w-[90%]",
+          "flex",
+          "z-10",
+          "gap-4",
           "h-full",
+          "w-[90%]",
+          "border-2",
+          "py-[30px]",
+          "px-[25px]",
           "rounded-[30px]",
           "border-[#878787]",
-          "border-2",
-          "p-[20px]",
           "border-opacity-[30%]",
-          "z-10",
         ],
       },
-      [""]
+      [
+        createElement(Friends, { class: ["w-full"] }),
+        createElement(Conversation, { class: ["w-full"] }),
+      ]
     );
   },
 });

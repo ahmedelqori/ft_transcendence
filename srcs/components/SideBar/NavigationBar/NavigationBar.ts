@@ -27,59 +27,64 @@ const NavigationBar = defineComponent<void>({
           createElement(
             "div",
             {
-              class: ["flex", "flex-row", "justify-between", "gap-3"],
+              class: [
+                "flex",
+                "flex-row",
+                "justify-between",
+                "gap-3",
+                "text-[#878787]",
+                "hover:text-[#ddf247]",
+              ],
             },
             [
               createElement("i", {
                 class: ["ph", "ph-house-simple", "text-3xl"],
               }),
-              createElement(
-                "div",
-                {
-                  class: ["text-[#878787]"],
-                },
-                ["Home"]
-              ),
+              createElement("div", {}, ["Home"]),
             ]
           ),
         ]),
-        createElement(RouterLink, { to: "/game" }, [
-          createElement(
-            "div",
-            {
-              class: ["flex", "flex-row", "gap-3"],
-            },
-            [
-              createElement("i", {
-                class: ["ph", "ph-ping-pong", "text-3xl"],
-              }),
-              createElement(
-                "div",
-                {
-                  class: ["text-[#878787]"],
-                },
-                ["Game"]
-              ),
-            ]
-          ),
-        ]),
+        createElement(
+          RouterLink,
+          { to: "/game", class: ["hover:text-[#ddf247]"] },
+          [
+            createElement(
+              "div",
+              {
+                class: [
+                  "flex",
+                  "flex-row",
+                  "gap-3",
+                  "text-[#878787]",
+                  "hover:text-[#ddf247]",
+                ],
+              },
+              [
+                createElement("i", {
+                  class: ["ph", "ph-ping-pong", "text-3xl"],
+                }),
+                createElement("div", {}, ["Game"]),
+              ]
+            ),
+          ]
+        ),
         createElement(RouterLink, { to: "/chat" }, [
           createElement(
             "div",
             {
-              class: ["flex", "flex-row", "gap-3"],
+              class: [
+                "flex",
+                "flex-row",
+                "gap-3",
+                "text-[#878787]",
+                "hover:text-[#ddf247]",
+              ],
             },
             [
               createElement("i", {
                 class: ["ph", "ph-chats", "text-3xl"],
               }),
-              createElement(
-                "div",
-                {
-                  class: ["text-[#878787]"],
-                },
-                ["Chat"]
-              ),
+              createElement("div", {}, ["Chat"]),
             ]
           ),
         ]),
@@ -87,19 +92,19 @@ const NavigationBar = defineComponent<void>({
           createElement(
             "div",
             {
-              class: ["flex", "flex-row", "gap-3"],
+              class: [
+                "flex",
+                "flex-row",
+                "gap-3",
+                "text-[#878787]",
+                "hover:text-[#ddf247]",
+              ],
             },
             [
               createElement("i", {
                 class: ["ph", "ph-trophy", "text-3xl"],
               }),
-              createElement(
-                "div",
-                {
-                  class: ["text-[#878787]"],
-                },
-                ["Tournament"]
-              ),
+              createElement("div", {}, ["Tournament"]),
             ]
           ),
         ]),
@@ -107,19 +112,19 @@ const NavigationBar = defineComponent<void>({
           createElement(
             "div",
             {
-              class: ["flex", "flex-row", "gap-3"],
+              class: [
+                "flex",
+                "flex-row",
+                "gap-3",
+                "text-[#878787]",
+                "hover:text-[#ddf247]",
+              ],
             },
             [
               createElement("i", {
                 class: ["ph", "ph-ranking", "text-3xl"],
               }),
-              createElement(
-                "div",
-                {
-                  class: ["text-[#878787]"],
-                },
-                ["LeaderBoard"]
-              ),
+              createElement("div", {}, ["LeaderBoard"]),
             ]
           ),
         ]),
@@ -127,19 +132,19 @@ const NavigationBar = defineComponent<void>({
           createElement(
             "div",
             {
-              class: ["flex", "flex-row", "gap-3"],
+              class: [
+                "flex",
+                "flex-row",
+                "gap-3",
+                "text-[#878787]",
+                "hover:text-[#ddf247]",
+              ],
             },
             [
               createElement("i", {
                 class: ["ph", "ph-gear", "text-3xl"],
               }),
-              createElement(
-                "div",
-                {
-                  class: ["text-[#878787]"],
-                },
-                ["Settings"]
-              ),
+              createElement("div", {}, ["Settings"]),
             ]
           ),
         ]),
@@ -147,19 +152,25 @@ const NavigationBar = defineComponent<void>({
         createElement(
           "div",
           {
-            class: ["flex", "flex-row", "gap-3"],
+            class: [
+              "flex",
+              "flex-row",
+              "gap-3",
+              "cursor-pointer",
+              "text-[#878787]",
+              "hover:text-[#ddf247]",
+            ],
+            on: {
+              click: () => {
+                console.log("Logout");
+              },
+            },
           },
           [
             createElement("i", {
               class: ["ph", "ph-sign-out", "text-3xl"],
             }),
-            createElement(
-              "div",
-              {
-                class: ["text-[#878787]"],
-              },
-              ["Logout"]
-            ),
+            createElement("div", {}, ["Logout"]),
           ]
         ),
       ]
