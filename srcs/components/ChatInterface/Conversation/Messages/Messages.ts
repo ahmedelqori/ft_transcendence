@@ -1,5 +1,6 @@
 import {
   createElement,
+  createFragment,
   defineComponent,
   IComponent,
 } from "../../../../uccello/Uccello.js";
@@ -26,13 +27,13 @@ const Messages = defineComponent<void, MessagesProps>({
       "div",
       {
         class: [
-          "w-full",
-          "w-[90%]",
-          "overflow-scroll",
-          "overflow-x-hidden",
           "gap-4",
           "px-4",
+          "w-full",
+          "w-[90%]",
           "scroll-smooth",
+          "overflow-scroll",
+          "overflow-x-hidden",
           "[&::-webkit-scrollbar]:w-1",
           "[&::-webkit-scrollbar-track]:rounded-full",
           "[&::-webkit-scrollbar-track]:bg-gray-100",
@@ -44,9 +45,14 @@ const Messages = defineComponent<void, MessagesProps>({
         ],
       },
       [
-        ...this.props.messages.map((e) =>
-          createElement(SentMessage, { message: e })
-        ),
+        // createElement("div", {}, [
+        //   "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+        // ]),
+        createFragment([
+          ...this.props.messages.map((e) =>
+            createElement(SentMessage, { message: e })
+          ),
+        ]),
       ]
     );
   },
