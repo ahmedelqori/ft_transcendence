@@ -10,7 +10,7 @@ interface SendState {
 
 interface SendProps {
   messages: (string | null)[];
-  onSendMessage: (message: string) => void; // Add callback for sending messages
+  onSendMessage: (message: string) => void; 
 }
 
 const SendMessage = defineComponent<SendState, SendProps>({

@@ -8,11 +8,16 @@ interface SearchState {
   inputValue: string;
 }
 
-const Search = defineComponent<SearchState>({
+interface SearchProps {
+  searchValue: string | null;
+  onSearch: (input: string) => void;
+}
+
+const Search = defineComponent<SearchState, SearchProps>({
   state() {
     return { inputValue: "" };
   },
-  render(this: IComponent<SearchState>) {
+  render(this: IComponent<SearchState, SearchProps>) {
     return createElement(
       "div",
       {
@@ -25,7 +30,7 @@ const Search = defineComponent<SearchState>({
           on: {
             input: ({ target }) => {
               this.updateState({ inputValue: target.value });
-              console.log(this.state.inputValue);
+              this.props.onSearch(this.state.inputValue);
             },
           },
           class: [

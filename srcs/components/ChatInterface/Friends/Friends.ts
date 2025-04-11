@@ -1,23 +1,44 @@
-import { createElement, defineComponent } from "../../../uccello/Uccello.js";
+import {
+  createElement,
+  defineComponent,
+  IComponent,
+} from "../../../uccello/Uccello.js";
 import Friend from "./Friend/Friends.js";
 import Search from "./Search/Search.js";
 
-const Friends = defineComponent<void>({
-  state() {},
-  render() {
+interface FriendsState {
+  searchValue: string | null;
+  friends: (string | null)[];
+}
+
+const Friends = defineComponent<FriendsState>({
+  state() {
+    return {
+      searchValue: null,
+      friends: ["sajaite", "ael-qori", "afanidi", "ybouchma"],
+    };
+  },
+  render(this: IComponent<FriendsState>) {
+    console.log(this.state.searchValue);
     return createElement(
       "div",
       {
-        class: ["w-[30%]", "h-full", "gap-4", "max-h-[750px]"],
+        class: ["w-[30%]", "h-full", "gap-4", "max-h-[750px]", "h-[750px]"],
       },
       [
-        createElement(Search),
+        createElement(Search, {
+          searchValue: this.state,
+          onSearch: (input: string) => {
+            this.updateState({ searchValue: input });
+          },
+        }),
         createElement(
           "div",
           {
             class: [
               "w-full",
               "px-1",
+              "mb-auto",
               "overflow-scroll",
               "overflow-x-hidden",
               "[&::-webkit-scrollbar]:w-1",
@@ -30,28 +51,17 @@ const Friends = defineComponent<void>({
               "dark:[&::-webkit-scrollbar-thumb]:bg-opacity-[70%]",
             ],
           },
-          [
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-            createElement(Friend),
-          ]
+          this.state.searchValue && this.state.searchValue.trim().length
+            ? this.state.friends.map((e) => {
+                if (e?.includes(this.state.searchValue?.trim()!))
+                  return createElement(Friend, {
+                    username: e,
+                  });
+                return null;
+              })
+            : this.state.friends.map((e) =>
+                createElement(Friend, { username: e })
+              )
         ),
       ]
     );

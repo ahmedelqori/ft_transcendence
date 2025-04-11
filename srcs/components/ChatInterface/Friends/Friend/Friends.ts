@@ -1,8 +1,16 @@
-import { createElement, defineComponent } from "../../../../uccello/Uccello.js";
+import {
+  createElement,
+  defineComponent,
+  IComponent,
+} from "../../../../uccello/Uccello.js";
 
-const Friend = defineComponent<void>({
+interface FriendProps {
+  username: string;
+}
+
+const Friend = defineComponent<void, FriendProps>({
   state() {},
-  render() {
+  render(this: IComponent<void, FriendProps>) {
     return createElement(
       "div",
       {
@@ -30,7 +38,9 @@ const Friend = defineComponent<void>({
             class: ["w-[60px]", "h-[60px]", "rounded-[50%]"],
           }),
           createElement("div", { class: "items-start" }, [
-            createElement("p", { class: ["text-white"] }, ["afanidi"]),
+            createElement("p", { class: ["text-white"] }, [
+              this.props.username,
+            ]),
             createElement("p", { class: ["text-sm"] }, [
               "Rally your way to victory!",
             ]),
