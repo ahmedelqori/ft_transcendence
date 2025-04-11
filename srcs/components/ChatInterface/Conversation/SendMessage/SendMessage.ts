@@ -32,7 +32,7 @@ const SendMessage = defineComponent<SearchState>({
       [
         createElement("input", {
           value: this.state.inputValue,
-          placeholder: "Search, users...",
+          placeholder: "Message...",
           on: {
             input: ({ target }) => {
               this.updateState({ inputValue: target.value });

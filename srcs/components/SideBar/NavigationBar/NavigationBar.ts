@@ -1,12 +1,85 @@
+import { router } from "../../../router/Router.js";
 import {
   createElement,
   defineComponent,
   RouterLink,
+  IComponent,
+  ELEMENT_INTER,
 } from "../../../uccello/Uccello.js";
 
-const NavigationBar = defineComponent<void>({
+interface NavigationBarState {
+  routes: string[];
+  icons: string[];
+  current: string;
+}
+interface NavigationItem {
+  path: string;
+  current: string;
+  icon: string;
+}
+const NavigationItem = defineComponent<void, NavigationItem>({
   state() {},
-  render() {
+
+  render(
+    this: IComponent<void, NavigationItem> & {
+      path: string;
+      current: string;
+      icons: string;
+    }
+  ) {
+    return createElement(RouterLink, { to: this.props?.path }, [
+      createElement(
+        "div",
+        {
+          class: [
+            "flex",
+            "flex-row",
+            "justify-between",
+            "gap-3",
+            "text-[#878787]",
+
+            "hover:text-[#ddf247]",
+          ],
+        },
+        [
+          createElement("i", {
+            class: ["ph", this.props.icon, "text-3xl"],
+          }),
+          createElement("div", {}, [
+            String(this.props.path).charAt(1).toUpperCase() +
+              String(this.props.path).slice(2),
+          ]),
+        ]
+      ),
+    ]);
+  },
+});
+
+const NavigationBar = defineComponent<NavigationBarState>({
+  state(): NavigationBarState {
+    return {
+      routes: [
+        "/dashboard",
+        "/game",
+        "/chat",
+        "/tournament",
+        "/leaderboard",
+        "/settings",
+      ],
+      icons: [
+        "ph-house-simple",
+        "ph-ping-pong",
+        "ph-chats",
+        "ph-trophy",
+        "ph-ranking",
+        "ph-gear",
+      ],
+      current: router.getMatchedRoute?.path || "/",
+    };
+  },
+  render(
+    this: IComponent<NavigationBarState> & { createList: () => ELEMENT_INTER[] }
+  ) {
     return createElement(
       "div",
       {
@@ -23,132 +96,7 @@ const NavigationBar = defineComponent<void>({
         ],
       },
       [
-        createElement(RouterLink, { to: "/dashboard" }, [
-          createElement(
-            "div",
-            {
-              class: [
-                "flex",
-                "flex-row",
-                "justify-between",
-                "gap-3",
-                "text-[#878787]",
-                "hover:text-[#ddf247]",
-              ],
-            },
-            [
-              createElement("i", {
-                class: ["ph", "ph-house-simple", "text-3xl"],
-              }),
-              createElement("div", {}, ["Home"]),
-            ]
-          ),
-        ]),
-        createElement(
-          RouterLink,
-          { to: "/game", class: ["hover:text-[#ddf247]"] },
-          [
-            createElement(
-              "div",
-              {
-                class: [
-                  "flex",
-                  "flex-row",
-                  "gap-3",
-                  "text-[#878787]",
-                  "hover:text-[#ddf247]",
-                ],
-              },
-              [
-                createElement("i", {
-                  class: ["ph", "ph-ping-pong", "text-3xl"],
-                }),
-                createElement("div", {}, ["Game"]),
-              ]
-            ),
-          ]
-        ),
-        createElement(RouterLink, { to: "/chat" }, [
-          createElement(
-            "div",
-            {
-              class: [
-                "flex",
-                "flex-row",
-                "gap-3",
-                "text-[#878787]",
-                "hover:text-[#ddf247]",
-              ],
-            },
-            [
-              createElement("i", {
-                class: ["ph", "ph-chats", "text-3xl"],
-              }),
-              createElement("div", {}, ["Chat"]),
-            ]
-          ),
-        ]),
-        createElement(RouterLink, { to: "/tournament" }, [
-          createElement(
-            "div",
-            {
-              class: [
-                "flex",
-                "flex-row",
-                "gap-3",
-                "text-[#878787]",
-                "hover:text-[#ddf247]",
-              ],
-            },
-            [
-              createElement("i", {
-                class: ["ph", "ph-trophy", "text-3xl"],
-              }),
-              createElement("div", {}, ["Tournament"]),
-            ]
-          ),
-        ]),
-        createElement(RouterLink, { to: "/leaderboard" }, [
-          createElement(
-            "div",
-            {
-              class: [
-                "flex",
-                "flex-row",
-                "gap-3",
-                "text-[#878787]",
-                "hover:text-[#ddf247]",
-              ],
-            },
-            [
-              createElement("i", {
-                class: ["ph", "ph-ranking", "text-3xl"],
-              }),
-              createElement("div", {}, ["LeaderBoard"]),
-            ]
-          ),
-        ]),
-        createElement(RouterLink, { to: "/settings" }, [
-          createElement(
-            "div",
-            {
-              class: [
-                "flex",
-                "flex-row",
-                "gap-3",
-                "text-[#878787]",
-                "hover:text-[#ddf247]",
-              ],
-            },
-            [
-              createElement("i", {
-                class: ["ph", "ph-gear", "text-3xl"],
-              }),
-              createElement("div", {}, ["Settings"]),
-            ]
-          ),
-        ]),
-
+        ...this.createList(),
         createElement(
           "div",
           {
@@ -161,8 +109,8 @@ const NavigationBar = defineComponent<void>({
               "hover:text-[#ddf247]",
             ],
             on: {
-              click: () => {
-                console.log("Logout");
+              click: async () => {
+                await router.navigateTo("/");
               },
             },
           },
@@ -175,6 +123,16 @@ const NavigationBar = defineComponent<void>({
         ),
       ]
     );
+  },
+  createList(this: IComponent<NavigationBarState>) {
+    const Components = this.state.routes.map((e, i) =>
+      createElement(NavigationItem, {
+        path: e,
+        current: this.state.current,
+        icon: this.state.icons[i],
+      })
+    );
+    return Components;
   },
 });
 

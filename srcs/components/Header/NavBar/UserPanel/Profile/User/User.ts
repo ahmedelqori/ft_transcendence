@@ -6,19 +6,27 @@ import {
 const User = defineComponent<void>({
   state() {},
   render() {
-    return createElement("div", {}, [
-      createElement("img", {
+    return createElement(
+      "div",
+      {
         class: [
           "w-[60px]",
           "h-[60px]",
           "rounded-full",
+          "flex",
+          "items-center",
+          "justify-center",
+          "shadow-[0_0_8px_5px_#ddf247]",
           "z-10",
-          "cursor-pointer",
-          // "outline-coloe"
         ],
-        src: "../../../../../../../public/assets/avatar.png",
-      }),
-    ]);
+      },
+      [
+        createElement("img", {
+          class: ["w-full", "h-full", "rounded-full", "cursor-pointer"],
+          src: "../../../../../../../public/assets/avatar.png",
+        }),
+      ]
+    );
   },
 });
 

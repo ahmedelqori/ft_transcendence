@@ -1,7 +1,12 @@
-import { createElement, defineComponent } from "../../uccello/Uccello.js";
+import { router } from "../../router/Router.js";
+import {
+  createElement,
+  defineComponent,
+} from "../../uccello/Uccello.js";
 import NavigationBar from "./NavigationBar/NavigationBar.js";
 
 const SideBar = defineComponent<void>({
+
   state() {},
   render() {
     return createElement(

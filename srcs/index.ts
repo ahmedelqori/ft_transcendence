@@ -7,13 +7,32 @@ import {
   createElement,
   defineComponent,
   RouterOutlet,
+  IComponent,
 } from "./uccello/Uccello.js";
 
 const ROOT = document.getElementById("root");
 
-const App = defineComponent<void>({
-  state() {},
-  render() {
+interface AppState {
+  currentPath: string;
+  canShowSideBar: boolean;
+}
+
+const App = defineComponent<AppState>({
+  async onMounted(this: IComponent<AppState>) {
+    addEventListener("popstate", async (event) => {
+      const path = await router.getMatchedRoute?.path;
+      if (path == "/")
+        this.updateState({ currentPath: path, canShowSideBar: false });
+      else this.updateState({ currentPath: path, canShowSideBar: true });
+    });
+  },
+  state() {
+    return {
+      currentPath: router.getMatchedRoute?.path,
+      canShowSideBar: true,
+    };
+  },
+  render(this: IComponent<AppState>) {
     return createElement(
       "div",
       {
@@ -25,7 +44,9 @@ const App = defineComponent<void>({
           "main",
           { class: ["h-full", "w-full", "container-grid"] },
           [
-            createElement(SideBar, { class: ["containerd-grid-sidebar"] }),
+            this.state.canShowSideBar
+              ? createElement(SideBar, { class: ["containerd-grid-sidebar"] })
+              : null,
             createElement(RouterOutlet, { class: ["containerd-grid-router"] }),
           ]
         ),
