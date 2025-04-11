@@ -37,8 +37,11 @@ const NavigationItem = defineComponent<void, NavigationItem>({
             "justify-between",
             "gap-3",
             "text-[#878787]",
-
             "hover:text-[#ddf247]",
+            "transition-all",
+            "duration-300",
+            "hover:shadow-lg",
+            "hover:scale-105",
           ],
         },
         [

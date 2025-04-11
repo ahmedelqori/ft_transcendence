@@ -15,12 +15,8 @@ const ReceivedMessage = defineComponent<void>({
           "self-start",
           "bg-[#111111]",
           "bg-opacity-[80%]",
-
           "bg-transparent",
           "rounded-[14px]",
-          // "border-[2px]",
-          // "border-[#878787]",
-          // "border-opacity-[30%]",
           "rounded-br-xl",
           "rounded-t-xl",
           "max-w-[40%]",
