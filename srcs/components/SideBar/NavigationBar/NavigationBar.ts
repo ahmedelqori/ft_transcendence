@@ -23,7 +23,7 @@ const NavigationBar = defineComponent<void>({
         ],
       },
       [
-        createElement(RouterLink, { to: "/" }, [
+        createElement(RouterLink, { to: "/dashboard" }, [
           createElement(
             "div",
             {

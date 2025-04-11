@@ -14,6 +14,7 @@ const ChatInterface = defineComponent<void>({
           "gap-4",
           "h-full",
           "w-[90%]",
+          "relative",
           "border-2",
           "py-[30px]",
           "px-[25px]",

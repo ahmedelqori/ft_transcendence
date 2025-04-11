@@ -8,7 +8,7 @@ const FriendInfoBar = defineComponent<void>({
       { class: ["flex-row", "w-full", "justify-between"] },
       [
         createElement("div", {}, [
-          createElement("div", { class: ["gap-1"] }, [
+          createElement("div", { class: ["gap-1", "items-start"] }, [
             createElement("div", { class: ["text-2xl"] }, ["Afanidi"]),
             createElement("div", { class: ["text-[#878787]"] }, ["online"]),
           ]),
@@ -18,12 +18,12 @@ const FriendInfoBar = defineComponent<void>({
             "button",
             {
               class: [
-                "px-7",
-                "py-3",
+                "px-8",
+                "py-2",
                 "border-[2px]",
                 "items-center",
                 "border-white",
-                "rounded-[14px]",
+                "rounded-[20px]",
                 "hover:border-[#ddf247]",
                 "hover:text-[#ddf247]",
               ],

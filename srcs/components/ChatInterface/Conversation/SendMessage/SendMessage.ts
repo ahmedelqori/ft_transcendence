@@ -23,6 +23,7 @@ const SendMessage = defineComponent<SearchState>({
           "items-center",
           "flex-row",
           "mb-2",
+          "mt-6",
           "bg-[#878787]",
           "bg-opacity-[10%]",
           "rounded-[14px]",

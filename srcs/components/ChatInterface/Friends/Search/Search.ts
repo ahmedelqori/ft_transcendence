@@ -30,10 +30,10 @@ const Search = defineComponent<SearchState>({
           },
           class: [
             "rounded-[14px]",
-            "border-2",
             "w-full",
             "h-[70px]",
             "bg-transparent",
+            "border-2",
             "border-[#878787]",
             "px-4",
             "py-4",

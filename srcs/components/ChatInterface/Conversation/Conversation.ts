@@ -9,7 +9,7 @@ const Conversation = defineComponent<void>({
     return createElement(
       "div",
       {
-        class: ["w-[70%]", "h-full"],
+        class: ["w-[70%]", "h-full","max-h-[750px]"],
       },
       [
         createElement(FriendInfoBar),
