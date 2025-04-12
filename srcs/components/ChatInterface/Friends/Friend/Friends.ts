@@ -8,6 +8,7 @@ interface FriendProps {
   username: string;
   setOption: (str: string) => void;
   setUser: (str: string) => void;
+  setSelectedFriend: (str: string) => void;
 }
 
 interface FriendState {
@@ -64,20 +65,31 @@ const Friend = defineComponent<FriendState, FriendProps>({
         },
       },
       [
-        createElement("div", { class: ["flex-row", "gap-3", "z-20"] }, [
-          createElement("img", {
-            src: "../../../../../../public/assets/afanidi.png",
-            class: ["w-[60px]", "h-[60px]", "rounded-[50%]"],
-          }),
-          createElement("div", { class: "items-start" }, [
-            createElement("p", { class: ["text-white"] }, [
-              this.props.username,
+        createElement(
+          "div",
+          {
+            class: ["flex-row", "gap-3", "z-20"],
+            on: {
+              click: () => {
+                this.props.setSelectedFriend(this.props.username);
+              },
+            },
+          },
+          [
+            createElement("img", {
+              src: "../../../../../../public/assets/afanidi.png",
+              class: ["w-[60px]", "h-[60px]", "rounded-[50%]"],
+            }),
+            createElement("div", { class: "items-start" }, [
+              createElement("p", { class: ["text-white"] }, [
+                this.props.username,
+              ]),
+              createElement("p", { class: ["text-sm"] }, [
+                "Rally your way to victory!",
+              ]),
             ]),
-            createElement("p", { class: ["text-sm"] }, [
-              "Rally your way to victory!",
-            ]),
-          ]),
-        ]),
+          ]
+        ),
         createElement("div", {}, ["5m"]),
         createElement(
           "div",

@@ -1,10 +1,22 @@
-import { createElement, defineComponent } from "../../uccello/Uccello.js";
+import {
+  createElement,
+  defineComponent,
+  IComponent,
+} from "../../uccello/Uccello.js";
 import Conversation from "./Conversation/Conversation.js";
 import Friends from "./Friends/Friends.js";
 
-const ChatInterface = defineComponent<void>({
-  state() {},
-  render() {
+interface ChatInterfaceState {
+  showSelectedUser: string | null;
+}
+
+const ChatInterface = defineComponent<ChatInterfaceState>({
+  state(): ChatInterfaceState {
+    return {
+      showSelectedUser: "",
+    };
+  },
+  render(this: IComponent<ChatInterfaceState>) {
     return createElement(
       "section",
       {
@@ -24,8 +36,16 @@ const ChatInterface = defineComponent<void>({
         ],
       },
       [
-        createElement(Friends, { class: ["w-full"] }),
-        createElement(Conversation, { class: ["w-full"] }),
+        createElement(Friends, {
+          class: ["w-full"],
+          setShowSelectedUser: (user: string) => {
+            this.updateState({ showSelectedUser: user });
+          },
+        }),
+        createElement(Conversation, {
+          class: ["w-full"],
+          username: this.state.showSelectedUser,
+        }),
       ]
     );
   },

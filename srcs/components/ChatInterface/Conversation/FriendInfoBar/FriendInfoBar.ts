@@ -4,14 +4,18 @@ import {
   IComponent,
 } from "../../../../uccello/Uccello.js";
 
+interface FriendInfoBarProps {
+  username: string;
+}
+
 interface FriendInfoBarState {
   showOptions: boolean;
   isOnline: boolean;
 }
 
-const FriendInfoBar = defineComponent<FriendInfoBarState>({
+const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
   onMounted(
-    this: IComponent<FriendInfoBarState> & {
+    this: IComponent<FriendInfoBarState, FriendInfoBarProps> & {
       handleClickOutSide: (e: MouseEvent) => void;
     }
   ) {
@@ -21,14 +25,16 @@ const FriendInfoBar = defineComponent<FriendInfoBarState>({
   state() {
     return { showOptions: false, isOnline: true };
   },
-  render(this: IComponent<FriendInfoBarState>) {
+  render(this: IComponent<FriendInfoBarState, FriendInfoBarProps>) {
     return createElement(
       "div",
       { class: ["flex-row", "w-full", "justify-between"] },
       [
         createElement("div", {}, [
           createElement("div", { class: ["gap-1", "items-start"] }, [
-            createElement("div", { class: ["text-2xl"] }, ["Afanidi"]),
+            createElement("div", { class: ["text-2xl"] }, [
+              this.props.username,
+            ]),
             createElement(
               "div",
               {

@@ -13,16 +13,29 @@ interface FriendsState {
   option: string | null;
 }
 
-const Friends = defineComponent<FriendsState>({
+interface FriendsProps {
+  setShowSelectedUser: (user: string) => void;
+}
+
+const Friends = defineComponent<FriendsState, FriendsProps>({
   state() {
     return {
       searchValue: null,
-      friends: ["sajaite", "ael-qori", "afanidi", "ybouchma"],
+      friends: [
+        "sajaite",
+        "ael-qori",
+        "afanidi",
+        "ybouchma",
+        "relhamma",
+        "zibnoukh",
+        "aes-arg",
+        "mbentahi",
+      ],
       selectedUser: null,
       option: null,
     };
   },
-  render(this: IComponent<FriendsState>) {
+  render(this: IComponent<FriendsState, FriendsProps>) {
     if (this.state.option && this.state.selectedUser) {
       if (this.state.option == "unfriend") {
         const newFriends = this.state.friends.filter(
@@ -33,6 +46,7 @@ const Friends = defineComponent<FriendsState>({
           option: null,
           selectedUser: null,
         });
+        this.props.setShowSelectedUser("");
       } else if (this.state.option == "block") {
         const newFriends = this.state.friends.filter(
           (e) => e != this.state.selectedUser
@@ -42,6 +56,7 @@ const Friends = defineComponent<FriendsState>({
           option: null,
           selectedUser: null,
         });
+        this.props.setShowSelectedUser("");
       } else {
         this.updateState({
           option: null,
@@ -91,6 +106,9 @@ const Friends = defineComponent<FriendsState>({
                     setUser: (input: string) => {
                       this.updateState({ selectedUser: input });
                     },
+                    setSelectedFriend: (username: string) => {
+                      this.props.setShowSelectedUser(username);
+                    },
                   });
                 return null;
               })
@@ -102,6 +120,9 @@ const Friends = defineComponent<FriendsState>({
                   },
                   setUser: (input: string) => {
                     this.updateState({ selectedUser: input });
+                  },
+                  setSelectedFriend: (username: string) => {
+                    this.props.setShowSelectedUser(username);
                   },
                 })
               )
