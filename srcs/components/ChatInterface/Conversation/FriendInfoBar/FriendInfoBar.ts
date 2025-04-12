@@ -6,6 +6,7 @@ import {
 
 interface FriendInfoBarState {
   showOptions: boolean;
+  isOnline: boolean;
 }
 
 const FriendInfoBar = defineComponent<FriendInfoBarState>({
@@ -18,7 +19,7 @@ const FriendInfoBar = defineComponent<FriendInfoBarState>({
     document.addEventListener("mousedown", this.handleClickOutSide);
   },
   state() {
-    return { showOptions: false };
+    return { showOptions: false, isOnline: true };
   },
   render(this: IComponent<FriendInfoBarState>) {
     return createElement(
@@ -28,7 +29,34 @@ const FriendInfoBar = defineComponent<FriendInfoBarState>({
         createElement("div", {}, [
           createElement("div", { class: ["gap-1", "items-start"] }, [
             createElement("div", { class: ["text-2xl"] }, ["Afanidi"]),
-            createElement("div", { class: ["text-[#878787]"] }, ["online"]),
+            createElement(
+              "div",
+              {
+                class: [
+                  "text-[#878787]",
+                  this.state.isOnline
+                    ? "text-[var(--light-yellow)]"
+                    : "text-[var(--light-grey)]",
+                  "relative",
+                ],
+              },
+              [
+                this.state.isOnline ? "Online" : "Offline",
+                createElement("div", {
+                  class: [
+                    "absolute",
+                    "w-3",
+                    "h-3",
+                    this.state.isOnline
+                      ? "bg-[var(--light-yellow)]"
+                      : "bg-[var(--light-grey)]",
+                    "right-[-20px]",
+                    "top-[6px]",
+                    "rounded-full",
+                  ],
+                }),
+              ]
+            ),
           ]),
         ]),
         createElement("div", { class: ["flex-row", "relative"] }, [

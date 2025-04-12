@@ -11,7 +11,6 @@ interface NotificationItemsProps {
 const NotificationItems = defineComponent<void, NotificationItemsProps>({
   state() {},
   render(this: IComponent<void, NotificationItemsProps>) {
-    console.log(this.props.listItems);
     return createElement(
       "div",
       {},

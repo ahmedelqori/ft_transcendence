@@ -25,7 +25,6 @@ const Searchbar = defineComponent<SearchBarState>({
           on: {
             input: ({ target }) => {
               this.updateState({ inputValue: target.value });
-              console.log(this.state.inputValue);
             },
           },
           class: [

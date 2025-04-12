@@ -16,7 +16,6 @@ const Conversation = defineComponent<ConversationState>({
     const socket = new WebSocket("ws://localhost:3001");
 
     socket.addEventListener("message", ({ data }) => {
-      console.log(data);
       this.updateState({ messages: [...this.state.messages, data] });
     });
   },

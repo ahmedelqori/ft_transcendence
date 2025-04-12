@@ -19,7 +19,6 @@ const Friends = defineComponent<FriendsState>({
     };
   },
   render(this: IComponent<FriendsState>) {
-    console.log(this.state.searchValue);
     return createElement(
       "div",
       {
