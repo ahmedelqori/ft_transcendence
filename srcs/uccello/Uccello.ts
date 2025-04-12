@@ -2244,7 +2244,7 @@ const ROUTER_EVENT = "router-event";
 export class HashRouter {
   private matchers: any[] = [];
   private isInitialized: boolean = false;
-  private onPopState = () => this.matchCurrentRoute();
+  private onPopState: any = this.matchCurrentRoute();
 
   private matchedRoute: any = null;
 
