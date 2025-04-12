@@ -72,7 +72,6 @@ function log(type, message) {
   eventsDiv.appendChild(entry);
   eventsDiv.scrollTop = eventsDiv.scrollHeight;
 }
-
 function renderGame() {
   ctx.fillStyle = '#222';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -81,26 +80,26 @@ function renderGame() {
   ctx.strokeStyle = '#555';
   ctx.setLineDash([5, 5]);
   ctx.beginPath();
-  ctx.moveTo(0, canvas.height / 2);
-  ctx.lineTo(canvas.width, canvas.height / 2);
+  ctx.moveTo(canvas.width / 2, 0);
+  ctx.lineTo(canvas.width / 2, canvas.height);
   ctx.stroke();
   ctx.setLineDash([]);
   
   // Draw paddles
   ctx.fillStyle = '#FFF';
   
-  // Top paddle (player 2)
+  // Left paddle (player 1)
   ctx.fillRect(
-    gameState.paddles.up - (gameConfig.paddleWidth / 2),
-    10,
+    10, // Fixed X position
+    gameState.paddles.left - (gameConfig.paddleHeight / 2),
     gameConfig.paddleWidth,
     gameConfig.paddleHeight
   );
   
-  // Bottom paddle (player 1)
+  // Right paddle (player 2)
   ctx.fillRect(
-    gameState.paddles.down - (gameConfig.paddleWidth / 2),
-    canvas.height - 20,
+    canvas.width - 20, // Fixed X position
+    gameState.paddles.right - (gameConfig.paddleHeight / 2),
     gameConfig.paddleWidth,
     gameConfig.paddleHeight
   );
@@ -122,19 +121,6 @@ function renderGame() {
   document.getElementById('score1').textContent = gameState.score.mainPlayer;
   document.getElementById('score2').textContent = gameState.score.secondPlayer;
   
-  // Update game status
-  if (gameState.ended) {
-    const winner = gameState.winner === 'mainPlayer' ? 'Player 1' : 'Player 2';
-    document.getElementById('gameStatus').textContent = `Game Over! ${winner} wins!`;
-    document.getElementById('gameStatus').style.color = '#4CAF50';
-  } else if (gameStarted) {
-    document.getElementById('gameStatus').textContent = 'Game in progress';
-    document.getElementById('gameStatus').style.color = '#2196F3';
-  } else {
-    document.getElementById('gameStatus').textContent = 'Waiting for game to start';
-    document.getElementById('gameStatus').style.color = '#FF9800';
-  }
-  
   // Request next frame
   requestAnimationFrame(renderGame);
 }
@@ -143,30 +129,30 @@ function gameLoop() {
   let paddleMoved = false;
   if (gameStarted && !gameState.ended && socket && socket.readyState === WebSocket.OPEN && playerType) {
     let currentPosition = playerType === 'mainPlayer' ? 
-        gameState.paddles.down : gameState.paddles.up;
+        gameState.paddles.left : gameState.paddles.right;
     
     // Store original position to detect movement
     const originalPosition = currentPosition;
     
-    // Apply keyboard input
-    if (keyState.a) {
+    // Apply keyboard input (W and S for vertical movement)
+    if (keyState.w) {
       currentPosition -= gameConfig.paddleSpeed;
       paddleMoved = true;
     }
-    if (keyState.d) {
+    if (keyState.s) {
       currentPosition += gameConfig.paddleSpeed;
       paddleMoved = true;
     }
     
     // Keep paddle within bounds
-    currentPosition = Math.max(gameConfig.paddleWidth / 2, 
-               Math.min(canvas.width - gameConfig.paddleWidth / 2, currentPosition));
+    currentPosition = Math.max(gameConfig.paddleHeight / 2, 
+               Math.min(canvas.height - gameConfig.paddleHeight / 2, currentPosition));
     
     // Update local state first for immediate visual feedback
     if (playerType === 'mainPlayer') {
-      gameState.paddles.down = currentPosition;
+      gameState.paddles.left = currentPosition;
     } else {
-      gameState.paddles.up = currentPosition;
+      gameState.paddles.right = currentPosition;
     }
     
     // Only send if the position changed
@@ -366,25 +352,25 @@ gameLoop();
 
 // Keyboard event listeners
 document.addEventListener('keydown', (event) => {
-  if (event.key.toLowerCase() === 'a') {
-    keyState.a = true;
+  if (event.key.toLowerCase() === 'w') {
+    keyState.w = true;
   }
-  if (event.key.toLowerCase() === 'd') {
-    keyState.d = true;
+  if (event.key.toLowerCase() === 's') {
+    keyState.s = true;
   }
   
   // Prevent scrolling if using game controls
-  if(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'a', 'd'].includes(event.key.toLowerCase())) {
+  if(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'w', 's'].includes(event.key.toLowerCase())) {
     event.preventDefault();
   }
 });
 
 document.addEventListener('keyup', (event) => {
-  if (event.key.toLowerCase() === 'a') keyState.a = false;
-  if (event.key.toLowerCase() === 'd') keyState.d = false;
+  if (event.key.toLowerCase() === 'w') keyState.w = false;
+  if (event.key.toLowerCase() === 's') keyState.s = false;
 });
 
-// Mouse controls (if enabled)
+// Update mouse controls for vertical movement:
 canvas.addEventListener('mousemove', (event) => {
   if (!gameStarted || gameState.ended || !playerType || 
       socket?.readyState !== WebSocket.OPEN ||
@@ -393,23 +379,23 @@ canvas.addEventListener('mousemove', (event) => {
   }
   
   const rect = canvas.getBoundingClientRect();
-  const mouseX = event.clientX - rect.left;
+  const mouseY = event.clientY - rect.top;
   
   // Only send updates when the mouse position changes
-  if (mouseX !== lastPaddlePosition) {
+  if (mouseY !== lastPaddlePosition) {
     // Update local state first for immediate visual feedback
     if (playerType === 'mainPlayer') {
-      gameState.paddles.down = mouseX;
+      gameState.paddles.left = mouseY;
     } else {
-      gameState.paddles.up = mouseX;
+      gameState.paddles.right = mouseY;
     }
     
     // Then send to server
     sendMessage({
       type: 'paddleMove',
-      position: mouseX
+      position: mouseY
     });
-    lastPaddlePosition = mouseX;
+    lastPaddlePosition = mouseY;
   }
 });
 

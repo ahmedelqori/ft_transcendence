@@ -8,8 +8,9 @@ export function resetBallAndPaddles() {
     xDir: (Math.random() > 0.5 ? 1 : -1) * defaultGameConfig.ballSpeed,
     yDir: (Math.random() > 0.5 ? 1 : -1) * defaultGameConfig.ballSpeed
   };
-  gameState.paddles.up = gameState.boardWidth / 2;
-  gameState.paddles.down = gameState.boardWidth / 2;
+  // Reset paddles to middle position (vertically centered)
+  gameState.paddles.left = gameState.boardHeight / 2;
+  gameState.paddles.right = gameState.boardHeight / 2;
 }
 
 export function updateBallPosition() {
@@ -19,72 +20,92 @@ export function updateBallPosition() {
   gameState.ball.y += gameState.ball.yDir;
 
   const ballRadius = defaultGameConfig.ballSize / 2;
-    if (gameState.ball.x - ballRadius <= 0) {
-        gameState.ball.xDir = -gameState.ball.xDir;
-        gameState.ball.x = ballRadius;
-    }
-    else if (gameState.ball.x + ballRadius >= gameState.boardWidth) {
-        gameState.ball.xDir = -gameState.ball.xDir;
-        gameState.ball.x = gameState.boardWidth - ballRadius;
-    }
+  
+  // Handle top and bottom wall collisions
+  if (gameState.ball.y - ballRadius <= 0) {
+    gameState.ball.yDir = -gameState.ball.yDir;
+    gameState.ball.y = ballRadius;
+  }
+  else if (gameState.ball.y + ballRadius >= gameState.boardHeight) {
+    gameState.ball.yDir = -gameState.ball.yDir;
+    gameState.ball.y = gameState.boardHeight - ballRadius;
+  }
+  
   checkPaddleCollisions();
   checkScoring();
 }
 
 export function checkPaddleCollisions() {
-  const upPaddleY = defaultGameConfig.upPaddleY;
-  const downPaddleY = defaultGameConfig.downPaddleY;
+  const leftPaddleX = defaultGameConfig.leftPaddleX;
+  const rightPaddleX = defaultGameConfig.rightPaddleX;
   const ballRadius = defaultGameConfig.ballSize / 2;
-  const paddleHalfWidth = defaultGameConfig.paddleWidth / 2;
-  const collisionUpPaddle = gameState.ball.yDir < 0 &&
-  gameState.ball.y - ballRadius <= upPaddleY + defaultGameConfig.paddleHeight && 
-  gameState.ball.y + ballRadius >= upPaddleY &&
-  gameState.ball.x + ballRadius >= gameState.paddles.up - paddleHalfWidth && 
-  gameState.ball.x - ballRadius <= gameState.paddles.up + paddleHalfWidth
-  const collisionDownPaddle = gameState.ball.yDir > 0 &&
-  gameState.ball.y + ballRadius >= downPaddleY && 
-  gameState.ball.y - ballRadius <= downPaddleY + defaultGameConfig.paddleHeight &&
-  gameState.ball.x + ballRadius >= gameState.paddles.down - paddleHalfWidth && 
-  gameState.ball.x - ballRadius <= gameState.paddles.down + paddleHalfWidth
-  if (collisionUpPaddle)
-    updateAfterPaddleCollision('up')
-  if (collisionDownPaddle)
-        updateAfterPaddleCollision('down')
+  const paddleHalfHeight = defaultGameConfig.paddleHeight / 2;
+  
+  // Left paddle collision
+  const collisionLeftPaddle = gameState.ball.xDir < 0 &&
+    gameState.ball.x - ballRadius <= leftPaddleX + defaultGameConfig.paddleWidth && 
+    gameState.ball.x + ballRadius >= leftPaddleX &&
+    gameState.ball.y + ballRadius >= gameState.paddles.left - paddleHalfHeight && 
+    gameState.ball.y - ballRadius <= gameState.paddles.left + paddleHalfHeight;
+    
+  // Right paddle collision
+  const collisionRightPaddle = gameState.ball.xDir > 0 &&
+    gameState.ball.x + ballRadius >= rightPaddleX && 
+    gameState.ball.x - ballRadius <= rightPaddleX + defaultGameConfig.paddleWidth &&
+    gameState.ball.y + ballRadius >= gameState.paddles.right - paddleHalfHeight && 
+    gameState.ball.y - ballRadius <= gameState.paddles.right + paddleHalfHeight;
+    
+  if (collisionLeftPaddle)
+    updateAfterPaddleCollision('left');
+  if (collisionRightPaddle)
+    updateAfterPaddleCollision('right');
 }
 
-function updateAfterPaddleCollision(paddleType){
-  const paddleHalfWidth = defaultGameConfig.paddleWidth / 2;
+function updateAfterPaddleCollision(paddleType) {
+  const paddleHalfHeight = defaultGameConfig.paddleHeight / 2;
   const ballRadius = defaultGameConfig.ballSize / 2;
-  const paddlePos = paddleType === 'up' ? gameState.paddles.up : gameState.paddles.down;
-  const moveSign = paddleType === 'up' ? 1 : -1
-  const collisionPos = (gameState.ball.x - (paddlePos - paddleHalfWidth)) / defaultGameConfig.paddleWidth;
+  const paddlePos = paddleType === 'left' ? gameState.paddles.left : gameState.paddles.right;
+  const moveSign = paddleType === 'left' ? 1 : -1;
+  
+  // Calculate bounce angle based on where ball hits the paddle (vertical position)
+  const collisionPos = (gameState.ball.y - (paddlePos - paddleHalfHeight)) / defaultGameConfig.paddleHeight;
   const bounceAngle = (collisionPos - 0.5) * Math.PI * 0.7;
+  
   const speed = Math.sqrt(gameState.ball.xDir ** 2 + gameState.ball.yDir ** 2);
   const newSpeed = Math.min(speed + 0.5, defaultGameConfig.maxBallSpeed);
-  const ballY = paddleType === 'up' ? defaultGameConfig.upPaddleY + defaultGameConfig.paddleHeight + ballRadius
-  : defaultGameConfig.downPaddleY - ballRadius;
-  gameState.ball.xDir = Math.sin(bounceAngle) * newSpeed;
-  gameState.ball.yDir = moveSign * Math.abs(Math.cos(bounceAngle) * newSpeed);
-  gameState.ball.y = ballY;
+  
+  // Calculate ball position after bounce
+  const ballX = paddleType === 'left' 
+    ? defaultGameConfig.leftPaddleX + defaultGameConfig.paddleWidth + ballRadius
+    : defaultGameConfig.rightPaddleX - ballRadius;
+  
+  // Update ball direction - key change: x and y are swapped compared to vertical version
+  gameState.ball.yDir = Math.sin(bounceAngle) * newSpeed;
+  gameState.ball.xDir = moveSign * Math.abs(Math.cos(bounceAngle) * newSpeed);
+  gameState.ball.x = ballX;
 }
-
 
 export function checkScoring() {
   const ballRadius = defaultGameConfig.ballSize / 2;
-  if (gameState.ball.y - ballRadius < 0) {
+  
+  // Ball goes past left edge - second player scores
+  if (gameState.ball.x - ballRadius < 0) {
     gameState.score.secondPlayer += 1;
     resetBallAndPaddles();
   } 
-  else if (gameState.ball.y + ballRadius > gameState.boardHeight) {
+  // Ball goes past right edge - main player scores
+  else if (gameState.ball.x + ballRadius > gameState.boardWidth) {
     gameState.score.mainPlayer += 1;
     resetBallAndPaddles();
   }
-  if (gameState.score.mainPlayer === defaultGameConfig.scoreToWin || gameState.score.secondPlayer === defaultGameConfig.scoreToWin){
+  
+  if (gameState.score.mainPlayer === defaultGameConfig.scoreToWin || 
+      gameState.score.secondPlayer === defaultGameConfig.scoreToWin) {
     gameState.ended = true;
     gameState.winner = gameState.score.mainPlayer === defaultGameConfig.scoreToWin ? 'mainPlayer' : 'secondPlayer';
   }
-
 }
+
 
 let intervalId = null;
 
@@ -126,20 +147,23 @@ export function updatePaddlePosition(playerType, position) {
   if (typeof position !== 'number' || isNaN(position)) {
     return false;
   }
-  const paddleHalfWidth = defaultGameConfig.paddleWidth / 2;
+  
+  const paddleHalfHeight = defaultGameConfig.paddleHeight / 2;
   
   let newPosition = position;
-  if (newPosition < paddleHalfWidth) {
-    newPosition = paddleHalfWidth;
-  } else if (newPosition > gameState.boardWidth - paddleHalfWidth) {
-    newPosition = gameState.boardWidth - paddleHalfWidth;
+  // Keep paddle within vertical bounds
+  if (newPosition < paddleHalfHeight) {
+    newPosition = paddleHalfHeight;
+  } else if (newPosition > gameState.boardHeight - paddleHalfHeight) {
+    newPosition = gameState.boardHeight - paddleHalfHeight;
   }
   
+  // Update the appropriate paddle
   if (playerType === 'mainPlayer') {
-    gameState.paddles.down = newPosition;
+    gameState.paddles.left = newPosition;
     return true;
   } else if (playerType === 'secondPlayer') {
-    gameState.paddles.up = newPosition;
+    gameState.paddles.right = newPosition;
     return true;
   }
   return false;
