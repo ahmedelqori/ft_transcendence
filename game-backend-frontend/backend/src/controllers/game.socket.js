@@ -52,7 +52,6 @@ export async function setupWebSocketHandlers() {
           socket.terminate();
           return;
         }
-        
         socket.isAlive = false;
         try {
           socket.ping();
