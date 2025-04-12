@@ -1,3 +1,4 @@
+
 export function socketDocsPlugin(fastify, options, done) {
   fastify.get('/socket-docs', {
     schema: {

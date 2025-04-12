@@ -10,6 +10,7 @@ export const defaultGameConfig = {
     boardWidth: 800,
     boardHeight: 600,
     scoreToWin: 10,
+    FPS: 60
 }
 defaultGameConfig.upPaddleY = defaultGameConfig.boardHeight * 0.05;
 defaultGameConfig.downPaddleY = defaultGameConfig.boardHeight * 0.95 - defaultGameConfig.paddleHeight;

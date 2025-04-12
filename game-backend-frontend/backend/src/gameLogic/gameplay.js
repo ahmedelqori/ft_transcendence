@@ -88,10 +88,10 @@ export function checkScoring() {
 
 let intervalId = null;
 
-export function startGameLoop(fps, gameEvent) {
+export function startGameLoop(gameEvent) {
   if (intervalId) 
     return;
-  const frameTime = 1000 / fps;
+  const frameTime = 1000 / defaultGameConfig.FPS;
   gameState.inProgress = true;
   function gameLoop() {
     if (!gameState.inProgress)
@@ -114,9 +114,9 @@ export function pauseGame() {
   gameState.inProgress = false;
 }
 
-export function resumeGame(fps = 60, onUpdate = null) {
+export function resumeGame(onUpdate = null) {
   if (!intervalId) {
-    startGameLoop(fps, onUpdate);
+    startGameLoop(defaultGameConfig.FPS, onUpdate);
   } else {
     gameState.inProgress = true;
   }

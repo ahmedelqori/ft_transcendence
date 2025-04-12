@@ -1,8 +1,8 @@
 import Fastify from "fastify";
 import { gameRoutes } from "./routes/game.routes.js";
 import prismaPlugin from "./plugins/prisma.plugin.js";
-import socketIoPlugin from "fastify-socket.io";
-import { setupSocketHandlers } from "./controllers/game.socket.js";
+import fastifyWebsocket from "@fastify/websocket";
+import { setupWebSocketHandlers } from "./controllers/game.socket.js";
 import { authenticate } from "./middlewares/auth.middleware.js";
 import cors from "@fastify/cors";
 import swagger from "@fastify/swagger";
@@ -31,7 +31,7 @@ fastify.register(cors, {
   exposedHeaders: ['Authorization']
 });
 
-fastify.register(socketIoPlugin, {
+fastify.register(fastifyWebsocket, {
   cors: {
     origin: '*',
     methods: ['GET', 'POST']
@@ -67,21 +67,20 @@ fastify.register(socketDocsPlugin);
 fastify.register(docsPortalPlugin);
 fastify.register(prismaPlugin);
 fastify.register(gameRoutes, { prefix: "/api/games" });
-
+fastify.register(setupWebSocketHandlers);
 fastify.addHook('preHandler', async (req, reply) => {
-  const path = req.raw.url;
-  if (path.startsWith('/swagger') || path.startsWith('/api-docs') || path.startsWith('/socket-docs') || path.startsWith('/api/games'))
-     return;
-  await authenticate(req, reply);
+  // const path = req.raw.url;
+  // if (path.startsWith('/swagger') || path.startsWith('/api-docs') || path.startsWith('/socket-docs') || path.startsWith('/api/games'))
+  //   return;
+  // await authenticate(req, reply);
 });
-fastify.addHook('onReady', setupSocketHandlers);
 
 
 
 const start = async function() {
   const port = process.env.PORT || 3000;
   try {
-    await fastify.listen({ port, host: "0.0.0.0" });
+    fastify.listen({ port, host: "0.0.0.0" });
     fastify.log.info(`Server running at http://localhost:${port}`);
     fastify.log.info(`Documentation available at http://localhost:${port}/swagger`);
   } catch (error) {

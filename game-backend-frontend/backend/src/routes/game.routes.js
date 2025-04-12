@@ -44,6 +44,25 @@ const errorSchema = {
   }
 };
 
+export const websocketRouteSchema = {
+  params: {
+    type: 'object',
+    required: ['gameId', 'userId'],
+    properties: {
+      gameId: { 
+        type: 'string', 
+        pattern: '^[1-9][0-9]*$',
+        description: 'Game ID'
+      },
+      userId: { 
+        type: 'string', 
+        pattern: '^[1-9][0-9]*$',
+        description: 'User ID'
+      }
+    }
+  }
+};
+
 export const gameRoutes = function(fastify, options, done) {
   fastify.get('/', {
     schema: {

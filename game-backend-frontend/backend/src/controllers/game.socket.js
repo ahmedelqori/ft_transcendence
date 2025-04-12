@@ -5,9 +5,11 @@ import {
   updatePaddlePosition, 
   resetBallAndPaddles 
 } from '../gameLogic/gameplay.js';
-import { validateSocketConnection } from "../middlewares/auth.middleware.js";
-import {defaultGameConfig, gameState} from '../gameLogic/gameConfig.js'
+import {defaultGameConfig, gameState} from '../gameLogic/gameConfig.js';
+import {websocketRouteSchema} from '../routes/game.routes.js'
+
 const gameRooms = new Map();
+const connections = new Map(); 
 const defaultGameRoom = { 
   gameId: 0, 
   players: {},
@@ -15,191 +17,355 @@ const defaultGameRoom = {
   gameStarted: false,
   properlyEnded: false,
   gamePaused: false,
-  maxReconnectTime: 10000,
+  maxReconnectTime: 100000,
   disconnectTimer: null
-}
+};
 
-export const setupSocketHandlers = () => {
-  const io = fastify.io.of("socket/game");
-
-  io.use(validateSocketConnection);
-
-  io.on('connection', (socket) => {
-    const userId = socket.user?.id;
-    const gameId = socket.game?.id;
-    
-    fastify.log.info(`User ${userId} connected to game ${gameId}`);    
-    socket.join(`user_${userId}`);
-
-    socket.emit('initGame', {
-      gameConfig: defaultGameConfig,
-      gameState: gameState
-    })
-
-// ******************* JOINGAME EVENT HANDLER *******************
-    
-    socket.on('joinGame', () => {
-      let gameRoom = gameRooms.get(gameId); 
-      // case 1 : first player connects to the game     
-      if (!gameRoom) {
-        gameRoom = {...defaultGameRoom, gameId:gameId};
-        gameRooms.set(gameId, gameRoom);
-        fastify.log.info(`Created new game room for game ${gameId}`);
-      }
-      // case 2 : where a player is disconnect because of network issue and try to reconnect
-      if (gameRoom.disconnectedPlayers && gameRoom.disconnectedPlayers[userId]){
-        const disconnectedPlayer = gameRoom.disconnectedPlayers[userId];
-        const reconnectTime = Date.now() - disconnectedPlayer.disconnectedAt;
-        if (reconnectTime <= gameRoom.maxReconnectTime){
-          fastify.log.info(`Player ${userId} reconnected to game ${gameId} after ${reconnectTime}ms`);      
-          socket.join(`game_${gameId}`);
-          gameRoom.players[userId] = socket.user;
-          delete gameRoom.disconnectedPlayers[userId];
-          if (gameRoom.disconnectTimer) {
-            clearTimeout(gameRoom.disconnectTimer);
-            gameRoom.disconnectTimer = null;
-          }
-          socket.emit('reconnectedToGame', {
-            gameId: gameId,
-            playerType: socket.user.playerType,
-            gameState: gameState,
-            players: Object.values(gameRoom.players)
-          });          
-          socket.to(`game_${gameId}`).emit('playerReconnected', {
-            playerType: socket.user.playerType
-          });
-          if (gameRoom.gamePaused && Object.keys(gameRoom.players).length === 2) {
-            gameState.inProgress = true;
-            gameRoom.gamePaused = false;
-            
-            io.to(`game_${gameId}`).emit('gameResumed', {
-              message: 'All players reconnected, game resumed'
-            });
-          }
-          return
-        } else {
-          delete gameRoom.disconnectedPlayers[userId]
-        }
-      }
-      // case 3 : second player joins the game
-      if (Object.keys(gameRoom.players).length < 2) {
-        if (!gameRoom.players[userId]){
-          socket.join(`game_${gameId}`);        
-          gameRoom.players[userId] = socket.user
-          fastify.log.info(`Player ${userId} joined game ${gameId}`);        
-          socket.to(`game_${gameId}`).emit('playerJoined', {
-            playerType: socket.user.playerType,
-            players: Object.values(gameRoom.players)
-          });
-        }
-        socket.emit('joinedGame', { 
-          gameId: gameId,
-          playerType: socket.user.playerType,
-          players: Object.values(gameRoom.players),
-          gameStarted: gameRoom.gameStarted
-        });        
-        if (Object.keys(gameRoom.players).length === 2) {
-          fastify.log.info(`Game ${gameId} has two players, ready to start`);
-          io.to(`game_${gameId}`).emit('readyToStart', {
-            gameRoom:gameRoom
-          });
-        }
-      } else {
-        fastify.log.warn(`Player ${userId} tried to join full game ${gameId}`);
-        socket.emit('gameError', { message: 'Game room is full' });
-      }
-    });
-
-// ******************* STARTGAME EVENT HANDLER *******************
-
-    socket.on('startGame', () => {
-      const gameRoom = gameRooms.get(gameId);
-      if (!gameRoom || gameRoom.gameStarted || gameRoom.gamePaused || Object.keys(gameRoom.players).length < 2)
+export async function setupWebSocketHandlers() {
+  fastify.register(async function (fastify) {
+    fastify.log.info("Registering WebSocket handlers");
+    fastify.get('/ws/game/:gameId/:userId', { websocket: true, schema: websocketRouteSchema }, (socket, req) => {
+      const gameId = parseInt(req.params.gameId);
+      const userId = parseInt(req.params.userId);
+      fastify.log.info(`WebSocket connection attempt: gameId=${gameId}, userId=${userId}`);
+      if (isNaN(gameId) || isNaN(userId)) {
+        socket.send(JSON.stringify({
+          type: 'error',
+          message: 'Invalid gameId or userId'
+        }));
+        socket.close();
         return;
-      gameRoom.gameStarted = true;
-      resetBallAndPaddles();
-      startGameLoop(60, (updatedGameState) => {
-        io.to(`game_${gameId}`).emit('gameStateUpdate', updatedGameState);
+      }
+      
+      if (!connections.has(gameId)) {
+        connections.set(gameId, new Map());
+      }
+      connections.get(gameId).set(userId, socket);
+      fastify.log.info(`User ${userId} connected to game ${gameId}`);
+      
+      // *************************** PING PONG MECHANISM TO CHECK FOR CLIENT DISCONNECTION *************************** 
+
+      socket.isAlive = true;
+      const pingInterval = setInterval(() => {
+        if (socket.isAlive === false) {
+          clearInterval(pingInterval);
+          socket.terminate();
+          return;
+        }
         
-        if (updatedGameState.ended) {
-          handleGameOver(gameId, updatedGameState);
+        socket.isAlive = false;
+        try {
+          socket.ping();
+        } catch (err) {
+          fastify.log.error(`Error sending ping to user ${userId}: ${err.message}`);
+        }
+      }, 5000);
+      
+      socket.on('pong', () => {
+        socket.isAlive = true;
+      });
+      
+      // *************************** SEND INITIAL DATA *************************** 
+
+      socket.send(JSON.stringify({
+        type: 'initGame',
+        data: {
+          gameConfig: defaultGameConfig,
+          gameState: gameState
+        }
+      }));
+      
+      // *************************** HANDLE INCOMMING MESSAGES *************************** 
+      socket.on('message', (message) => {
+        try {
+          const data = JSON.parse(message.toString());
+          handleMessage(gameId, userId, data, socket);
+        } catch (err) {
+          fastify.log.error(`Error parsing message: ${err}`);
+          socket.send(JSON.stringify({
+            type: 'error',
+            message: 'Invalid message format'
+          }));
         }
       });
       
-      io.to(`game_${gameId}`).emit('gameStarted');
-      fastify.log.info(`Game ${gameId} started`);
-    });
-
-// ******************* PADDLEMOVE EVENT HANDLER *******************
-
-    socket.on('paddleMove', (position) => {
-      const pos = Number(position);
-      
-      if (isNaN(pos)) {
-        fastify.log.warn(`Invalid paddle position from user ${userId}: ${position}`);
-        return;
-      }
-      
-      fastify.log.debug(`Paddle move from ${userId}: ${pos}`);
-      
-      updatePaddlePosition(socket.user.playerType, pos);
-    });
-
-// ******************* PAUSEGAME EVENT HANDLER *******************
-
-    socket.on('pauseGame', () => {
-      const gameRoom = gameRooms.get(gameId);
-      if (!gameRoom || !gameRoom.gameStarted)
-        return;      
-      io.to(`game_${gameId}`).emit('gamePaused', { pausedBy: userId });
-    });    
-
-// ******************* DISCONNECT EVENT HANDLER *******************
-
-    socket.on('disconnect', () => {
-      fastify.log.info(`User ${userId} disconnected from game ${gameId}`);
-      
-      const gameRoom = gameRooms.get(gameId);
-      if (!gameRoom) return;
-      
-      if (gameState.ended) {
-        fastify.log.info(`Game ${gameId} already ended normally, ignoring disconnect`);
-        return;
-      }
-      
-      if (gameRoom.players[userId]) {
-        delete gameRoom.players[userId];
-        fastify.log.info(`Removed player ${userId} from game ${gameId}`);
-        
-        if (gameRoom.gameStarted && !gameRoom.properlyEnded) {
-          gameRoom.disconnectTimer = setTimeout(() => {
-            if (Object.keys(gameRoom.players).length < 2) {
-              stopGameLoop();
-              
-              io.to(`game_${gameId}`).emit('playerDisconnected', {
-                message: "Opponent disconnected, game canceled"
-              });
-              
-              try {
-                fastify.prisma.game.update({
-                  where: { id: gameId },
-                  data: { 
-                    status: 'CANCELED',
-                    endedAt: new Date()
-                  }
-                }).then(() => {
-                  fastify.log.info(`Game ${gameId} marked as CANCELED due to disconnect`);
-                });
-              } catch (error) {
-                fastify.log.error(`Failed to update game ${gameId} after disconnection: ${error.message}`);
-              }
-            }
-          }, 10000);
-        }
-      }
+      // *************************** HANDLE CLOSING SOCKET FROM CLIENT *************************** 
+      socket.on('close', () => {
+        clearInterval(pingInterval);
+        handleDisconnect(gameId, userId);
+      });
     });
   });
-};
+}
+
+// *************************** HANDLE INCOMMING MESSAGES TYPES *************************** 
+
+function handleMessage(gameId, userId, data, socket) {
+  switch (data.type) {
+    case 'joinGame':
+      handleJoinGame(gameId, userId, socket);
+      break;
+    case 'startGame':
+      handleStartGame(gameId, userId);
+      break;
+    case 'paddleMove':
+      handlePaddleMove(gameId, userId, data.position);
+      break;
+    case 'pauseGame':
+      handlePauseGame(gameId, userId);
+      break;
+    case 'ping':
+      socket.send(JSON.stringify({
+        type: 'pong',
+        timestamp: Date.now(),
+        received: data.timestamp
+      }));
+      break;
+    default:
+      fastify.log.warn(`Unknown message type: ${data.type}`);
+      socket.send(JSON.stringify({
+        type: 'error',
+        message: 'Unknown message type'
+      }));
+  }
+}
+
+// *************************** HANDLE RECONNECTION AFTER DISCONNECT *************************** 
+
+const handleReconnection = (gameId, userId, gameRoom) => {
+  fastify.log.info(`Player ${userId} reconnected to game ${gameId} after ${reconnectTime}ms`);      
+  gameRoom.players[userId] = {
+    id: userId,
+    playerType: disconnectedPlayer.playerType
+  };
+  delete gameRoom.disconnectedPlayers[userId];      
+  if (gameRoom.disconnectTimer) {
+    clearTimeout(gameRoom.disconnectTimer);
+    gameRoom.disconnectTimer = null;
+  }
+  sendToUser(gameId, userId, {
+    type: 'reconnectedToGame',
+    data: {
+      gameId: gameId,
+      playerType: gameRoom.players[userId].playerType,
+      gameState: gameState,
+      players: Object.values(gameRoom.players)
+    }
+  });  
+  broadcast(gameId, userId, {
+    type: 'playerReconnected',
+    data: {
+      playerType: gameRoom.players[userId].playerType
+    }
+  });
+  
+  if (gameRoom.gamePaused && Object.keys(gameRoom.players).length === 2) {
+    gameState.inProgress = true;
+    gameRoom.gamePaused = false;    
+    broadcastAll(gameId, {
+      type: 'gameResumed',
+      data: {
+        message: 'All players reconnected, game resumed'
+      }
+    });
+  }
+}
+
+// *************************** HANDLE JOINGINIG A GAME *************************** 
+
+function handleJoinGame(gameId, userId) {
+  let gameRoom = gameRooms.get(gameId);
+  if (!gameRoom) {
+    gameRoom = {...defaultGameRoom, gameId: gameId};
+    gameRooms.set(gameId, gameRoom);
+    fastify.log.info(`Created new game room for game ${gameId}`);
+  }
+  if (gameRoom.disconnectedPlayers && gameRoom.disconnectedPlayers[userId]) {
+    const disconnectedPlayer = gameRoom.disconnectedPlayers[userId];
+    const reconnectTime = Date.now() - disconnectedPlayer.disconnectedAt;
+    if (reconnectTime <= gameRoom.maxReconnectTime) {
+      return handleReconnection(gameId, userId, gameRoom);
+    } else {
+      delete gameRoom.disconnectedPlayers[userId];
+    }
+  }
+  
+  if (Object.keys(gameRoom.players).length < 2) {
+    if (!gameRoom.players[userId]) {
+      const playerType = Object.keys(gameRoom.players).length === 0 ? 'mainPlayer' : 'secondPlayer';
+      gameRoom.players[userId] = {
+        id: userId,
+        playerType: playerType
+      };
+      fastify.log.info(`Player ${userId} joined game ${gameId}`);      
+      broadcast(gameId, userId, {
+        type: 'playerJoined',
+        data: {
+          playerType: playerType,
+          players: Object.values(gameRoom.players)
+        }
+      });
+    }    
+      sendToUser(gameId, userId, {
+        type: 'joinedGame',
+        data: {
+          gameId: gameId,
+          playerType: gameRoom.players[userId].playerType,
+          players: Object.values(gameRoom.players),
+          gameStarted: gameRoom.gameStarted
+        }
+    });    
+    if (Object.keys(gameRoom.players).length === 2) {
+      fastify.log.info(`Game ${gameId} has two players, ready to start`);
+      broadcastAll(gameId, {
+        type: 'readyToStart',
+        data: {
+          gameRoom: gameRoom
+        }
+      });
+    }
+  } else {
+    fastify.log.warn(`Player ${userId} tried to join full game ${gameId}`);
+    sendToUser(gameId, userId, {
+      type: 'gameError',
+      data: {
+        message: 'Game room is full'
+      }
+    });
+  }
+}
+
+// *************************** HANDLE GAME START *************************** 
+
+function handleStartGame(gameId) {
+  const gameRoom = gameRooms.get(gameId);
+  if (!gameRoom || gameRoom.gameStarted || gameRoom.gamePaused || 
+      Object.keys(gameRoom.players).length < 2) {
+    return;
+  }
+  gameRoom.gameStarted = true;
+  resetBallAndPaddles();
+  startGameLoop((updatedGameState) => {
+    broadcastAll(gameId, {
+      type: 'gameStateUpdate',
+      data: updatedGameState
+    });
+    if (updatedGameState.ended) {
+      handleGameOver(gameId, updatedGameState);
+    }
+  });
+  broadcastAll(gameId, {
+    type: 'gameStarted'
+  });
+  fastify.log.info(`Game ${gameId} started`);
+}
+
+// *************************** HANDLE PADDLE MOVEMENT *************************** 
+
+function handlePaddleMove(gameId, userId, position) {
+  const gameRoom = gameRooms.get(gameId);
+  const pos = Number(position);
+  if (!gameRoom || isNaN(pos)) {
+    return;
+  }
+  const playerType = gameRoom.players[userId]?.playerType;
+  if (playerType) {
+    updatePaddlePosition(playerType, pos);
+  }
+}
+
+// *************************** HANDLE GAME PAUSE *************************** 
+
+function handlePauseGame(gameId, userId) {
+  const gameRoom = gameRooms.get(gameId);
+  
+  if (!gameRoom || !gameRoom.gameStarted) {
+    return;
+  }
+  broadcastAll(gameId, {
+    type: 'gamePaused',
+    data: {
+      pausedBy: userId
+    }
+  });
+}
+
+// *************************** HANDLE DISCONNECTION *************************** 
+
+function handleDisconnect(gameId, userId) {
+  fastify.log.info(`User ${userId} disconnected from game ${gameId}`);
+  
+  // Remove from connections map
+  if (connections.has(gameId)) {
+    connections.get(gameId).delete(userId);
+    if (connections.get(gameId).size === 0) {
+      connections.delete(gameId);
+    }
+  }
+  
+  const gameRoom = gameRooms.get(gameId);
+  if (!gameRoom) return;
+  
+  if (gameState.ended) {
+    fastify.log.info(`Game ${gameId} already ended normally, ignoring disconnect`);
+    return;
+  }
+  
+  if (gameRoom.players[userId]) {
+    // Store disconnected player info
+    gameRoom.disconnectedPlayers[userId] = {
+      playerType: gameRoom.players[userId].playerType,
+      disconnectedAt: Date.now()
+    };
+    
+    delete gameRoom.players[userId];
+    fastify.log.info(`Removed player ${userId} from game ${gameId}`);
+    
+    if (gameRoom.gameStarted && !gameRoom.properlyEnded) {
+      // Pause game and notify players
+      gameState.inProgress = false;
+      gameRoom.gamePaused = true;
+      
+      broadcastAll(gameId, {
+        type: 'gamePaused',
+        data: {
+          reason: 'playerDisconnected',
+          message: 'Player disconnected. Waiting for reconnection...'
+        }
+      });
+      
+      // Set timeout for game cancelation
+      gameRoom.disconnectTimer = setTimeout(() => {
+        if (Object.keys(gameRoom.players).length < 2) {
+          stopGameLoop();
+          
+          broadcastAll(gameId, {
+            type: 'playerDisconnected',
+            data: {
+              message: "Opponent disconnected, game canceled"
+            }
+          });
+          
+          try {
+            fastify.prisma.game.update({
+              where: { id: gameId },
+              data: { 
+                status: 'CANCELED',
+                endedAt: new Date()
+              }
+            }).then(() => {
+              fastify.log.info(`Game ${gameId} marked as CANCELED due to disconnect`);
+            });
+          } catch (error) {
+            fastify.log.error(`Failed to update game ${gameId}: ${error.message}`);
+          }
+        }
+      }, gameRoom.maxReconnectTime);
+    }
+  }
+}
+
+// *************************** HANDLE GAME OVER *************************** 
 
 async function handleGameOver(gameId, finalGameState) {
   try {
@@ -233,14 +399,70 @@ async function handleGameOver(gameId, finalGameState) {
       }
     });
     
-    fastify.io.to(`game_${gameId}`).emit('gameOver', {
-      winner: finalGameState.winner,
-      score: finalGameState.score
+    broadcastAll(gameId, {
+      type: 'gameOver',
+      data: {
+        winner: finalGameState.winner,
+        score: finalGameState.score
+      }
     });
     
     stopGameLoop();
     
   } catch (error) {
     fastify.log.error(`Failed to handle game over for ${gameId}: ${error.message}`);
+  }
+}
+
+
+
+
+
+
+
+
+
+// *************************** SEND A MESSAGE TO A USER *************************** 
+
+function sendToUser(gameId, userId, data) {
+  const socket = connections.get(gameId)?.get(userId);
+  if (!socket) 
+    return false;
+  try {
+    socket.send(JSON.stringify(data));
+    return true;
+  } catch (err) {
+    fastify.log.error(`Error sending to user ${userId}: ${err.message}`);
+    return false;
+  }
+}
+
+// *************************** BROADCAST TO ALL USERS EXECPT THE SENDER *************************** 
+
+function broadcast(gameId, excludeUserId, data) {
+  if (!connections.has(gameId))
+    return;
+  for (const [userId, socket] of connections.get(gameId).entries()) {
+    if (userId !== excludeUserId) {
+      try {
+        socket.send(JSON.stringify(data));
+      } catch (err) {
+        fastify.log.error(`Error broadcasting to user ${userId}: ${err.message}`);
+      }
+    }
+  }
+}
+
+// *************************** BROADCAST TO ALL PLAYERS *************************** 
+
+function broadcastAll(gameId, data) {
+  if (!connections.has(gameId))
+    return;
+  for (const socket of connections.get(gameId).values()) {
+    try {
+      socket.send(JSON.stringify(data));
+    } catch (err) {
+      fastify.log.error(`Error broadcasting: ${err.message}`);
+    }
   }
 }
