@@ -30,6 +30,8 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
         "zibnoukh",
         "aes-arg",
         "mbentahi",
+        "baarif",
+        "htalhao"
       ],
       selectedUser: null,
       option: null,

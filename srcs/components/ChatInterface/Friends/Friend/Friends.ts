@@ -90,7 +90,17 @@ const Friend = defineComponent<FriendState, FriendProps>({
             ]),
           ]
         ),
-        createElement("div", {}, ["5m"]),
+        createElement(
+          "div",
+          {
+            on: {
+              click: () => {
+                this.props.setSelectedFriend(this.props.username);
+              },
+            },
+          },
+          ["5m"]
+        ),
         createElement(
           "div",
           {
@@ -130,6 +140,7 @@ const Friend = defineComponent<FriendState, FriendProps>({
                   click: () => {
                     this.props.setOption("vprofile");
                     this.props.setUser(this.props.username);
+                    this.updateState({ showContextMenu: false });
                   },
                 },
               },
@@ -155,6 +166,9 @@ const Friend = defineComponent<FriendState, FriendProps>({
                   click: () => {
                     this.props.setOption("unfriend");
                     this.props.setUser(this.props.username);
+                    this.updateState({
+                      showContextMenu: false,
+                    });
                   },
                 },
               },
@@ -180,6 +194,9 @@ const Friend = defineComponent<FriendState, FriendProps>({
                   click: () => {
                     this.props.setOption("block");
                     this.props.setUser(this.props.username);
+                    this.updateState({
+                      showContextMenu: false,
+                    });
                   },
                 },
               },
