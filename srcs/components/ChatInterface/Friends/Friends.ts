@@ -9,6 +9,8 @@ import Search from "./Search/Search.js";
 interface FriendsState {
   searchValue: string | null;
   friends: (string | null)[];
+  selectedUser: string | null;
+  option: string | null;
 }
 
 const Friends = defineComponent<FriendsState>({
@@ -16,9 +18,37 @@ const Friends = defineComponent<FriendsState>({
     return {
       searchValue: null,
       friends: ["sajaite", "ael-qori", "afanidi", "ybouchma"],
+      selectedUser: null,
+      option: null,
     };
   },
   render(this: IComponent<FriendsState>) {
+    if (this.state.option && this.state.selectedUser) {
+      if (this.state.option == "unfriend") {
+        const newFriends = this.state.friends.filter(
+          (e) => e != this.state.selectedUser
+        );
+        this.updateState({
+          friends: newFriends,
+          option: null,
+          selectedUser: null,
+        });
+      } else if (this.state.option == "block") {
+        const newFriends = this.state.friends.filter(
+          (e) => e != this.state.selectedUser
+        );
+        this.updateState({
+          friends: newFriends,
+          option: null,
+          selectedUser: null,
+        });
+      } else {
+        this.updateState({
+          option: null,
+          selectedUser: null,
+        });
+      }
+    }
     return createElement(
       "div",
       {
@@ -55,11 +85,25 @@ const Friends = defineComponent<FriendsState>({
                 if (e?.includes(this.state.searchValue?.trim()!))
                   return createElement(Friend, {
                     username: e,
+                    setOption: (input: string) => {
+                      this.updateState({ option: input });
+                    },
+                    setUser: (input: string) => {
+                      this.updateState({ selectedUser: input });
+                    },
                   });
                 return null;
               })
             : this.state.friends.map((e) =>
-                createElement(Friend, { username: e })
+                createElement(Friend, {
+                  username: e,
+                  setOption: (input: string) => {
+                    this.updateState({ option: input });
+                  },
+                  setUser: (input: string) => {
+                    this.updateState({ selectedUser: input });
+                  },
+                })
               )
         ),
       ]
