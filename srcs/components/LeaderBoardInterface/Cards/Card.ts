@@ -13,21 +13,46 @@ const Card = defineComponent<void>({
           "border-opacity-[30%]",
           "border-[var(--light-grey)]",
           "rounded-[20px]",
-          "w-fit",
+          "w-[400px]",
+          "max-w-[400px]",
           "px-[20px]",
           "py-[10px]",
           "gap-[40px]",
+          "cursor-pointer",
+          "hover:scale-[101%]",
+          "duration-75",
         ],
       },
       [
-        createElement("img", {
-          src: "../../../../public/assets/avatar.png",
-          class: ["w-[40px]", "rounded-full"],
-        }),
-        createElement("div", {}, [
-          createElement("h4", {}, ["ael-qori"]),
-          createElement("p", { class: ["text-[var(--light-grey)]"] }, [
-            "#Never_Give_UP",
+        createElement("div", { class: ["flex-row", "gap-4"] }, [
+          createElement("img", {
+            src: "../../../../public/assets/avatar.png",
+            class: ["w-[40px]", "rounded-full"],
+          }),
+          createElement("div", { class: ["mr-[40px]", "items-start"] }, [
+            createElement(
+              "h4",
+              {
+                class: [
+                  "text-[20px]",
+                  "opacity-[80%]",
+                  "truncate",
+                  "max-w-[200px]",
+                ],
+              },
+              ["afanidi"]
+            ),
+            createElement(
+              "p",
+              {
+                class: [
+                  "text-[var(--light-grey)]",
+                  "text-[16px]",
+                  "text-ellipsis",
+                ],
+              },
+              ["#Never_Give_UP"]
+            ),
           ]),
         ]),
         createElement(

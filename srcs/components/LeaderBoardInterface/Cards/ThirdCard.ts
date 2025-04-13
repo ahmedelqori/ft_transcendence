@@ -16,9 +16,10 @@ const ThirdCard = defineComponent<void>({
           "mt-[60px]",
           "rounded-[20px]",
           "border-[1px]",
-          "border-opacity-[30%]",
-          "border-[var(--light-grey)]",
+          "border-[#CD7F32]",
           "relative",
+          "hover:scale-[105%]",
+          "duration-75",
         ],
       },
       [

@@ -15,9 +15,11 @@ const SecondCard = defineComponent<void>({
           "mt-[40px]",
           "gap-4",
           "relative",
-          "border-[1px]",
+          "border-[2px]",
           "border-opacity-[30%]",
-          "border-[var(--light-grey)]",
+          "border-[#C0C0C0]",
+          "hover:scale-[105%]",
+          "duration-75",
         ],
       },
       [

@@ -18,7 +18,10 @@ const FirstCard = defineComponent<void>({
           "cursor-pointer",
           "border-[1px]",
           "border-opacity-[30%]",
-          "border-[var(--light-grey)]",
+          "border-[var(--light-yellow)]",
+          "text-[20px]",
+          "hover:scale-[105%]",
+          "duration-75",
         ],
       },
       [
@@ -31,7 +34,7 @@ const FirstCard = defineComponent<void>({
           "#Work Harder",
         ]),
         createElement("img", {
-          class: ["absolute", "w-[50px]", "top-[90px]", "right-[15px]"],
+          class: ["absolute", "w-[50px]", "top-[90px]", "right-[24px]"],
           src: "../../../../public/assets/GoldenMedal.png",
         }),
       ]
