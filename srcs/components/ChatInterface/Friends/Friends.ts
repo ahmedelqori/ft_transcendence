@@ -85,6 +85,7 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
               "w-full",
               "px-1",
               "mb-auto",
+              "gap-3",
               "overflow-scroll",
               "overflow-x-hidden",
               "[&::-webkit-scrollbar]:w-1",

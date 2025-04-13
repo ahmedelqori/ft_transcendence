@@ -15,7 +15,7 @@ const FriendItem = defineComponent<FriendItemState, FriendItemProps>({
   onMounted(this: IComponent<FriendItemState, FriendItemProps>) {
     setTimeout(() => {
       this.updateState({ isLoading: false });
-    }, 2000);
+    }, 3000);
   },
   state() {
     return { isLoading: true };
@@ -83,11 +83,18 @@ const FriendItem = defineComponent<FriendItemState, FriendItemProps>({
           [
             createElement(
               "div",
-              { class: ["w-full", "flex", "justify-center"] },
+              {
+                class: ["w-full", "flex", "justify-center"],
+              },
               [
                 createElement("img", {
                   src: "../../../public/assets/relhamma.png",
-                  class: ["rounded-full", "w-[80px]"],
+                  class: [
+                    "rounded-full",
+                    "w-[80px]",
+                    "hover:scale-[110%]",
+                    "duration-100",
+                  ],
                 }),
               ]
             ),

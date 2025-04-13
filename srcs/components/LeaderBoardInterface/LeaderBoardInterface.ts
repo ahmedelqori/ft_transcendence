@@ -66,6 +66,7 @@ const LeaderBoardInterface = defineComponent<void>({
             createElement(Card),
             createElement(Card),
             createElement(Card),
+            createElement(Card),
           ]
         ),
       ]

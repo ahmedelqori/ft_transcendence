@@ -10,6 +10,13 @@ interface FriendsInterfaceState {
 }
 
 const FriendsInterface = defineComponent<FriendsInterfaceState>({
+  onMounted(this: IComponent<FriendsInterfaceState>) {
+    // setTimeout(() => {
+    //   this.updateState({
+    //     friends: [...this.state.friends, "baarif", "aes-arg", "mbentahi"],
+    //   });
+    // }, 3000);
+  },
   state() {
     return {
       friends: [
@@ -19,9 +26,10 @@ const FriendsInterface = defineComponent<FriendsInterfaceState>({
         "ybouchma",
         "relhamma",
         "zibnoukh",
+
+        "baarif",
         "aes-arg",
         "mbentahi",
-        "baarif",
       ],
     };
   },
