@@ -6,6 +6,7 @@ import {
 
 const Game = defineComponent<void>({
   onMounted(this: IComponent<void>) {
+    document.title = "Game";
     const el = this.getHtmlElement;
     const ctx = el.getContext("2d");
     ctx.beginPath();

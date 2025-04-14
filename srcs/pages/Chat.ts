@@ -2,6 +2,9 @@ import ChatInterface from "../components/ChatInterface/ChatInterface.js";
 import { createElement, defineComponent } from "../uccello/Uccello.js";
 
 const Chat = defineComponent<void>({
+  onMounted() {
+    document.title = "Chat";
+  },
   state() {},
   render() {
     return createElement(

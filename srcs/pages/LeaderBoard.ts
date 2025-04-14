@@ -3,6 +3,9 @@ import LeaderBoardInterface from "../components/LeaderBoardInterface/LeaderBoard
 import { createElement, defineComponent } from "../uccello/Uccello.js";
 
 const LeaderBoard = defineComponent<void>({
+  onMounted() {
+    document.title = "LeaderBoard";
+  },
   state() {},
   render() {
     return createElement(

@@ -120,3 +120,9 @@ img {
   cursor: pointer;
 }
 /* ******************* Custom ******************* */
+
+@keyframes roundtime {
+  to {
+    transform: scaleX(0);
+  }
+}
