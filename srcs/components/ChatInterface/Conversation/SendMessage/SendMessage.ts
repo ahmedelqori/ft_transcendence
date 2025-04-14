@@ -9,13 +9,18 @@ interface SendState {
 }
 
 interface SendProps {
+  socket: any;
   messages: (string | null)[];
-  onSendMessage: (message: string) => void; 
+  onSendMessage: (message: string) => void;
 }
 
 const SendMessage = defineComponent<SendState, SendProps>({
+  onMounted(this: IComponent<SendState, SendProps>) {
+    // const socket = new WebSocket("ws://localhost:3001");
+    // this.updateState({ socket: socket });
+  },
   state() {
-    return { inputValue: "" };
+    return { inputValue: "", socket: null };
   },
   render(
     this: IComponent<SendState, SendProps> & { handleSendMessage: () => void }
@@ -88,6 +93,11 @@ const SendMessage = defineComponent<SendState, SendProps>({
   ) {
     if (this.state.inputValue && this.state.inputValue.trim().length) {
       this.props.onSendMessage(this.state.inputValue);
+      if (this.props.socket.readyState === WebSocket.OPEN) {
+        this.props.socket.send(
+          this.state.inputValue + " answer me in one sentence"
+        );
+      }
       this.updateState({ inputValue: "" });
     } else this.updateState({ inputValue: "" });
   },

@@ -13,18 +13,22 @@ interface ConversationProps {
 
 interface ConversationState {
   messages: (string | null)[];
+  socket: any;
+  online: boolean;
+  intervalId: any;
 }
 
 const Conversation = defineComponent<ConversationState, ConversationProps>({
-  onMounted(this: IComponent<ConversationState, ConversationProps>) {
-    const socket = new WebSocket("ws://localhost:3001");
-
-    socket.addEventListener("message", ({ data }) => {
-      this.updateState({ messages: [...this.state.messages, data] });
-    });
+  onMounted(
+    this: IComponent<ConversationState, ConversationProps> & {
+      setupWebSocket: () => void;
+    }
+  ) {
+    this.state.intervalId = null;
+    this.setupWebSocket.call(this);
   },
   state() {
-    return { messages: [] };
+    return { messages: [], socket: null, online: false, intervalId: null };
   },
   render(this: IComponent<ConversationState, ConversationProps>) {
     return createElement(
@@ -40,7 +44,10 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
 
       this.props.username != ""
         ? [
-            createElement(FriendInfoBar, { username: this.props.username }),
+            createElement(FriendInfoBar, {
+              username: this.props.username,
+              online: this.state.online,
+            }),
             createElement(Messages, { messages: this.state.messages }),
             createElement(SendMessage, {
               messages: this.state.messages,
@@ -49,6 +56,7 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
                   messages: [...this.state.messages, message],
                 });
               },
+              socket: this.state.socket,
             }),
           ]
         : [
@@ -87,22 +95,39 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
                 "Hey! 👋 Just clicked on your profile figured I’d say hi. You around?",
               ]
             ),
-            // createElement(
-            //   "p",
-            //   {
-            //     class: [
-            //       "text-center",
-            //       "text-[18px]",
-            //       "max-w-[500px]",
-            //       "text-[var(--light-grey)]",
-            //     ],
-            //   },
-            //   [
-            //     "Hey there! 👋 Just saw you joined — feel free to say hi or ask anything. I'm around if you wanna chat!”",
-            //   ]
-            // ),
           ]
     );
+  },
+  setupWebSocket(
+    this: IComponent<ConversationState, ConversationProps> & {
+      setupWebSocket: () => void;
+    }
+  ) {
+    this.state.socket = new WebSocket("ws://localhost:3001");
+
+    this.state.socket.addEventListener("message", ({ data }: { data: any }) => {
+      clearInterval(this.state.intervalId);
+      data = JSON.parse(data);
+      this.updateState({
+        messages: [
+          ...this.state.messages,
+          data.candidates[0].content.parts[0].text + "/[]1337",
+        ],
+      });
+    });
+
+    this.state.socket.addEventListener("open", () => {
+      this.updateState({ online: true });
+    });
+
+    this.state.socket.addEventListener("close", () => {
+      this.updateState({ online: false });
+
+      this.state.intervalId = setInterval(() => {
+        clearInterval(this.state.intervalId);
+        this.setupWebSocket.call(this);
+      }, 1000);
+    });
   },
 });
 

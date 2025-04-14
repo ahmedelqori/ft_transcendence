@@ -6,6 +6,7 @@ import {
 
 interface FriendInfoBarProps {
   username: string;
+  online: boolean;
 }
 
 interface FriendInfoBarState {
@@ -40,20 +41,20 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
               {
                 class: [
                   "text-[#878787]",
-                  this.state.isOnline
+                  this.props.online
                     ? "text-[var(--light-yellow)]"
                     : "text-[var(--light-grey)]",
                   "relative",
                 ],
               },
               [
-                this.state.isOnline ? "Online" : "Offline",
+                this.props.online ? "Online" : "Offline",
                 createElement("div", {
                   class: [
                     "absolute",
                     "w-3",
                     "h-3",
-                    this.state.isOnline
+                    this.props.online
                       ? "bg-[var(--light-yellow)]"
                       : "bg-[var(--light-grey)]",
                     "right-[-20px]",

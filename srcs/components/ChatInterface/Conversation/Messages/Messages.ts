@@ -48,9 +48,14 @@ const Messages = defineComponent<void, MessagesProps>({
       },
       [
         createFragment([
-          ...this.props.messages.map((e) =>
-            createElement(SentMessage, { message: e })
-          ),
+          ...this.props.messages.map((e) => {
+            if (e?.endsWith("/[]1337")) {
+              const m = e.substring(0, e.length - 7);
+              return createElement(ReceivedMessage, {
+                message: m,
+              });
+            } else return createElement(SentMessage, { message: e });
+          }),
         ]),
       ]
     );
