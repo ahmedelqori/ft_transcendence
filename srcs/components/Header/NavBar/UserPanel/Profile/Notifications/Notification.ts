@@ -36,8 +36,69 @@ const Notifications = defineComponent<NotificationsState>({
 
   state() {
     return {
-      showNotification: false,
-      notifications: [],
+      showNotification: true,
+      notifications: [
+        {
+          avatar: "../../../../../../../../public/assets/afanidi.png",
+          username: "afanidi",
+          sendRequest: true,
+        },
+        {
+          avatar: "../../../../../../../../public/assets/afanidi.png",
+          username: "afanidi",
+          sendRequest: true,
+        },
+        {
+          avatar: "../../../../../../../../public/assets/afanidi.png",
+          username: "afanidi",
+          sendRequest: true,
+        },
+        {
+          avatar: "../../../../../../../../public/assets/afanidi.png",
+          username: "afanidi",
+          sendRequest: true,
+        },
+        {
+          avatar: "../../../../../../../../public/assets/afanidi.png",
+          username: "afanidi",
+          sendRequest: true,
+        },
+        {
+          avatar: "../../../../../../../../public/assets/afanidi.png",
+          username: "afanidi",
+          sendRequest: true,
+        },
+        {
+          avatar: "../../../../../../../../public/assets/afanidi.png",
+          username: "afanidi",
+          sendRequest: true,
+        },
+        {
+          avatar: "../../../../../../../../public/assets/afanidi.png",
+          username: "afanidi",
+          sendRequest: true,
+        },
+        {
+          avatar: "../../../../../../../../public/assets/afanidi.png",
+          username: "afanidi",
+          sendRequest: true,
+        },
+        {
+          avatar: "../../../../../../../../public/assets/afanidi.png",
+          username: "afanidi",
+          sendRequest: true,
+        },
+        {
+          avatar: "../../../../../../../../public/assets/afanidi.png",
+          username: "afanidi",
+          sendRequest: true,
+        },
+        {
+          avatar: "../../../../../../../../public/assets/afanidi.png",
+          username: "afanidi",
+          sendRequest: true,
+        },
+      ],
     };
   },
 
@@ -49,7 +110,7 @@ const Notifications = defineComponent<NotificationsState>({
     return createElement(
       "div",
       {
-        class: ["relative"],
+        class: ["relative", "z-40"],
       },
       [
         createElement(
@@ -102,11 +163,13 @@ const Notifications = defineComponent<NotificationsState>({
               {
                 class: [
                   "absolute",
-                  "bottom-[-80px]",
-                  "right-[10px]",
-                  "w-fit",
+                  "top-[-12px]",
+                  "right-[50px]",
+                  "w-[310px]",
                   "h-fit",
-                  "bg-black",
+                  "z-10",
+                  "bg-transparent",
+                  // "bg-[var(--background-color)]",
                   "rounded-[20px]",
                   "px-[10px]",
                   "py-[15px]",
