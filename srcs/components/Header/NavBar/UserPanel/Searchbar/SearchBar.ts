@@ -16,7 +16,15 @@ const Searchbar = defineComponent<SearchBarState>({
     return createElement(
       "div",
       {
-        class: ["relative", "flex", "items-center", "flex-row"],
+        class: [
+          "flex",
+          "hidden",
+          "w-full",
+          "relative",
+          "lg:block",
+          "items-center",
+          "max-w-[525px]",
+        ],
       },
       [
         createElement("input", {
@@ -28,28 +36,30 @@ const Searchbar = defineComponent<SearchBarState>({
             },
           },
           class: [
-            "rounded-[14px]",
-            "w-[525px]",
-            "h-[50px]",
-            "bg-transparent",
-            "border-[#878787]",
-            "border-2",
             "px-4",
             "py-4",
+            "w-full",
+            "h-[50px]",
+            "border-2",
             "pr-[50px]",
-            "focus:border-[#828c3a]",
+            "rounded-[14px]",
             "text-[#878787]",
+            "bg-transparent",
+            "border-[#878787]",
             "focus:outline-none",
+            "focus:border-[#828c3a]",
+            "transition-all",
           ],
         }),
         createElement("i", {
           class: [
-            "fa-solid",
-            "fa-magnifying-glass",
             "text-xl",
-            "text-[#878787]",
             "absolute",
+            "fa-solid",
+            "top-1/4",
             "right-[20px]",
+            "text-[#878787]",
+            "fa-magnifying-glass",
           ],
         }),
       ]

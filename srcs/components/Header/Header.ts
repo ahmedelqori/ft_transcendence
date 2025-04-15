@@ -7,7 +7,7 @@ const Header = defineComponent<void>({
     return createElement(
       "header",
       {
-        class: ["w-full"],
+        class: ["w-full","pt-4"],
       },
       [createElement(NavBar)]
     );

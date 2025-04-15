@@ -1,33 +1,47 @@
 import { router } from "../../router/Router.js";
-import {
-  createElement,
-  defineComponent,
-} from "../../uccello/Uccello.js";
+import { createElement, defineComponent } from "../../uccello/Uccello.js";
 import NavigationBar from "./NavigationBar/NavigationBar.js";
 
 const SideBar = defineComponent<void>({
-
   state() {},
   render() {
     return createElement(
       "aside",
       {
         class: [
-          "w-full",
-          "h-full",
+          "w-fit",
+          "shrink-0",
           "flex",
           "flex-col",
           "justify-around",
           "items-start",
+          "max-lg:w-full",
+          "max-lg:py-4",
+          "max-lg:h-fit",
+          "max-lg:self-center",
+          "max-lg:items-center",
+          "max-lg:justify-between",
         ],
       },
       [
         createElement("hr", {
-          class: ["w-[260px]", "text-[4px]", "border-[#878787]"],
+          class: [
+            "hidden",
+            "lg:block",
+            "w-full",
+            "text-[4px]",
+            "border-[#878787]",
+          ],
         }),
         createElement(NavigationBar, { class: ["w-full"] }),
         createElement("hr", {
-          class: ["w-[260px]", "text-[4px]", "border-[#878787]"],
+          class: [
+            "hidden",
+            "lg:block",
+            "w-full",
+            "text-[4px]",
+            "border-[#878787]",
+          ],
         }),
       ]
     );

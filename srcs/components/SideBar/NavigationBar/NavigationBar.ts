@@ -36,8 +36,8 @@ const NavigationItem = defineComponent<void, NavigationItem>({
             "flex-row",
             "justify-between",
             "gap-3",
-            "text-[#878787]",
-            "hover:text-[#ddf247]",
+            "text-[var(--light-grey)]",
+            "hover:text-[var(--light-yellow)]",
             "transition-all",
             "duration-300",
             "hover:shadow-lg",
@@ -48,7 +48,7 @@ const NavigationItem = defineComponent<void, NavigationItem>({
           createElement("i", {
             class: ["ph", this.props.icon, "text-3xl"],
           }),
-          createElement("div", {}, [
+          createElement("div", { class: ["hidden", "lg:block"] }, [
             String(this.props.path).charAt(1).toUpperCase() +
               String(this.props.path).slice(2),
           ]),
@@ -92,10 +92,13 @@ const NavigationBar = defineComponent<NavigationBarState>({
           "gap-4",
           "text-[#878787]",
           "text-xl",
-          "ml-[40px]",
+          "max-md:ml-0",
+          "max-md:gap-8",
           "h-[65%]",
           "justify-around",
+          "max-lg:flex-row",
           "items-start",
+          "max-lg:w-full",
         ],
       },
       [
@@ -108,8 +111,9 @@ const NavigationBar = defineComponent<NavigationBarState>({
               "flex-row",
               "gap-3",
               "cursor-pointer",
-              "text-[#878787]",
-              "hover:text-[#ddf247]",
+              "text-[var(--light-grey)]",
+              "hover:text-[var(--light-yellow)]",
+              "max-sm:hidden",
             ],
             on: {
               click: async () => {
@@ -121,7 +125,9 @@ const NavigationBar = defineComponent<NavigationBarState>({
             createElement("i", {
               class: ["ph", "ph-sign-out", "text-3xl"],
             }),
-            createElement("div", {}, ["Logout"]),
+            createElement("div", { class: ["max-lg:hidden", "lg:block"] }, [
+              "Logout",
+            ]),
           ]
         ),
       ]

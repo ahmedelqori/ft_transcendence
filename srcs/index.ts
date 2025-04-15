@@ -1,4 +1,3 @@
-import Footer from "./components/Footer/Footer.js";
 import Header from "./components/Header/Header.js";
 import SideBar from "./components/SideBar/SideBar.js";
 import { router } from "./router/Router.js";
@@ -6,8 +5,8 @@ import {
   createApp,
   createElement,
   defineComponent,
-  RouterOutlet,
   IComponent,
+  RouterOutlet,
 } from "./uccello/Uccello.js";
 
 const ROOT = document.getElementById("root");
@@ -36,24 +35,55 @@ const App = defineComponent<AppState>({
     return createElement(
       "div",
       {
-        class: ["h-[90%]", "m-auto", "w-[95%]"],
+        class: ["h-full", "m-auto", "w-[95%]", "justify-start", "gap-4"],
       },
       [
         createElement(Header),
         createElement(
           "main",
-          { class: ["h-full", "w-full", "container-grid"] },
+          {
+            class: [
+              "flex",
+              "w-full",
+              "flex-1",
+              "gap-4",
+              "flex-col",
+              "lg:flex-row",
+              "max-lg:flex-col",
+              "max-lg:flex-col-reverse"
+            ],
+          },
           [
-            this.state.canShowSideBar
-              ? createElement(SideBar, { class: ["containerd-grid-sidebar"] })
-              : null,
-            createElement(RouterOutlet, { class: ["containerd-grid-router"] }),
+            createElement(SideBar),
+            createElement("div", { class: ["flex-1", "min-w-0"] }, [
+              "Dashboard",
+            ]),
           ]
         ),
-        createElement(Footer),
       ]
     );
   },
 });
 
 createApp(App, {}, { router }).mount(ROOT as HTMLElement);
+
+// render(this: IComponent<AppState>) {
+//   return createElement(
+//     "div",
+//     {
+//       class: ["h-full", "m-auto", "w-full", "max-w-7xl", "px-4", "flex", "flex-col", "gap-4"],
+//     },
+//     [
+//       createElement(Header),
+//       createElement(
+//         "main",
+//         {
+//           class: ["flex", "w-full", "flex-1", "gap-4", "flex-col", "md:flex-row"]
+//         },
+//         [
+//           createElement("aside", { class: ["w-full", "md:w-64", "shrink-0"] }, ["sidebar"]),
+//           createElement("div", { class: ["flex-1", "min-w-0"] }, ["Dashboard"]),
+//         ]
+//       ),
+//     ]
+//   );

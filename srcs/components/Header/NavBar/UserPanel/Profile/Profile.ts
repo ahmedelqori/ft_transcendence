@@ -16,7 +16,7 @@ const Profile = defineComponent<void>({
       [
         createElement(Notifications),
         createElement(User),
-        createElement("p", {}, ["ael-qori"]),
+        createElement("p", { class: ["hidden", "lg:block"] }, ["sajaite"]),
       ]
     );
   },

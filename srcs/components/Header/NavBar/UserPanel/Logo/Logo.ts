@@ -10,7 +10,7 @@ const Logo = defineComponent<void>({
     return createElement(RouterLink, { to: "/" }, [
       createElement("img", {
         src: "../../../../../../public/assets/logo.png",
-        class: ["cursor-pointer"],
+        class: ["logo"],
       }),
     ]);
   },
