@@ -1,465 +1,359 @@
+import { GameRenderer } from './responsive-utils.js';
+
 let socket;
-let gameConfig = {
-    playersNumber: 2,
-    ballSpeed: 5,
-    maxBallSpeed: 10,
-    ballSize: 10,
-    paddleWidth: 100,
-    paddleHeight: 10,
-    paddleSpeed: 10,
-    boardWidth: 800,
-    boardHeight: 600,
-    scoreToWin: 10,
-};
-let playerType = null;
-let gameState = {
-  ball: { x: gameConfig.boardWidth/2, y: gameConfig.boardHeight/2 },
-  paddles: { up: gameConfig.boardWidth/2, down: gameConfig.boardWidth/2 },
-  score: { mainPlayer: 0, secondPlayer: 0 },
-  boardWidth: gameConfig.boardWidth,          
-  boardHeight: gameConfig.boardHeight,  
-  inProgress: false,
-  ended: false,
-  winner: null
-};
+let gameId;
+let userId;
+let playerType;
 let gameStarted = false;
-
-// Reconnection variables
-let reconnectAttempts = 0;
-const MAX_RECONNECT_ATTEMPTS = 5;
-const RECONNECT_DELAY = 2000;
-let currentGameId, currentUserId;
-
-// Keyboard control variables
-let keyState = {
-  a: false,
-  d: false
+let gameConfig = {};
+let gameState = {};
+let lastPaddlePosition;
+let renderer;
+let connected = false;
+// Key state tracking
+const keyState = {
+  w: false,
+  s: false
 };
-let lastPaddlePosition = null; // Track last position to avoid redundant updates
 
-// Set up global error handler
-window.addEventListener('error', (event) => {
-    console.error('Global error caught:', event.error);
-    // Log the error but don't let it crash the connection
-    log('error', `JavaScript error: ${event.message}`);
-    return true; // Prevents default handling
-});
-
-// Canvas setup
+// DOM elements
 const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+const eventsContainer = document.getElementById('events');
+const gameStatusElement = document.getElementById('gameStatus');
 
-// Function to log events
-function log(type, message) {
-  const eventsDiv = document.getElementById('events');
-  const now = new Date().toISOString().substr(11, 8);
-  const entry = document.createElement('div');
+// Connection elements
+const gameIdInput = document.getElementById('gameId');
+const userIdInput = document.getElementById('userId');
+const connectButton = document.getElementById('connect');
+const disconnectButton = document.getElementById('disconnect');
+
+// Game control buttons
+const joinGameButton = document.getElementById('joinGame');
+const startGameButton = document.getElementById('startGame');
+const pauseGameButton = document.getElementById('pauseGame');
+const cancelGameButton = document.getElementById('cancelGame');
+const useMouseControl = document.getElementById('useMouseControl');
+
+
+
+
+
+function connectWebSocket() {
+  if (connected) 
+    return;
+  gameId = parseInt(gameIdInput.value);
+  userId = parseInt(userIdInput.value);
   
-  if (typeof message === 'object') {
-    entry.innerHTML = `<pre>[${now}] ${type}: ${JSON.stringify(message, null, 2)}</pre>`;
-  } else {
-    entry.textContent = `[${now}] ${type}: ${message}`;
+  const wsUrl = `ws://localhost:3000/ws/game/${gameId}/${userId}`;
+  logEvent('Connecting to', wsUrl);
+  try {
+    socket = new WebSocket(wsUrl);
+    socket.onopen = () => {
+      logEvent('WebSocket connected');
+      connected = true;
+      renderer = new GameRenderer(canvas, gameConfig);
+      renderer.setupResponsiveCanvas();
+      document.body.classList.add('connected');
+      updateUIState();
+    };
+    
+
+    socket.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        handleServerMessage(message);
+      } catch (err) {
+        logEvent('Error parsing message', err.message);
+      }
+    };
+    
+    socket.onclose = () => {
+      logEvent('WebSocket disconnected');
+      connected = false;
+      document.body.classList.remove('connected');
+      gameStarted = false;
+      updateUIState();
+    };
+    
+    socket.onerror = (error) => {
+      logEvent('WebSocket error', error);
+      connected = false;
+      document.body.classList.remove('connected');
+      updateUIState();
+    };
+    
+  } catch (err) {
+    logEvent('Connection error', err.message);
   }
-  
-  if (type === 'error') {
-    entry.style.color = 'red';
-  } else if (type === 'emit') {
-    entry.style.color = 'blue';
-  } else if (type === 'receive') {
-    entry.style.color = 'green';
-  }
-  
-  eventsDiv.appendChild(entry);
-  eventsDiv.scrollTop = eventsDiv.scrollHeight;
 }
-function renderGame() {
-  ctx.fillStyle = '#222';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+function disconnectWebSocket() {
+  if (!connected || !socket) 
+    return;
   
-  // Draw center line
-  ctx.strokeStyle = '#555';
-  ctx.setLineDash([5, 5]);
-  ctx.beginPath();
-  ctx.moveTo(canvas.width / 2, 0);
-  ctx.lineTo(canvas.width / 2, canvas.height);
-  ctx.stroke();
-  ctx.setLineDash([]);
+  socket.close();
+  connected = false;
+  document.body.classList.remove('connected');
+  updateUIState();
+  logEvent('Disconnected from server');
+}
+
+function handleServerMessage(message) {
+  logEvent('Received', message.type);
+  console.log(message);
+  switch (message.type) {
+    case 'initGame':
+      gameConfig = message.data.gameConfig;
+      gameState = message.data.gameState;
+      renderer = new GameRenderer(canvas, gameConfig);
+      renderer.setupResponsiveCanvas();
+      requestAnimationFrame(gameLoop);
+      logEvent('Game initialized with config', gameConfig);
+      break;
+    
+    case 'joinedGame':
+      playerType = message.data.playerType;
+      logEvent('Joined game as', playerType);
+      gameStatusElement.textContent = `You are Player ${playerType === 'mainPlayer' ? '1' : '2'}`;
+      break;
+    
+    case 'playerJoined':
+      logEvent('Player joined', message.data);
+      if (playerType) {
+        gameStatusElement.textContent = 'Both players connected. Ready to start!';
+      }
+      break;
+    
+    case 'gameStarted':
+      gameStarted = true;
+      gameState.inProgress = true;
+      gameStatusElement.textContent = 'Game in progress!';
+      document.querySelector('.game-canvas-container').classList.add('game-active');
+      logEvent('Game started');
+      break;
+    
+    case 'gameStateUpdate':
+      gameState = message.data;
+      break;
+    
+    case 'gamePaused':
+      gameState.inProgress = false;
+      gameStatusElement.textContent = 'Game paused';
+      logEvent('Game paused', message.data);
+      break;
+    
+    case 'gameResumed':
+      gameState.inProgress = true;
+      gameStatusElement.textContent = 'Game resumed';
+      logEvent('Game resumed', message.data);
+      break;
+    
+    case 'gameOver':
+      gameStarted = false;
+      gameState.inProgress = false;
+      gameState.ended = true;
+      
+      const winner = message.data.winner === playerType ? 'You' : 'Opponent';
+      gameStatusElement.textContent = `Game over! ${winner} won!`;
+      document.querySelector('.game-canvas-container').classList.remove('game-active');
+      logEvent('Game over', message.data);
+      break;
+    
+    case 'error':
+      logEvent('Error', message.message);
+      gameStatusElement.textContent = `Error: ${message.message}`;
+      break;
+      
+    default:
+      logEvent('Unknown message type', message);
+  }
   
-  // Draw paddles
-  ctx.fillStyle = '#FFF';
-  
-  // Left paddle (player 1)
-  ctx.fillRect(
-    10, // Fixed X position
-    gameState.paddles.left - (gameConfig.paddleHeight / 2),
-    gameConfig.paddleWidth,
-    gameConfig.paddleHeight
-  );
-  
-  // Right paddle (player 2)
-  ctx.fillRect(
-    canvas.width - 20, // Fixed X position
-    gameState.paddles.right - (gameConfig.paddleHeight / 2),
-    gameConfig.paddleWidth,
-    gameConfig.paddleHeight
-  );
-  
-  // Draw ball
-  ctx.beginPath();
-  ctx.arc(
-    gameState.ball.x,
-    gameState.ball.y,
-    gameConfig.ballSize / 2,
-    0,
-    Math.PI * 2
-  );
-  ctx.fillStyle = '#FFF';
-  ctx.fill();
-  ctx.closePath();
-  
-  // Update scoreboard
-  document.getElementById('score1').textContent = gameState.score.mainPlayer;
-  document.getElementById('score2').textContent = gameState.score.secondPlayer;
-  
-  // Request next frame
-  requestAnimationFrame(renderGame);
+  updateUIState();
 }
 
 function gameLoop() {
-  let paddleMoved = false;
-  if (gameStarted && !gameState.ended && socket && socket.readyState === WebSocket.OPEN && playerType) {
-    let currentPosition = playerType === 'mainPlayer' ? 
-        gameState.paddles.left : gameState.paddles.right;
-    
-    // Store original position to detect movement
-    const originalPosition = currentPosition;
-    
-    // Apply keyboard input (W and S for vertical movement)
-    if (keyState.w) {
-      currentPosition -= gameConfig.paddleSpeed;
-      paddleMoved = true;
-    }
-    if (keyState.s) {
-      currentPosition += gameConfig.paddleSpeed;
-      paddleMoved = true;
-    }
-    
-    // Keep paddle within bounds
-    currentPosition = Math.max(gameConfig.paddleHeight / 2, 
-               Math.min(canvas.height - gameConfig.paddleHeight / 2, currentPosition));
-    
-    // Update local state first for immediate visual feedback
-    if (playerType === 'mainPlayer') {
-      gameState.paddles.left = currentPosition;
-    } else {
-      gameState.paddles.right = currentPosition;
-    }
-    
-    // Only send if the position changed
-    if (paddleMoved && currentPosition !== lastPaddlePosition) {
-      sendMessage({
-        type: 'paddleMove',
-        position: currentPosition
-      });
-      lastPaddlePosition = currentPosition;
-    }
+  processInput();
+  
+  // Render the game
+  if (renderer && connected) {
+    renderer.renderGame(gameState);
   }
+  
+  // Update score display
+  document.getElementById('score1').textContent = gameState?.score?.mainPlayer || 0;
+  document.getElementById('score2').textContent = gameState?.score?.secondPlayer || 0;
   
   requestAnimationFrame(gameLoop);
 }
 
-// WebSocket connection handling
-function connectWebSocket(gameId, userId) {
-  if (socket) {
-    socket.close();
-  }
-  
-  // Store these for potential reconnection
-  currentGameId = gameId;
-  currentUserId = userId;
-  
-  log('info', `Connecting WebSocket with gameId=${gameId}, userId=${userId}`);
-  
-  socket = new WebSocket(`ws://localhost:3000/ws/game/${gameId}/${userId}`);
-  
-  // Set up heartbeat
-  const HEARTBEAT_INTERVAL = 30000; // 30 seconds
-  let heartbeatTimer;
-  
-  function heartbeat() {
-    clearTimeout(heartbeatTimer);
-    heartbeatTimer = setTimeout(() => {
-      log('warn', 'Connection seems dead - reconnecting...');
-      socket.close();
-      
-      if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-        reconnectAttempts++;
-        log('info', `Attempting to reconnect (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
-        connectWebSocket(currentGameId, currentUserId);
-      } else {
-        log('error', 'Maximum reconnection attempts reached');
-      }
-    }, HEARTBEAT_INTERVAL + 5000);
-  }
-  
-  // Connection opened
-  socket.addEventListener('open', (event) => {
-    log('info', 'Connected to server');
-    reconnectAttempts = 0;
-    heartbeat(); // Start heartbeat
-    
-    // You need to explicitly join a game now
-    sendMessage({
-      type: 'joinGame'
-    });
-  });
-  
-  // Connection closed
-  socket.addEventListener('close', (event) => {
-    log('info', `WebSocket disconnected with code: ${event.code}`);
-    clearTimeout(heartbeatTimer);
-    
-    if (!event.wasClean && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-      log('info', `Attempting to reconnect (${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})...`);
-      setTimeout(() => {
-        reconnectAttempts++;
-        connectWebSocket(currentGameId, currentUserId);
-      }, RECONNECT_DELAY);
-    }
-  });
-  
-  // Connection error
-  socket.addEventListener('error', (error) => {
-    log('error', `WebSocket error: ${error}`);
-  });
-  
-  // Listen for messages
-  socket.addEventListener('message', (event) => {
-    try {
-      const message = JSON.parse(event.data);
-      handleMessage(message);
-      heartbeat(); // Reset heartbeat timer when message is received
-    } catch (error) {
-      log('error', `Error parsing message: ${error}`);
-    }
-  });
-}
-
-// Send message helper
-function sendMessage(data) {
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify(data));
-  } else {
-    log('error', 'WebSocket not connected');
-  }
-}
-
-// Handle incoming messages
-function handleMessage(message) {
-  const { type, data } = message;
-  
-  switch (type) {
-    case 'initGame':
-      gameConfig = data.gameConfig;
-      gameState = data.gameState;
-      log('receive', data);
-      break;
-      
-    case 'joinedGame':
-      playerType = data.playerType;
-      log('receive', data);
-      log('info', `You are playing as ${playerType}`);
-      document.getElementById('gameStatus').textContent = 'Joined game, waiting for opponent';
-      break;
-      
-    case 'playerJoined':
-      log('receive', data);
-      document.getElementById('gameStatus').textContent = 'Opponent joined, ready to start';
-      break;
-      
-    case 'readyToStart':
-      log('receive', data);
-      document.getElementById('gameStatus').textContent = 'Game ready! Press Start Game to begin';
-      break;
-      
-    case 'gameStarted':
-      log('receive', 'Game started');
-      gameStarted = true;
-      gameState.ended = false;
-      gameState.winner = null;
-      document.getElementById('gameStatus').textContent = 'Game in progress';
-      break;
-      
-    case 'gameStateUpdate':
-      gameState = data;
-      break;
-      
-    case 'gameOver':
-      log('receive', data);
-      gameStarted = false;
-      gameState.ended = true;
-      gameState.winner = data.winner;
-      
-      const winnerText = data.winner === 'mainPlayer' ? 'Player 1' : 'Player 2';
-      document.getElementById('gameStatus').textContent = `Game Over! ${winnerText} wins!`;
-      break;
-      
-    case 'playerDisconnected':
-      log('receive', data);
-      document.getElementById('gameStatus').textContent = 'Opponent disconnected!';
-      break;
-      
-    case 'gamePaused':
-      log('receive', data);
-      gameStarted = false;
-      document.getElementById('gameStatus').textContent = data.reason === 'playerDisconnected' ? 
-        'Game paused: Waiting for player to reconnect...' : 'Game paused';
-      break;
-      
-    case 'gameResumed':
-      log('receive', data);
-      gameStarted = true;
-      document.getElementById('gameStatus').textContent = 'Game in progress';
-      break;
-      
-    case 'reconnectedToGame':
-      log('receive', data);
-      playerType = data.playerType;
-      gameState = data.gameState;
-      document.getElementById('gameStatus').textContent = 'Reconnected to game!';
-      gameStarted = !data.gameState.ended;
-      break;
-      
-    case 'playerReconnected':
-      log('receive', data);
-      document.getElementById('gameStatus').textContent = 'Opponent reconnected, game continuing...';
-      break;
-      
-    case 'error':
-      log('error', data.message);
-      break;
-      
-    default:
-      log('warn', `Unknown message type: ${type}`);
-  }
-}
-
-// Start rendering loop
-renderGame();
-
-// Start game loop
-gameLoop();
-
-// Keyboard event listeners
-document.addEventListener('keydown', (event) => {
-  if (event.key.toLowerCase() === 'w') {
-    keyState.w = true;
-  }
-  if (event.key.toLowerCase() === 's') {
-    keyState.s = true;
-  }
-  
-  // Prevent scrolling if using game controls
-  if(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'w', 's'].includes(event.key.toLowerCase())) {
-    event.preventDefault();
-  }
-});
-
-document.addEventListener('keyup', (event) => {
-  if (event.key.toLowerCase() === 'w') keyState.w = false;
-  if (event.key.toLowerCase() === 's') keyState.s = false;
-});
-
-// Update mouse controls for vertical movement:
-canvas.addEventListener('mousemove', (event) => {
-  if (!gameStarted || gameState.ended || !playerType || 
-      socket?.readyState !== WebSocket.OPEN ||
-      !document.getElementById('useMouseControl')?.checked) {
+// Process keyboard and mouse input
+function processInput() {
+  if (!gameStarted || !gameState?.inProgress || !playerType || !connected) {
     return;
   }
   
-  const rect = canvas.getBoundingClientRect();
-  const mouseY = event.clientY - rect.top;
+  let paddleMoved = false;
+  let currentPosition = playerType === 'mainPlayer' ? 
+      gameState.paddles.left : gameState.paddles.right;
   
-  // Only send updates when the mouse position changes
-  if (mouseY !== lastPaddlePosition) {
-    // Update local state first for immediate visual feedback
-    if (playerType === 'mainPlayer') {
-      gameState.paddles.left = mouseY;
-    } else {
-      gameState.paddles.right = mouseY;
-    }
-    
-    // Then send to server
-    sendMessage({
-      type: 'paddleMove',
-      position: mouseY
-    });
-    lastPaddlePosition = mouseY;
+  const originalPosition = currentPosition;
+  
+  // Apply keyboard input (W and S for vertical movement)
+  const moveAmount = gameConfig.paddleSpeed;
+  
+  if (keyState.w) {
+    currentPosition -= moveAmount;
+    paddleMoved = true;
   }
-});
-
-// UI Event listeners
-document.getElementById('connect').addEventListener('click', () => {
-  const gameId = document.getElementById('gameId').value;
-  const userId = document.getElementById('userId').value;
-  connectWebSocket(gameId, userId);
-});
-
-document.getElementById('disconnect').addEventListener('click', () => {
-  if (socket) {
-    socket.close(1000, "Manual disconnect");
-    log('info', 'Manually disconnected');
-    gameStarted = false;
+  if (keyState.s) {
+    currentPosition += moveAmount;
+    paddleMoved = true;
   }
-});
-
-document.getElementById('joinGame').addEventListener('click', () => {
-  sendMessage({ type: 'joinGame' });
-  log('emit', 'joinGame event sent');
-});
-
-document.getElementById('startGame').addEventListener('click', () => {
-  sendMessage({ type: 'startGame' });
-  log('emit', 'startGame event sent');
-});
-
-document.getElementById('paddleMove').addEventListener('click', () => {
-  const position = Math.floor(Math.random() * canvas.width);
+  
+  // Keep paddle within bounds
+  const paddleHalfHeight = gameConfig.paddleHeight / 2;
+  currentPosition = Math.max(paddleHalfHeight, 
+             Math.min(100 - paddleHalfHeight, currentPosition));
   
   // Update local state first
   if (playerType === 'mainPlayer') {
-    gameState.paddles.down = position;
-  } else if (playerType === 'secondPlayer') {
-    gameState.paddles.up = position;
+    gameState.paddles.left = currentPosition;
+  } else {
+    gameState.paddles.right = currentPosition;
   }
   
-  sendMessage({ 
-    type: 'paddleMove', 
-    position: position 
+  // Send update to server
+  if (paddleMoved && currentPosition !== lastPaddlePosition) {
+    sendMessage({
+      type: 'paddleMove',
+      position: currentPosition
+    });
+    lastPaddlePosition = currentPosition;
+  }
+}
+
+// Send WebSocket message
+function sendMessage(data) {
+  if (!connected || !socket || socket.readyState !== WebSocket.OPEN) return;
+  
+  try {
+    socket.send(JSON.stringify(data));
+    logEvent('Sent', data.type);
+  } catch (err) {
+    logEvent('Send error', err.message);
+  }
+}
+
+// Update UI based on game state
+function updateUIState() {
+  const isConnected = connected && socket?.readyState === WebSocket.OPEN;
+  
+  // Connection buttons
+  connectButton.disabled = isConnected;
+  disconnectButton.disabled = !isConnected;
+  
+  // Game control buttons
+  joinGameButton.disabled = !isConnected || playerType;
+  startGameButton.disabled = !isConnected || !playerType || gameStarted;
+  pauseGameButton.disabled = !isConnected || !gameStarted || !gameState?.inProgress;
+  cancelGameButton.disabled = !isConnected || !gameStarted;
+}
+
+// Set up all event listeners
+function setupEventListeners() {
+  // Connection buttons
+  connectButton.addEventListener('click', connectWebSocket);
+  disconnectButton.addEventListener('click', disconnectWebSocket);
+  
+  // Game control buttons
+  joinGameButton.addEventListener('click', () => {
+    if (!connected) return;
+    sendMessage({ type: 'joinGame' });
   });
   
-  lastPaddlePosition = position;
-  log('emit', `paddleMove event sent with position: ${position}`);
-});
+  startGameButton.addEventListener('click', () => {
+    if (!connected || !playerType) return;
+    sendMessage({ type: 'startGame' });
+  });
+  
+  pauseGameButton.addEventListener('click', () => {
+    if (!connected || !gameStarted) return;
+    sendMessage({ type: 'pauseGame' });
+  });
+  
+  cancelGameButton.addEventListener('click', () => {
+    if (!connected || !gameStarted) return;
+    sendMessage({ type: 'cancelGame' });
+  });
+  
+  // Keyboard controls
+  document.addEventListener('keydown', (event) => {
+    if (event.key.toLowerCase() === 'w') keyState.w = true;
+    if (event.key.toLowerCase() === 's') keyState.s = true;
+    
+    // Prevent scrolling with game keys
+    if (['w', 's', ' ', 'arrowup', 'arrowdown'].includes(event.key.toLowerCase())) {
+      event.preventDefault();
+    }
+  });
+  
+  document.addEventListener('keyup', (event) => {
+    if (event.key.toLowerCase() === 'w') keyState.w = false;
+    if (event.key.toLowerCase() === 's') keyState.s = false;
+  });
+  
+  // Mouse controls
+  canvas.addEventListener('mousemove', (event) => {
+    if (!gameStarted || !gameState?.inProgress || !playerType || !connected || !useMouseControl.checked) {
+      return;
+    }
+    
+    // Convert mouse position to percentage
+    const paddlePosition = renderer.handleMouseMove(event);
+      // Update local state
+      if (playerType === 'mainPlayer') {
+        gameState.paddles.left = paddlePosition;
+      } else {
+        gameState.paddles.right = paddlePosition;
+      }
+      
+      // Send to server
+      sendMessage({
+        type: 'paddleMove',
+        position: paddlePosition
+      });
+  });
+  
+  // Handle window resize
+  window.addEventListener('resize', () => {
+    if (renderer) {
+      setTimeout(() => {
+        renderer.setupResponsiveCanvas();
+      }, 100);
+    }
+  });
+  
+  // Update UI state initially
+  updateUIState();
+}
 
-document.getElementById('pauseGame').addEventListener('click', () => {
-  sendMessage({ type: 'pauseGame' });
-  log('emit', 'pauseGame event sent');
-  gameStarted = false;
-});
+// Start the application
+document.addEventListener('DOMContentLoaded', setupEventListeners);
+logEvent('Game interface loaded');
 
-// Add window focus/blur handling for key states
-window.addEventListener('blur', () => {
-  // Clear all key states when window loses focus
-  keyState.a = false;
-  keyState.d = false;
-});
 
-// Add periodic ping to check connection health
-setInterval(() => {
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    // Send a ping message through the WebSocket
-    sendMessage({ type: 'ping', timestamp: Date.now() });
+
+function logEvent(event, data) {
+  const date = new Date();
+  const timeStr = date.toLocaleTimeString();
+  const eventElement = document.createElement('div');
+  eventElement.innerHTML = `<span style="color:#9af">[${timeStr}]</span> <span style="color:#fd7">${event}</span>`;
+  
+  if (data) {
+    const dataStr = typeof data === 'object' ? JSON.stringify(data) : data;
+    eventElement.innerHTML += `: <span style="color:#aaa">${dataStr}</span>`;
   }
-}, 5000);
+  
+  eventsContainer.appendChild(eventElement);
+  eventsContainer.scrollTop = eventsContainer.scrollHeight;
+}
