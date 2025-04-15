@@ -56,12 +56,7 @@ export const createGame = async function(req, reply) {
         tournementId,
       }
     });
-    if (playerTwoId !== 0) {
-      fastify.io.to(`user_${playerTwoId}`).emit('gameInvitation', {
-        gameId: game.id,
-        invitedBy: playerOneId
-      });
-    }
+    // NEED TO send notification to the other player !!!!!!
     return reply.code(201).send(game);
   } catch (error) {
     fastify.log.error(`Error creating game between : ${playerOneId} and ${playerTwoId}, ${error.message}`);

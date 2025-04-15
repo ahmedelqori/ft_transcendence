@@ -1,34 +1,83 @@
-import { defaultGameConfig, gameState } from "./gameConfig.js";
+import { defaultGameConfig, gameState, boardCenter, Game } from "./gameConfig.js";
 import {fastify} from '../server.js';
+import { validateSocketConnection } from "../middlewares/auth.middleware.js";
+const buttomBoard = 0
+const topBoard = 100
+const leftBoard = 0
+const rightBoard = 100
+let intervalId = null;
+
+
+export function startGameLoop(broadcastDataToPlayers) {
+  if (intervalId) 
+    return;
+  const frameTime = 1000 / defaultGameConfig.FPS;
+  gameState.state = Game.IN_PLAY;
+  intervalId = setInterval(() => {
+    if (gameState.state != Game.IN_PLAY)
+      return;
+    updateBallPosition();
+    broadcastDataToPlayers(gameState);
+  }, frameTime);
+}
+
+export function stopGameLoop() {
+    clearInterval(intervalId);
+    intervalId = null;
+}
+export function reconnecting(){
+  if (intervalId){
+    stopGameLoop();
+    gameState.state = Game.RECONNECT;
+  }
+}
+export function pauseGame() {
+  if (intervalId){
+    stopGameLoop();
+    gameState.state = Game.PAUSED;
+  }
+}
+
+export function resumeGame(onUpdate) {
+  if (!intervalId) {
+    startGameLoop(onUpdate);
+  }
+}
+
+
+
+
+
+
+
+// ************************** GAMEPLAY CORE LOGIQUE **************************
 
 export function resetBallAndPaddles() {
   gameState.ball = {
-    x: gameState.boardWidth / 2,
-    y: gameState.boardHeight / 2,
+    x: boardCenter,
+    y: boardCenter,
     xDir: (Math.random() > 0.5 ? 1 : -1) * defaultGameConfig.ballSpeed,
     yDir: (Math.random() > 0.5 ? 1 : -1) * defaultGameConfig.ballSpeed
   };
-  // Reset paddles to middle position (vertically centered)
-  gameState.paddles.left = gameState.boardHeight / 2;
-  gameState.paddles.right = gameState.boardHeight / 2;
+  gameState.paddles.left = boardCenter;
+  gameState.paddles.right = boardCenter;
 }
 
 export function updateBallPosition() {
-  if (!gameState.inProgress)
+  if (gameState.state != Game.IN_PLAY)
     return;
   gameState.ball.x += gameState.ball.xDir;
   gameState.ball.y += gameState.ball.yDir;
 
   const ballRadius = defaultGameConfig.ballSize / 2;
   
-  // Handle top and bottom wall collisions
-  if (gameState.ball.y - ballRadius <= 0) {
-    gameState.ball.yDir = -gameState.ball.yDir;
+  if (gameState.ball.y - ballRadius <= buttomBoard) {
+    gameState.ball.yDir = Math.abs(gameState.ball.yDir);
     gameState.ball.y = ballRadius;
   }
-  else if (gameState.ball.y + ballRadius >= gameState.boardHeight) {
-    gameState.ball.yDir = -gameState.ball.yDir;
-    gameState.ball.y = gameState.boardHeight - ballRadius;
+  else if (gameState.ball.y + ballRadius >= topBoard) {
+    gameState.ball.yDir = -Math.abs(gameState.ball.yDir);
+    gameState.ball.y = topBoard - ballRadius;
   }
   
   checkPaddleCollisions();
@@ -37,19 +86,17 @@ export function updateBallPosition() {
 
 export function checkPaddleCollisions() {
   const leftPaddleX = defaultGameConfig.leftPaddleX;
-  const rightPaddleX = defaultGameConfig.rightPaddleX;
+  const rightPaddleX = defaultGameConfig.rightPaddleX - defaultGameConfig.paddleWidth;
   const ballRadius = defaultGameConfig.ballSize / 2;
   const paddleHalfHeight = defaultGameConfig.paddleHeight / 2;
   
-  // Left paddle collision
-  const collisionLeftPaddle = gameState.ball.xDir < 0 &&
+  const collisionLeftPaddle = gameState.ball.xDir < leftBoard &&
     gameState.ball.x - ballRadius <= leftPaddleX + defaultGameConfig.paddleWidth && 
     gameState.ball.x + ballRadius >= leftPaddleX &&
     gameState.ball.y + ballRadius >= gameState.paddles.left - paddleHalfHeight && 
     gameState.ball.y - ballRadius <= gameState.paddles.left + paddleHalfHeight;
     
-  // Right paddle collision
-  const collisionRightPaddle = gameState.ball.xDir > 0 &&
+  const collisionRightPaddle = gameState.ball.xDir > leftBoard &&
     gameState.ball.x + ballRadius >= rightPaddleX && 
     gameState.ball.x - ballRadius <= rightPaddleX + defaultGameConfig.paddleWidth &&
     gameState.ball.y + ballRadius >= gameState.paddles.right - paddleHalfHeight && 
@@ -61,85 +108,51 @@ export function checkPaddleCollisions() {
     updateAfterPaddleCollision('right');
 }
 
-function updateAfterPaddleCollision(paddleType) {
+export function updateAfterPaddleCollision(paddleType) {
   const paddleHalfHeight = defaultGameConfig.paddleHeight / 2;
   const ballRadius = defaultGameConfig.ballSize / 2;
   const paddlePos = paddleType === 'left' ? gameState.paddles.left : gameState.paddles.right;
-  const moveSign = paddleType === 'left' ? 1 : -1;
   
-  // Calculate bounce angle based on where ball hits the paddle (vertical position)
-  const collisionPos = (gameState.ball.y - (paddlePos - paddleHalfHeight)) / defaultGameConfig.paddleHeight;
-  const bounceAngle = (collisionPos - 0.5) * Math.PI * 0.7;
+  let relativeIntersection = (gameState.ball.y - (paddlePos - paddleHalfHeight)) / defaultGameConfig.paddleHeight;
+  relativeIntersection = Math.max(0, Math.min(1, relativeIntersection));
   
-  const speed = Math.sqrt(gameState.ball.xDir ** 2 + gameState.ball.yDir ** 2);
-  const newSpeed = Math.min(speed + 0.5, defaultGameConfig.maxBallSpeed);
+  const bounceAngle = (relativeIntersection - 0.5) * Math.PI * 0.6;
   
-  // Calculate ball position after bounce
-  const ballX = paddleType === 'left' 
-    ? defaultGameConfig.leftPaddleX + defaultGameConfig.paddleWidth + ballRadius
-    : defaultGameConfig.rightPaddleX - ballRadius;
+  const aspectAdjustedBounceAngle = Math.atan(Math.tan(bounceAngle) * defaultGameConfig.ratio);
   
-  // Update ball direction - key change: x and y are swapped compared to vertical version
-  gameState.ball.yDir = Math.sin(bounceAngle) * newSpeed;
-  gameState.ball.xDir = moveSign * Math.abs(Math.cos(bounceAngle) * newSpeed);
-  gameState.ball.x = ballX;
+  const incomingAngle = Math.atan2(gameState.ball.yDir, gameState.ball.xDir);
+  const currentSpeed = Math.sqrt(gameState.ball.xDir * gameState.ball.xDir + gameState.ball.yDir * gameState.ball.yDir);
+  const newSpeed = Math.min(currentSpeed * 1.05, defaultGameConfig.maxBallSpeed);
+  
+  const direction = paddleType === 'left' ? 1 : -1;
+  
+  const adjustedAngle = aspectAdjustedBounceAngle * 0.7 + (incomingAngle * 0.3 * (direction < 0 ? -1 : 1));
+  
+  gameState.ball.xDir = direction * Math.cos(adjustedAngle) * newSpeed;
+  
+  gameState.ball.yDir = Math.sin(adjustedAngle) * newSpeed * defaultGameConfig.ratio;
+  
+  gameState.ball.x = paddleType === 'left' 
+    ? defaultGameConfig.leftPaddleX + defaultGameConfig.paddleWidth + ballRadius + 0.1
+    : defaultGameConfig.rightPaddleX - ballRadius - 0.1;
 }
 
 export function checkScoring() {
   const ballRadius = defaultGameConfig.ballSize / 2;
   
-  // Ball goes past left edge - second player scores
-  if (gameState.ball.x - ballRadius < 0) {
+  if (gameState.ball.x - ballRadius < leftBoard) {
     gameState.score.secondPlayer += 1;
     resetBallAndPaddles();
   } 
-  // Ball goes past right edge - main player scores
-  else if (gameState.ball.x + ballRadius > gameState.boardWidth) {
+  else if (gameState.ball.x + ballRadius > rightBoard) {
     gameState.score.mainPlayer += 1;
     resetBallAndPaddles();
   }
   
   if (gameState.score.mainPlayer === defaultGameConfig.scoreToWin || 
       gameState.score.secondPlayer === defaultGameConfig.scoreToWin) {
-    gameState.ended = true;
+    gameState.state = Game.FINISHED;
     gameState.winner = gameState.score.mainPlayer === defaultGameConfig.scoreToWin ? 'mainPlayer' : 'secondPlayer';
-  }
-}
-
-
-let intervalId = null;
-
-export function startGameLoop(gameEvent) {
-  if (intervalId) 
-    return;
-  const frameTime = 1000 / defaultGameConfig.FPS;
-  gameState.inProgress = true;
-  function gameLoop() {
-    if (!gameState.inProgress)
-      return;
-    updateBallPosition();
-    gameEvent(gameState);
-  }
-  intervalId = setInterval(gameLoop, frameTime);
-}
-
-export function stopGameLoop() {
-  if (intervalId) {
-    clearInterval(intervalId);
-    intervalId = null;
-  }
-  gameState.inProgress = false;
-}
-
-export function pauseGame() {
-  gameState.inProgress = false;
-}
-
-export function resumeGame(onUpdate = null) {
-  if (!intervalId) {
-    startGameLoop(defaultGameConfig.FPS, onUpdate);
-  } else {
-    gameState.inProgress = true;
   }
 }
 
@@ -147,18 +160,15 @@ export function updatePaddlePosition(playerType, position) {
   if (typeof position !== 'number' || isNaN(position)) {
     return false;
   }
-  
+  let newPosition = position;
   const paddleHalfHeight = defaultGameConfig.paddleHeight / 2;
   
-  let newPosition = position;
-  // Keep paddle within vertical bounds
   if (newPosition < paddleHalfHeight) {
     newPosition = paddleHalfHeight;
-  } else if (newPosition > gameState.boardHeight - paddleHalfHeight) {
-    newPosition = gameState.boardHeight - paddleHalfHeight;
+  } else if (newPosition > topBoard - paddleHalfHeight) {
+    newPosition = topBoard - paddleHalfHeight;
   }
   
-  // Update the appropriate paddle
   if (playerType === 'mainPlayer') {
     gameState.paddles.left = newPosition;
     return true;

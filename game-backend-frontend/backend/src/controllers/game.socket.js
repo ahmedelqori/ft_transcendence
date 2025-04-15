@@ -5,74 +5,62 @@ import {
   updatePaddlePosition, 
   resetBallAndPaddles 
 } from '../gameLogic/gameplay.js';
-import {defaultGameConfig, gameState} from '../gameLogic/gameConfig.js';
+import {defaultGameConfig, gameState, defaultGameRoom, gameRooms, connections, WS_CLOSE} from '../gameLogic/gameConfig.js';
 import {websocketRouteSchema} from '../routes/game.routes.js'
+import { checkUserGamePermission, sendErrorAndClose, hasTwoConnectedPlayers, Message, runHeartBeatMechanism } from "./game.socket.utils.js";
 
-const gameRooms = new Map();
-const connections = new Map(); 
-const defaultGameRoom = { 
-  gameId: 0, 
-  players: {},
-  disconnectedPlayers: {},
-  gameStarted: false,
-  properlyEnded: false,
-  gamePaused: false,
-  maxReconnectTime: 100000,
-  disconnectTimer: null
-};
+
+
 
 export async function setupWebSocketHandlers() {
   fastify.register(async function (fastify) {
     fastify.log.info("Registering WebSocket handlers");
-    fastify.get('/ws/game/:gameId/:userId', { websocket: true, schema: websocketRouteSchema }, (socket, req) => {
+    fastify.get('/ws/game/:gameId/:userId', { websocket: true, schema: websocketRouteSchema }, async (socket, req) => {
+      socket.send(Message('connected', {message: 'You are connected'}))
       const gameId = parseInt(req.params.gameId);
       const userId = parseInt(req.params.userId);
       fastify.log.info(`WebSocket connection attempt: gameId=${gameId}, userId=${userId}`);
       if (isNaN(gameId) || isNaN(userId)) {
-        socket.send(JSON.stringify({
-          type: 'error',
-          message: 'Invalid gameId or userId'
-        }));
-        socket.close();
+        sendErrorAndClose(socket, "Invalid gameId or userId", WS_CLOSE.POLICY_VIOLATION);
         return;
       }
-      
-      if (!connections.has(gameId)) {
-        connections.set(gameId, new Map());
-      }
-      connections.get(gameId).set(userId, socket);
-      fastify.log.info(`User ${userId} connected to game ${gameId}`);
-      
-      // *************************** PING PONG MECHANISM TO CHECK FOR CLIENT DISCONNECTION *************************** 
 
-      socket.isAlive = true;
-      const pingInterval = setInterval(() => {
-        if (socket.isAlive === false) {
-          clearInterval(pingInterval);
-          socket.terminate();
+      try {
+        const hasPermission = await checkUserGamePermission(gameId, userId);
+        if (!hasPermission) {
+          fastify.log.warn(`User ${userId} attempted to join game ${gameId} without permission`);
+          sendErrorAndClose(socket, "You don't have permission to join this game", WS_CLOSE.POLICY_VIOLATION);
           return;
         }
-        socket.isAlive = false;
-        try {
-          socket.ping();
-        } catch (err) {
-          fastify.log.error(`Error sending ping to user ${userId}: ${err.message}`);
-        }
-      }, 5000);
+      } catch (error) {
+          fastify.log.error(`Error checking permissions: ${error.message}`);
+          sendErrorAndClose(socket, "Error verifying permissions", WS_CLOSE.INTERNAL_ERROR);
+          return;
+      }
+
+      if (!connections.has(gameId)) {
+        connections.set(gameId, new Map([[userId, socket]]));
+      }
+      else if(hasTwoConnectedPlayers(gameId)){
+        sendErrorAndClose(socket, "Game room is full", WS_CLOSE.POLICY_VIOLATION);
+        return;
+      }
+      else{
+        connections.get(gameId).set(userId, socket);
+      }
+      fastify.log.info(`User ${userId} connected to game ${gameId}`);
       
-      socket.on('pong', () => {
-        socket.isAlive = true;
-      });
+
+
+      // *************************** PING PONG MECHANISM TO CHECK FOR CLIENT DISCONNECTION *************************** 
+
+      const pingInterval = runHeartBeatMechanism(socket);
       
       // *************************** SEND INITIAL DATA *************************** 
-
-      socket.send(JSON.stringify({
-        type: 'initGame',
-        data: {
-          gameConfig: defaultGameConfig,
-          gameState: gameState
-        }
-      }));
+      socket.send(Message('initGame', {
+        gameConfig: defaultGameConfig,
+        gameState: gameState
+      }))
       
       // *************************** HANDLE INCOMMING MESSAGES *************************** 
       socket.on('message', (message) => {
@@ -81,15 +69,13 @@ export async function setupWebSocketHandlers() {
           handleMessage(gameId, userId, data, socket);
         } catch (err) {
           fastify.log.error(`Error parsing message: ${err}`);
-          socket.send(JSON.stringify({
-            type: 'error',
-            message: 'Invalid message format'
-          }));
+          socket.send(Message('error', {message:'Invalid message format'}));
         }
       });
       
       // *************************** HANDLE CLOSING SOCKET FROM CLIENT *************************** 
-      socket.on('close', () => {
+      socket.on('close', (event) => {
+        fastify.log.warn(`socket close event triggred with code ${event}`)
         clearInterval(pingInterval);
         handleDisconnect(gameId, userId);
       });
@@ -122,17 +108,14 @@ function handleMessage(gameId, userId, data, socket) {
       break;
     default:
       fastify.log.warn(`Unknown message type: ${data.type}`);
-      socket.send(JSON.stringify({
-        type: 'error',
-        message: 'Unknown message type'
-      }));
+      socket.send(Message('error', {message:'Unknown message type'}));
   }
 }
 
 // *************************** HANDLE RECONNECTION AFTER DISCONNECT *************************** 
 
 const handleReconnection = (gameId, userId, gameRoom) => {
-  fastify.log.info(`Player ${userId} reconnected to game ${gameId} after ${reconnectTime}ms`);      
+  // fastify.log.info(`Player ${userId} reconnected to game ${gameId} after ${reconnectTime}ms`);      
   gameRoom.players[userId] = {
     id: userId,
     playerType: disconnectedPlayer.playerType
@@ -195,6 +178,8 @@ function handleJoinGame(gameId, userId) {
       gameRoom.players[userId] = {
         id: userId,
         playerType: playerType
+
+        
       };
       fastify.log.info(`Player ${userId} joined game ${gameId}`);      
       broadcast(gameId, userId, {
