@@ -9,7 +9,7 @@ const UserPanel = defineComponent<void>({
     return createElement(
       "div",
       {
-        class: ["w-full", "flex", "flex-row", "gap-4"],
+        class: ["w-full", "flex", "flex-row", "gap-4","items-center"],
       },
       [createElement(Logo), createElement(Searchbar), createElement(Profile)]
     );

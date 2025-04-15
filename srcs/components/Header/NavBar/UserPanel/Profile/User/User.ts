@@ -12,8 +12,8 @@ const User = defineComponent<void>({
         class: [
           "w-[60px]",
           "h-[60px]",
-          "min-w-[60px]",
-          "min-h-[60px]",
+          "max-md:w-[46px]",
+          "max-md:h-[46px]",
           "rounded-full",
           "flex",
           "items-center",

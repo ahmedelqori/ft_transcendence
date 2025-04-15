@@ -38,7 +38,7 @@ const Friend = defineComponent<FriendState, FriendProps>({
       "div",
       {
         class: [
-          "w-[100%]",
+          "w-full",
           "h-[70px]",
           "flex-row",
           "justify-between",
@@ -84,9 +84,21 @@ const Friend = defineComponent<FriendState, FriendProps>({
               createElement("p", { class: ["text-white"] }, [
                 this.props.username,
               ]),
-              createElement("p", { class: ["text-sm"] }, [
-                "Rally your way to victory!",
-              ]),
+              createElement(
+                "p",
+                {
+                  class: [
+                    "text-sm",
+                    "hidden",
+                    "md:block",
+                    "truncate",
+                    "overflow-hidden",
+                    "whitespace-nowrap",
+                    "max-w-xs",
+                  ],
+                },
+                ["Rally your way to victory!"]
+              ),
             ]),
           ]
         ),

@@ -79,6 +79,7 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
                 "rounded-[20px]",
                 "hover:border-[#ddf247]",
                 "hover:text-[#ddf247]",
+                // "max-md:hidden",
               ],
             },
             [

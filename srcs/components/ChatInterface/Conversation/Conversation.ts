@@ -37,7 +37,7 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
         class: [
           "w-[70%]",
           "h-full",
-          "max-h-[750px]",
+          "max-h-[860px]",
           this.props.username != "" ? "justify-between" : "justify-center",
         ],
       },
@@ -88,7 +88,7 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
                   "max-w-[500px]",
                   "text-[var(--light-grey)]",
                   "opacity-[50%]",
-                  "my-4",
+                  "mt-4",
                 ],
               },
               [

@@ -103,15 +103,7 @@ const Notifications = defineComponent<NotificationsState>({
         createElement(
           "div",
           {
-            class: [
-              "p-2",
-              "border",
-              "h-[40px]",
-              "w-[40px]",
-              "border-1",
-              "rounded-full",
-              "border-[#878787]",
-            ],
+            class: ["p-2", "h-[40px]", "w-[40px]"],
             on: {
               click: this.handleShowNotification.bind(this),
             },

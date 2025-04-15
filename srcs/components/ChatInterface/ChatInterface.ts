@@ -24,12 +24,13 @@ const ChatInterface = defineComponent<ChatInterfaceState>({
           "flex",
           "z-10",
           "gap-4",
-          "h-full",
-          "w-[90%]",
+          "w-full",
           "relative",
           "border-2",
-          "py-[30px]",
-          "px-[25px]",
+          "py-8",
+          "px-6",
+          "max-h-[860px]",
+          "max-lg:max-h-[90%]",
           "rounded-[30px]",
           "border-[#878787]",
           "border-opacity-[30%]",
@@ -37,13 +38,11 @@ const ChatInterface = defineComponent<ChatInterfaceState>({
       },
       [
         createElement(Friends, {
-          class: ["w-full"],
           setShowSelectedUser: (user: string) => {
             this.updateState({ showSelectedUser: user });
           },
         }),
         createElement(Conversation, {
-          class: ["w-full"],
           username: this.state.showSelectedUser,
         }),
       ]

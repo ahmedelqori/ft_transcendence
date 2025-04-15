@@ -10,11 +10,13 @@ const SideBar = defineComponent<void>({
       {
         class: [
           "w-fit",
+          "h-5/6",
           "shrink-0",
           "flex",
           "flex-col",
           "justify-around",
           "items-start",
+          "self-center",
           "max-lg:w-full",
           "max-lg:py-4",
           "max-lg:h-fit",

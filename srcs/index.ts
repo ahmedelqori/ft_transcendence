@@ -46,19 +46,15 @@ const App = defineComponent<AppState>({
               "flex",
               "w-full",
               "flex-1",
-              "gap-4",
+              "gap-16",
               "flex-col",
               "lg:flex-row",
+              "max-lg:gap-4",
               "max-lg:flex-col",
-              "max-lg:flex-col-reverse"
+              "max-lg:flex-col-reverse",
             ],
           },
-          [
-            createElement(SideBar),
-            createElement("div", { class: ["flex-1", "min-w-0"] }, [
-              "Dashboard",
-            ]),
-          ]
+          [createElement(SideBar), createElement(RouterOutlet)]
         ),
       ]
     );

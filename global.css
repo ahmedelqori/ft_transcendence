@@ -56,27 +56,9 @@ body {
   background-color: var(--light-yellow);
 }
 
-.containerd {
-  width: 90%;
-  height: 90%;
-  margin: auto;
-  margin-top: 50px;
-}
-
-.container-grid {
-  display: grid;
-  grid-template-columns: 1fr 3fr repeat(3, 0);
-  grid-template-rows: 1fr repeat(4, 0);
-  grid-column-gap: 0px;
-  grid-row-gap: 0px;
-}
-
-.containerd-grid-sidebar {
-  grid-area: 1 / 1 / 2 / 2;
-}
-
-.containerd-grid-router {
-  grid-area: 1 / 2 / 2 / 3;
+#router-outlet {
+  flex: 1;
+  min-width: 0;
 }
 
 #root::-webkit-scrollbar {

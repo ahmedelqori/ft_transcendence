@@ -31,7 +31,7 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
         "aes-arg",
         "mbentahi",
         "baarif",
-        "htalhao"
+        "htalhao",
       ],
       selectedUser: null,
       option: null,
@@ -69,7 +69,17 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
     return createElement(
       "div",
       {
-        class: ["w-[30%]", "h-full", "gap-4", "max-h-[750px]", "h-[750px]"],
+        class: [
+          // "w-full",
+          // "sm:w-full",
+          // "md:w-[50%]",
+          "lg:w-[40%]",
+          "xl:w-[30%]",
+          "h-full",
+          "gap-4",
+          "flex",
+          "flex-col",
+        ],
       },
       [
         createElement(Search, {
@@ -86,7 +96,11 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
               "px-1",
               "mb-auto",
               "gap-3",
-              "overflow-scroll",
+              "flex-1",
+              "flex",
+              "flex-col",
+              "justify-start",
+              "overflow-y-auto",
               "overflow-x-hidden",
               "[&::-webkit-scrollbar]:w-1",
               "[&::-webkit-scrollbar-track]:rounded-full",

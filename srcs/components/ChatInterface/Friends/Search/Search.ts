@@ -21,7 +21,14 @@ const Search = defineComponent<SearchState, SearchProps>({
     return createElement(
       "div",
       {
-        class: ["relative", "flex", "items-center", "flex-row", "mb-2"],
+        class: [
+          "relative",
+          "w-full",
+          "flex",
+          "items-center",
+          "flex-row",
+          "mb-2",
+        ],
       },
       [
         createElement("input", {
