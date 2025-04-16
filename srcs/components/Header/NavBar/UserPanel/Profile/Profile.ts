@@ -16,7 +16,9 @@ const Profile = defineComponent<void>({
       [
         createElement(Notifications),
         createElement(User),
-        createElement("p", { class: ["hidden", "lg:block"] }, ["sajaite"]),
+        createElement("p", { class: ["hidden", "text-xl", "lg:block"] }, [
+          "sajaite",
+        ]),
       ]
     );
   },

@@ -42,7 +42,7 @@ const Friend = defineComponent<FriendState, FriendProps>({
           "h-[70px]",
           "flex-row",
           "justify-between",
-          "text-[#878787]",
+          "text-[var(--light-grey)]",
           "hover:bg-[#878787]",
           "hover:bg-opacity-[10%]",
           "p-2",
@@ -68,7 +68,7 @@ const Friend = defineComponent<FriendState, FriendProps>({
         createElement(
           "div",
           {
-            class: ["flex-row", "gap-3", "z-20"],
+            class: ["flex-row", "gap-3", "z-20", "text-xl"],
             on: {
               click: () => {
                 this.props.setSelectedFriend(this.props.username);
@@ -78,10 +78,16 @@ const Friend = defineComponent<FriendState, FriendProps>({
           [
             createElement("img", {
               src: "../../../../../../public/assets/afanidi.png",
-              class: ["w-[60px]", "h-[60px]", "rounded-[50%]"],
+              class: [
+                "w-[60px]",
+                "h-[60px]",
+                "rounded-[50%]",
+                "max-lg:h-[30px]",
+                "max-lg:w-[30px]",
+              ],
             }),
             createElement("div", { class: "items-start" }, [
-              createElement("p", { class: ["text-white"] }, [
+              createElement("p", { class: ["text-white", "max-lg:text-sm"] }, [
                 this.props.username,
               ]),
               createElement(
@@ -89,8 +95,7 @@ const Friend = defineComponent<FriendState, FriendProps>({
                 {
                   class: [
                     "text-sm",
-                    "hidden",
-                    "md:block",
+                    "max-lg:text-xs",
                     "truncate",
                     "overflow-hidden",
                     "whitespace-nowrap",
@@ -105,6 +110,7 @@ const Friend = defineComponent<FriendState, FriendProps>({
         createElement(
           "div",
           {
+            class: ["max-lg:text-sm"],
             on: {
               click: () => {
                 this.props.setSelectedFriend(this.props.username);

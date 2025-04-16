@@ -24,6 +24,7 @@ const SentMessage = defineComponent<void, { message: string }>({
           "rounded-bl-xl",
           "bg-[#ffffff]",
           "text-[#111111]",
+          "max-lg:text-xs",
         ],
       },
       [this.props.message]

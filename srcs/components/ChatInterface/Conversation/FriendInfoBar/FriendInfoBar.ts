@@ -33,7 +33,7 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
       [
         createElement("div", {}, [
           createElement("div", { class: ["gap-1", "items-start"] }, [
-            createElement("div", { class: ["text-2xl"] }, [
+            createElement("div", { class: ["text-2xl", "max-lg:text-base"] }, [
               this.props.username,
             ]),
             createElement(
@@ -41,6 +41,7 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
               {
                 class: [
                   "text-[#878787]",
+                  "max-lg:text-xs",
                   this.props.online
                     ? "text-[var(--light-yellow)]"
                     : "text-[var(--light-grey)]",
@@ -59,6 +60,7 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
                       : "bg-[var(--light-grey)]",
                     "right-[-20px]",
                     "top-[6px]",
+                    "max-lg:top-0",
                     "rounded-full",
                   ],
                 }),
@@ -73,20 +75,22 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
               class: [
                 "px-8",
                 "py-2",
+                "max-lg:px-3",
+                "max-lg:py-1",
                 "border-[2px]",
                 "items-center",
                 "border-white",
                 "rounded-[20px]",
                 "hover:border-[#ddf247]",
                 "hover:text-[#ddf247]",
-                // "max-md:hidden",
               ],
             },
             [
-              createElement("div", { class: ["flex-row", "gap-2"] }, [
-                createElement("i", { class: ["ph", "ph-play"] }),
-                "Let's play",
-              ]),
+              createElement(
+                "div",
+                { class: ["flex-row", "gap-2", "max-lg:text-xs"] },
+                [createElement("i", { class: ["ph", "ph-play"] }), "Let's play"]
+              ),
             ]
           ),
           createElement("i", {

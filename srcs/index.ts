@@ -35,7 +35,14 @@ const App = defineComponent<AppState>({
     return createElement(
       "div",
       {
-        class: ["h-full", "m-auto", "w-[95%]", "justify-start", "gap-4"],
+        class: [
+          "h-screen",
+          "m-auto",
+          "w-[95%]",
+          "justify-start",
+          "gap-4",
+          "max-lg:gap-6",
+        ],
       },
       [
         createElement(Header),
@@ -48,6 +55,7 @@ const App = defineComponent<AppState>({
               "flex-1",
               "gap-16",
               "flex-col",
+              "h-screen",
               "lg:flex-row",
               "max-lg:gap-4",
               "max-lg:flex-col",

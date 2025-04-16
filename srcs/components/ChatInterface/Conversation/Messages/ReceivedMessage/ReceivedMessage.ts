@@ -25,6 +25,7 @@ const ReceivedMessage = defineComponent<void, { message: string }>({
           "text-[14px]",
           "min-h-[auto]",
           "break-all",
+          "max-lg:text-xs",
         ],
       },
       [this.props.message]

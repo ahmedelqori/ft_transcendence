@@ -10,27 +10,43 @@ const Chat = defineComponent<void>({
     return createElement(
       "main",
       {
-        class: [
-          "flex",
-          "w-full",
-          "flex-col",
-          "gap-[20px]",
-          "items-start",
-        ],
+        class: ["flex", "w-full", "flex-col", "my-auto","gap-[20px]", "items-start"],
       },
       [
         createElement(
           "div",
           {
-            class: ["items-start", "max-lg:hidden", "w-[80%]", "justify-start"],
+            class: [
+              "items-start",
+              "max-lg:h-full",
+              "max-lg:hidden",
+              "w-[80%]",
+              "justify-start",
+              "max-xl:text-[14px]",
+              "max-xl:gap-3",
+            ],
           },
           [
             createElement(
               "div",
-              { class: ["flex-row", "gap-5", "text-[24px]"] },
+              {
+                class: [
+                  "flex-row",
+                  "gap-5",
+                  "max-xl:gap-2",
+                  "text-[24px]",
+                  "max-xl:text-[18px]",
+                ],
+              },
               [
                 createElement("i", {
-                  class: ["flex-row", "ph", "ph-chats", "text-[46px]"],
+                  class: [
+                    "flex-row",
+                    "ph",
+                    "ph-chats",
+                    "text-[46px]",
+                    "max-xl:text-[28px]",
+                  ],
                 }),
                 "Chat",
               ]

@@ -36,8 +36,9 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
       {
         class: [
           "w-[70%]",
-          "h-full",
-          "max-h-[860px]",
+          "h-[70vh]",
+          "max-md:h-[66vh]",
+          "max-lg:flex-1",
           this.props.username != "" ? "justify-between" : "justify-center",
         ],
       },

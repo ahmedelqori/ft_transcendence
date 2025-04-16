@@ -36,6 +36,7 @@ const SendMessage = defineComponent<SendState, SendProps>({
           "flex-row",
           "mb-2",
           "mt-6",
+          "max-lg:mb-0",
           "bg-[#878787]",
           "bg-opacity-[10%]",
           "rounded-[14px]",
@@ -69,6 +70,8 @@ const SendMessage = defineComponent<SendState, SendProps>({
             "text-[#878787]",
             "focus:outline-none",
             "border-opacity-[30%]",
+            "max-lg:h-[40px]",
+            "max-lg:text-sm",
           ],
         }),
         createElement("i", {

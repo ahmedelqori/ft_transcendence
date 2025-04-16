@@ -56,6 +56,12 @@ body {
   background-color: var(--light-yellow);
 }
 
+@media (max-width: 768px) {
+  #root::after {
+    display: none;
+  }
+}
+
 #router-outlet {
   flex: 1;
   min-width: 0;

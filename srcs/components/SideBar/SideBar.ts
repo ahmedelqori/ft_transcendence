@@ -17,6 +17,7 @@ const SideBar = defineComponent<void>({
           "justify-around",
           "items-start",
           "self-center",
+          "max-lg:mt-auto",
           "max-lg:w-full",
           "max-lg:py-4",
           "max-lg:h-fit",

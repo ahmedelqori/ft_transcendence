@@ -70,15 +70,17 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
       "div",
       {
         class: [
-          // "w-full",
-          // "sm:w-full",
-          // "md:w-[50%]",
           "lg:w-[40%]",
+          "max-lg:flex-1",
+          "min-h-auto",
+          "h-[70vh]",
+          "max-md:h-[66vh]",
           "xl:w-[30%]",
           "h-full",
           "gap-4",
           "flex",
           "flex-col",
+          "max-lg:gap-1",
         ],
       },
       [
@@ -93,12 +95,14 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
           {
             class: [
               "w-full",
+              "pr-4",
               "px-1",
               "mb-auto",
               "gap-3",
               "flex-1",
               "flex",
               "flex-col",
+              "max-lg:gap-1",
               "justify-start",
               "overflow-y-auto",
               "overflow-x-hidden",

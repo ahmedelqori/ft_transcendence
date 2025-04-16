@@ -47,12 +47,16 @@ const NavigationItem = defineComponent<void, NavigationItem>({
         },
         [
           createElement("i", {
-            class: ["ph", this.props.icon, "text-3xl"],
+            class: ["ph", this.props.icon, "text-3xl", "max-xl:text-[20px]"],
           }),
-          createElement("div", { class: ["hidden", "lg:block"] }, [
-            String(this.props.path).charAt(1).toUpperCase() +
-              String(this.props.path).slice(2),
-          ]),
+          createElement(
+            "div",
+            { class: ["hidden", "lg:block", "max-xl:text-[18px]"] },
+            [
+              String(this.props.path).charAt(1).toUpperCase() +
+                String(this.props.path).slice(2),
+            ]
+          ),
         ]
       ),
     ]);
@@ -124,11 +128,13 @@ const NavigationBar = defineComponent<NavigationBarState>({
           },
           [
             createElement("i", {
-              class: ["ph", "ph-sign-out", "text-3xl"],
+              class: ["ph", "ph-sign-out", "text-3xl", "max-xl:text-xl"],
             }),
-            createElement("div", { class: ["max-lg:hidden", "lg:block"] }, [
-              "Logout",
-            ]),
+            createElement(
+              "div",
+              { class: ["max-lg:hidden", "lg:block", "max-xl:text-sm"] },
+              ["Logout"]
+            ),
           ]
         ),
       ]
