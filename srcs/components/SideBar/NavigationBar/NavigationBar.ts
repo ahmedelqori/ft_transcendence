@@ -42,6 +42,7 @@ const NavigationItem = defineComponent<void, NavigationItem>({
             "duration-300",
             "hover:shadow-lg",
             "hover:scale-105",
+            "max-md:text-[1.2rem]",
           ],
         },
         [
