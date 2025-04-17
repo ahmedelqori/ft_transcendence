@@ -3,26 +3,18 @@ export const gameRooms = new Map(); //gameRooms = Map<gameId, defaultGameRoom>
 export const connections = new Map(); //connections = Map<gameId, Map<userId, socket>>
 export const Game = Object.freeze({
     START : 0,
-    IN_PLAY : 1,
-    PAUSED : 2,
-    RECONNECT: 3,
-    CANCELED : 4,
-    ERROR : 5,
-    FINISHED : 6
+    JOINED: 1,
+    IN_PLAY : 2,
+    PAUSED : 3,
+    RECONNECT: 4,
+    CANCELED : 5,
+    ERROR : 6,
+    FINISHED : 7
   });
-export const defaultGameRoom = { 
-  gameId: 0, 
-  players: {},
-  disconnectedPlayers: {},
-  gameStarted: false,
-  properlyEnded: false,
-  gamePaused: false,
-  maxReconnectTime: 100000,
-  disconnectTimer: null
-};
+
 export const defaultGameConfig = {
     playersNumber: 2,
-    ballSpeed: 0.2,
+    ballSpeed: 0.7,
     maxBallSpeed: 2,
     ballSize: 2,
     paddleWidth: 1.5,
@@ -35,18 +27,34 @@ export const defaultGameConfig = {
     ratio: 4/3
 }
 
-export const gameState = {
+export function createGameState() {
+  return {
     ball: { x: boardCenter, y: boardCenter, xDir: 0, yDir: 0 }, 
     paddles: { left: boardCenter, right: boardCenter },
     score: { mainPlayer: 0, secondPlayer: 0 },  
-    boardWidth: 100,          
+    boardWidth: 100,
     boardHeight: 100,
     state: Game.START,
-    started: false,  
-    inProgress: false,
-    winner: null,     
-    ended: false,      
-};
+    winner: null,
+  };
+}
+
+export function createGameRoom(gameId) {
+  return {
+    gameId: gameId,
+    players: {},
+    disconnectedPlayers: {},
+    gameState: createGameState(),
+    maxReconnectTime: 30000,
+    disconnectTimer: null,
+    
+    createdAt: Date.now(),
+    startedAt: null,
+    pausedAt: null,
+    endedAt: null
+  };
+}
+
 export const WS_CLOSE = {
     NORMAL: 1000,
     GOING_AWAY: 1001,
@@ -57,3 +65,12 @@ export const WS_CLOSE = {
     TOO_LARGE: 1009,
     INTERNAL_ERROR: 1011
 };
+
+export function createGameLoop(gameState, callback){
+  return ({
+    running: true,
+    gameState: gameState,
+    callback: callback,
+    interval: null
+  })
+}

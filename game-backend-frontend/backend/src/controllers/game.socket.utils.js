@@ -1,5 +1,5 @@
 import { fastify } from "../server.js";
-import {defaultGameConfig, gameState, defaultGameRoom, gameRooms, connections} from '../gameLogic/gameConfig.js';
+import {connections} from '../gameLogic/gameConfig.js';
 
 export const Message = (messageType, messagePayload) => JSON.stringify({type:messageType, data:messagePayload})
 
@@ -24,9 +24,14 @@ export async function checkUserGamePermission(gameId, userId) {
         fastify.log.warn(`Game ${gameId} not found in database`);
         return false;
       }
+      // if (["FINISHED", "CANCELED"].includes(game.status)) {
+      //   fastify.log.warn(`Cannot start a ${game.status} game`);
+      //   return false;
+      // }
       if (game.playerOneId === userId || game.playerTwoId === userId) {
         return true;
       }      
+      fastify.log.warn(`User ${userId} attempted to join game ${gameId} without permission`);
       return false;
   }
 
@@ -50,7 +55,6 @@ export async function checkUserGamePermission(gameId, userId) {
     if (!socket.pongActive) {
         socket.on('pong', () => {
             socket.isAlive = true;
-            fastify.log.info("recieved");
         });
         socket.pongActive = true;
     }

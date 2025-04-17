@@ -1,47 +1,71 @@
-import { defaultGameConfig, gameState, boardCenter, Game } from "./gameConfig.js";
+import { defaultGameConfig, boardCenter, Game, createGameLoop } from "./gameConfig.js";
 import {fastify} from '../server.js';
 import { validateSocketConnection } from "../middlewares/auth.middleware.js";
+const gameLoops = new Map(); // Map<gameId, {interval, callback, running, gameState}>
 const buttomBoard = 0
 const topBoard = 100
 const leftBoard = 0
 const rightBoard = 100
-let intervalId = null;
 
+export function startGameLoop(gameId, gameState, callback) {
+  fastify.log.info(`Starting game loop for game ${gameId}`);  
+  if (gameLoops.has(gameId)) {
+    const existingLoop = gameLoops.get(gameId);
+    clearInterval(existingLoop.interval);
+  }
+  const gameLoop = createGameLoop(gameState, callback);  
+  const frameTime = 1000 / defaultGameConfig.FPS;  
+  gameLoop.interval = setInterval(() => {
+    if (gameLoop.running) {
+      updateBallPosition(gameLoop.gameState);
+      if (gameLoop.callback) {
+        gameLoop.callback(gameLoop.gameState);
+      }
+    }
+  }, frameTime);  
+  gameLoops.set(gameId, gameLoop);
+}
 
-export function startGameLoop(broadcastDataToPlayers) {
-  if (intervalId) 
+export function stopGameLoop(gameId) {
+  const gameLoop = gameLoops.get(gameId);
+  if (!gameLoop) {
+    fastify.log.warn(`Attempted to stop non-existent game loop for game ${gameId}`);
     return;
-  const frameTime = 1000 / defaultGameConfig.FPS;
-  gameState.state = Game.IN_PLAY;
-  intervalId = setInterval(() => {
-    if (gameState.state != Game.IN_PLAY)
-      return;
-    updateBallPosition();
-    broadcastDataToPlayers(gameState);
-  }, frameTime);
+  }
+  clearInterval(gameLoop.interval);
+  gameLoops.delete(gameId);
+  fastify.log.info(`Game loop stopped for game ${gameId}`);
 }
 
-export function stopGameLoop() {
-    clearInterval(intervalId);
-    intervalId = null;
-}
-export function reconnecting(){
-  if (intervalId){
-    stopGameLoop();
-    gameState.state = Game.RECONNECT;
+export function reconnecting(gameId) {
+  const gameLoop = gameLoops.get(gameId);
+  if (!gameLoop) {
+    fastify.log.warn(`Attempted to handle reconnection for non-existent game loop ${gameId}`);
+    return;
   }
-}
-export function pauseGame() {
-  if (intervalId){
-    stopGameLoop();
-    gameState.state = Game.PAUSED;
-  }
+  gameLoop.running = false;
+  gameLoop.gameState.state = Game.RECONNECT;
+  fastify.log.info(`Game ${gameId} set to reconnection state`);
 }
 
-export function resumeGame(onUpdate) {
-  if (!intervalId) {
-    startGameLoop(onUpdate);
+export function pauseGame(gameId) {
+  const gameLoop = gameLoops.get(gameId);
+  if (!gameLoop) {
+    fastify.log.warn(`Attempted to pause non-existent game loop for game ${gameId}`);
+    return;
   }
+  gameLoop.running = false;
+  fastify.log.info(`Game ${gameId} paused`);
+}
+
+export function resumeGame(gameId) {
+  const gameLoop = gameLoops.get(gameId);
+  if (!gameLoop) {
+    fastify.log.warn(`Attempted to resume non-existent game loop for game ${gameId}`);
+    return;
+  }
+  gameLoop.running = true;
+  fastify.log.info(`Game ${gameId} resumed`);
 }
 
 
@@ -52,18 +76,29 @@ export function resumeGame(onUpdate) {
 
 // ************************** GAMEPLAY CORE LOGIQUE **************************
 
-export function resetBallAndPaddles() {
+export function resetBallAndPaddles(gameState) {
+  const speed = defaultGameConfig.ballSpeed;
+  let angleDeg = 30 + Math.random() * 30;
+  if (Math.random() < 0.5) {
+    angleDeg = 180 - angleDeg;
+  }
+  const angleRad = angleDeg * (Math.PI / 180);
+  let xDir = Math.cos(angleRad) * speed;
+  let yDir = Math.sin(angleRad) * speed;
+  if (Math.random() < 0.5) 
+    yDir = -yDir;
   gameState.ball = {
     x: boardCenter,
     y: boardCenter,
-    xDir: (Math.random() > 0.5 ? 1 : -1) * defaultGameConfig.ballSpeed,
-    yDir: (Math.random() > 0.5 ? 1 : -1) * defaultGameConfig.ballSpeed
+    xDir,
+    yDir,
   };
   gameState.paddles.left = boardCenter;
   gameState.paddles.right = boardCenter;
 }
 
-export function updateBallPosition() {
+
+export function updateBallPosition(gameState) {
   if (gameState.state != Game.IN_PLAY)
     return;
   gameState.ball.x += gameState.ball.xDir;
@@ -80,11 +115,11 @@ export function updateBallPosition() {
     gameState.ball.y = topBoard - ballRadius;
   }
   
-  checkPaddleCollisions();
-  checkScoring();
+  checkPaddleCollisions(gameState);
+  checkScoring(gameState);
 }
 
-export function checkPaddleCollisions() {
+export function checkPaddleCollisions(gameState) {
   const leftPaddleX = defaultGameConfig.leftPaddleX;
   const rightPaddleX = defaultGameConfig.rightPaddleX - defaultGameConfig.paddleWidth;
   const ballRadius = defaultGameConfig.ballSize / 2;
@@ -103,12 +138,12 @@ export function checkPaddleCollisions() {
     gameState.ball.y - ballRadius <= gameState.paddles.right + paddleHalfHeight;
     
   if (collisionLeftPaddle)
-    updateAfterPaddleCollision('left');
+    updateAfterPaddleCollision('left', gameState);
   if (collisionRightPaddle)
-    updateAfterPaddleCollision('right');
+    updateAfterPaddleCollision('right', gameState);
 }
 
-export function updateAfterPaddleCollision(paddleType) {
+export function updateAfterPaddleCollision(paddleType, gameState) {
   const paddleHalfHeight = defaultGameConfig.paddleHeight / 2;
   const ballRadius = defaultGameConfig.ballSize / 2;
   const paddlePos = paddleType === 'left' ? gameState.paddles.left : gameState.paddles.right;
@@ -137,16 +172,16 @@ export function updateAfterPaddleCollision(paddleType) {
     : defaultGameConfig.rightPaddleX - ballRadius - 0.1;
 }
 
-export function checkScoring() {
+export function checkScoring(gameState) {
   const ballRadius = defaultGameConfig.ballSize / 2;
   
   if (gameState.ball.x - ballRadius < leftBoard) {
     gameState.score.secondPlayer += 1;
-    resetBallAndPaddles();
+    resetBallAndPaddles(gameState);
   } 
   else if (gameState.ball.x + ballRadius > rightBoard) {
     gameState.score.mainPlayer += 1;
-    resetBallAndPaddles();
+    resetBallAndPaddles(gameState);
   }
   
   if (gameState.score.mainPlayer === defaultGameConfig.scoreToWin || 
@@ -156,7 +191,7 @@ export function checkScoring() {
   }
 }
 
-export function updatePaddlePosition(playerType, position) {
+export function updatePaddlePosition(gameState, playerType, position) {
   if (typeof position !== 'number' || isNaN(position)) {
     return false;
   }
