@@ -66,6 +66,7 @@ export default async function join_tournament(req, res) {
     await tournament_players.query().insert({
         tournament_id: id,
         player_id: req.user.id,
+        round: t.players_number,
         nickname
     });
 

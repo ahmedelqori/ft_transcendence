@@ -12,36 +12,32 @@ export default async function create_tournament(req, res) {
         return res;
     };
 
-    tournament.query().insert({
-        owner_id: req.user.id,
-        tournament_name,
-        players_number
-    }).then((tournament) => {
-        console.log(`Tournament ${tournament_name} created successfully`);
-        console.log(tournament);
-        tournament_settings.query().insert({
-            tournament_id: tournament.id,
-            code: random.int(0, 9999)
-        }).then((tournament_settings) => {
-            tournament_players.query().insert({
-                tournament_id: tournament.id,
-                player_id: req.user.id,
-                nickname
-            }).catch((err) => {
-                console.error(err.message);
-                res.code(500).send({message: 'Internal Server Error'});
-                return ;
-            });
-        }).catch((err) => {
-            console.error(err.message);
-            res.code(500).send({message: 'Internal Server Error'});
-            return ;
+    try {
+        const newTournament = await tournament.query().insert({
+            owner_id: req.user.id,
+            tournament_name,
+            players_number
         });
-    }).catch((err) => {
+
+        console.log(`Tournament ${tournament_name} created successfully`);
+        console.log(newTournament);
+
+        await tournament_settings.query().insert({
+            tournament_id: newTournament.id,
+            code: random.int(0, 9999)
+        });
+
+        await tournament_players.query().insert({
+            tournament_id: newTournament.id,
+            player_id: req.user.id,
+            round: players_number,
+            nickname
+        });
+    } catch (err) {
         console.error(err.message);
-        res.code(500).send({message: 'Internal Server Error'});
-        return res;
-    });
+        res.status(500).send({ message: 'Internal Server Error' });
+        return;
+    }
 
     res
         .status(201)

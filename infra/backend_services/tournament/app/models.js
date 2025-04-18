@@ -37,6 +37,7 @@ export class tournament_players extends Model {
         id: { type: 'integer' },
         tournament_id: { type: 'integer' },
         player_id: { type: 'integer' },
+        round: { type: 'integer' },
         nickname: { type: 'string' },
         created_at: { type: 'string' },
       }

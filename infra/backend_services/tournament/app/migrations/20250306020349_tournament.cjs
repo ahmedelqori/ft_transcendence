@@ -21,6 +21,7 @@ exports.up = function(knex) {
           .inTable('tournament')
           .onDelete('CASCADE')
         table.integer('player_id').unsigned();
+        table.integer('round').unsigned();
         table.string('nickname');
         table.timestamp('created_at').defaultTo(knex.fn.now());
     }).createTable('tournament_settings', (table) => {

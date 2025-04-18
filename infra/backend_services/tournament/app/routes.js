@@ -7,6 +7,7 @@ import delete_tournament from './controllers/delete_tournament.js';
 import list_tournaments from './controllers/list_tournaments.js';
 import get_tournament from './controllers/get_tournament.js';
 import update_tournament from './controllers/update_tournament.js';
+import start_tournament from './controllers/start_tournament.js';
 
 
 export default function routes(fastify) {
@@ -18,8 +19,11 @@ export default function routes(fastify) {
     fastify.post('/:id/join', join_tournament);
     fastify.post('/:id/leave', leave_tournament);
 
-    // DONE
 
+    fastify.get('/:id/start', start_tournament);
+
+
+    // DONE
     fastify.get('/:id', get_tournament);
     // add on the response
     // 
