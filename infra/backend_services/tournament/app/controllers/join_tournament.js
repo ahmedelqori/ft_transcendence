@@ -69,6 +69,15 @@ export default async function join_tournament(req, res) {
         round: t.players_number,
         nickname
     });
+    
+    {
+        const t = await tournament.query().findById(id);
+        const n = (await tournament_players.query().where('tournament_id', t.id)).length;
+
+        if (t.players_number == n){
+            await tournament.query().findById(id).patch({ status: 'READY' });
+        }
+    }
 
     console.log(`Player ${req.user.id} joined tournament ${id}`);
 

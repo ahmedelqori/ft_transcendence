@@ -1,4 +1,4 @@
-import { tournament_players } from '../models.js'
+import { tournament, tournament_settings, tournament_players } from "../models.js";
 
 
 export default async function leave_tournament(req, res) {
@@ -13,6 +13,8 @@ export default async function leave_tournament(req, res) {
         res.status(400).send({error: "not joined"});
         return;
     }
+
+    await tournament.query().findById(id).patch({ status: 'CREATED' });
 
     res.send({message: "left"});
 }
