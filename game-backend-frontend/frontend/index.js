@@ -43,8 +43,8 @@ const gameStateDisplay = document.getElementById("gameState");
 // Initialize game - get parameters from URL
 function init() {
   const urlParams = new URLSearchParams(window.location.search);
-  gameId = parseInt(urlParams.get("gameId"));
-  userId = parseInt(urlParams.get("userId"));
+  gameId = urlParams.get("gameId");
+  userId = urlParams.get("userId");
 
   if (!gameId || !userId) {
     updateStatus("Error: Missing gameId or userId parameters", "error");
@@ -128,7 +128,7 @@ function connectToGame() {
 function disconnectFromGame() {
   if (socket) {
     updateStatus("Disconnecting...");
-    socket.close();
+    socket.close(1000);
   }
 }
 
@@ -150,7 +150,7 @@ function pauseGame() {
 // Cancel the game
 function cancelGame() {
   if (socket && isConnected) {
-    disconnectFromGame(); // Intentional disconnect will cause game cancellation
+    disconnectFromGame();
     updateStatus("Game canceled");
   }
 }

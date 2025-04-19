@@ -44,12 +44,9 @@ export function createGameRoom(gameId) {
     disconnectedPlayers: {},
     gameState: createGameState(),
     maxReconnectTime: 100000,
-    intentionalDisconnectTime: 40000,
+    intentionalDisconnectTime: 1000,
     disconnectTimer: null,
     
-    createdAt: Date.now(),
-    startedAt: null,
-    pausedAt: null,
     endedAt: null
   };
 }
