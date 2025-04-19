@@ -6,10 +6,11 @@ export const Message = (messageType, messagePayload) => JSON.stringify({type:mes
 export function hasTwoConnectedPlayers(gameId) {
   if (!connections.has(gameId)) {
     return false;
-  }  
-  const gameConnections = connections.get(gameId);
-  return gameConnections.size == 2;
+  }
+  const gameConnections = connections.get(gameId);  
+  return [...gameConnections.keys()].length >= 2;
 }
+
 export function sendErrorAndClose(socket, message, code) {
   socket.send(Message('error', {message: message}));
   socket.close(code);
@@ -36,27 +37,38 @@ export async function checkUserGamePermission(gameId, userId) {
   }
 
 
-  export function runHeartBeatMechanism(socket) {
-    socket.isAlive = true;
-
-    const pingInterval = setInterval(() => {
-        if (socket.isAlive === false) {
-            clearInterval(pingInterval);
-            socket.terminate();
-            return;
+export function runHeartBeatMechanism(socket, gameId, userId) {
+  socket.isAlive = true;
+  const pingInterval = setInterval(() => {
+    if (socket.isAlive === false) {
+      if (connections.has(gameId)) {
+        const gameConnections = connections.get(gameId);
+        if (gameConnections.get(userId) === socket) {
+          gameConnections.delete(userId);
+          fastify.log.info(`Removed dead connection for user ${userId} in game ${gameId}`);
         }
-        socket.isAlive = false;
-        try {
-            socket.ping();
-        } catch (err) {
-            fastify.log.error(`${err.message}`);
+        if (gameConnections.size === 0) {
+          connections.delete(gameId);
+          fastify.log.info(`Removed empty game ${gameId} from connections`);
         }
-    }, 5000);
-    if (!socket.pongActive) {
-        socket.on('pong', () => {
-            socket.isAlive = true;
-        });
-        socket.pongActive = true;
+      }
+      clearInterval(pingInterval);
+      socket.terminate();
+      return;
     }
-    return pingInterval;
-}
+    socket.isAlive = false;
+    try {
+      socket.ping();
+    } catch (err) {
+      fastify.log.error(`${err.message}`);
+    }
+  }, 5000);
+
+  if (!socket.pongActive) {
+    socket.on('pong', () => {
+      socket.isAlive = true;
+    });
+    socket.pongActive = true;
+  }
+  return pingInterval;
+  }

@@ -6,15 +6,13 @@ export const Game = Object.freeze({
     JOINED: 1,
     IN_PLAY : 2,
     PAUSED : 3,
-    RECONNECT: 4,
-    CANCELED : 5,
-    ERROR : 6,
-    FINISHED : 7
+    CANCELED : 4,
+    FINISHED : 5,
   });
 
 export const defaultGameConfig = {
     playersNumber: 2,
-    ballSpeed: 0.7,
+    ballSpeed: 0.1,
     maxBallSpeed: 2,
     ballSize: 2,
     paddleWidth: 1.5,
@@ -45,7 +43,8 @@ export function createGameRoom(gameId) {
     players: {},
     disconnectedPlayers: {},
     gameState: createGameState(),
-    maxReconnectTime: 30000,
+    maxReconnectTime: 100000,
+    intentionalDisconnectTime: 40000,
     disconnectTimer: null,
     
     createdAt: Date.now(),
