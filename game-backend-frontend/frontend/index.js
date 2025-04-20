@@ -17,7 +17,7 @@ let gameConfig = null;
 let gameState = null;
 let gameId = null;
 let userId = null;
-let playerType = null;
+let playerPosition = null; // Changed from playerType to playerPosition
 let isConnected = false;
 let players = {};
 let renderer = null;
@@ -35,7 +35,7 @@ const disconnectBtn = document.getElementById("disconnectBtn");
 const pauseBtn = document.getElementById("pauseBtn");
 const cancelBtn = document.getElementById("cancelBtn");
 const statusMessage = document.getElementById("statusMessage");
-const playerTypeDisplay = document.getElementById("playerType");
+const playerPositionDisplay = document.getElementById("playerType"); // Element ID remains the same for compatibility
 const scoreLeft = document.getElementById("scoreLeft");
 const scoreRight = document.getElementById("scoreRight");
 const gameStateDisplay = document.getElementById("gameState");
@@ -183,18 +183,18 @@ function handleMessage(event) {
 
         updateStatus("Game initialized");
         updateGameStateDisplay();
-        sendMessage({type: 'joinGame'});
+        sendMessage({ type: "joinGame" });
         updateStatus("Initialized, joining game...");
         break;
 
       case "joinedGame":
-        playerType = message.data.playerType;
+        playerPosition = message.data.position; // Changed from playerType to position
         gameState = message.data.gameState;
         players = message.data.players;
-        playerTypeDisplay.textContent = playerType;
-        console.log(`Joined as ${playerType}`);
+        playerPositionDisplay.textContent = playerPosition; // Display position instead of type
+        console.log(`Joined as ${playerPosition} player`);
         updateStatus(
-          `Joined as ${playerType}. ${
+          `Joined as ${playerPosition} player. ${
             Object.keys(players).length
           }/2 players connected.`
         );
@@ -214,15 +214,15 @@ function handleMessage(event) {
         updateGameStateDisplay();
         break;
 
-        case "gameStarted":
-          console.log("Game started event received:", message.data);
-          gameState = message.data.gameState;
-          // Add inProgress flag for renderer
-          gameState.inProgress = true;
-          updateStatus("Game started!");
-          updateGameStateDisplay();
-          console.log("Game state after game started:", gameState);
-          break;
+      case "gameStarted":
+        console.log("Game started event received:", message.data);
+        gameState = message.data.gameState;
+        // Add inProgress flag for renderer
+        gameState.inProgress = true;
+        updateStatus("Game started!");
+        updateGameStateDisplay();
+        console.log("Game state after game started:", gameState);
+        break;
 
       case "gameStateUpdate":
         const prevState = gameState ? { ...gameState } : null;
@@ -265,17 +265,17 @@ function handleMessage(event) {
         break;
 
       case "playerReconnected":
-        updateStatus(`Player ${message.data.playerType} reconnected`);
+        updateStatus(`Player reconnected (position: ${message.data.position})`);
         break;
 
       case "reconnectedToGame":
         gameState = message.data.gameState;
-        playerType = message.data.playerType;
+        playerPosition = message.data.position; // Changed from playerType to position
         players = message.data.players;
         // Update inProgress flag
         gameState.inProgress = gameState.state === GAME_STATES.IN_PLAY;
-        updateStatus(`Reconnected to game as ${playerType}`);
-        playerTypeDisplay.textContent = playerType;
+        updateStatus(`Reconnected to game as ${playerPosition} player`);
+        playerPositionDisplay.textContent = playerPosition; // Display position instead of type
         updateGameStateDisplay();
         break;
 
@@ -284,7 +284,10 @@ function handleMessage(event) {
         // Update flags for renderer
         gameState.inProgress = false;
         gameState.ended = true;
-        const winner = gameState.winner === playerType ? "You" : "Opponent";
+
+        // Determine if user won based on position and winner
+        const userWon = gameState.winner === playerPosition;
+        const winner = userWon ? "You" : "Opponent";
         updateStatus(`Game finished. ${winner} won!`);
         updateGameStateDisplay();
         updateScores();
@@ -354,16 +357,27 @@ function togglePauseResume() {
 
 // Handle mouse movement to control paddle
 function handleMouseMove(e) {
-  if (!gameState || gameState.state !== GAME_STATES.IN_PLAY) 
+  if (!gameState || gameState.state !== GAME_STATES.IN_PLAY || !playerPosition)
     return;
-  let y;
-  y = renderer.convertScreenToGameCoordinates(e).y;
-  y = Math.max(0, Math.min(100, y));
+
+  // Get mouse Y position in game coordinates
+  const rect = canvas.getBoundingClientRect();
+  const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+  // Constrain to valid range
+  const paddlePos = Math.max(0, Math.min(100, y));
 
   sendMessage({
     type: "paddleMove",
-    position: y,
+    position: paddlePos,
   });
+
+  // Only update our own paddle locally for smoother rendering
+  if (playerPosition === "left") {
+    gameState.paddles.left = paddlePos;
+  } else if (playerPosition === "right") {
+    gameState.paddles.right = paddlePos;
+  }
 }
 
 // Handle key down events
@@ -414,21 +428,18 @@ function startKeyboardControlLoop() {
 
 // Process keyboard inputs and move paddle accordingly
 function processKeyboardInput() {
-  if (!gameState || !gameState.state === GAME_STATES.IN_PLAY) return;
+  if (!gameState || !playerPosition || gameState.state !== GAME_STATES.IN_PLAY)
+    return;
 
-  let paddlePos;
-  let paddleSide;
+  // Determine which paddle we control
+  let paddlePos = 50; // Default center position
 
-  // Map player types from backend to paddle position
-  // Backend uses both 'mainPlayer'/'secondPlayer' and 'left'/'right'
-  if (playerType === "mainPlayer" || playerType === "left") {
-    paddlePos = gameState.paddles?.left || 50;
-    paddleSide = "left";
-  } else if (playerType === "secondPlayer" || playerType === "right") {
-    paddlePos = gameState.paddles?.right || 50;
-    paddleSide = "right";
+  if (playerPosition === "left") {
+    paddlePos = gameState.paddles.left || 50;
+  } else if (playerPosition === "right") {
+    paddlePos = gameState.paddles.right || 50;
   } else {
-    console.log(`Unknown player type: ${playerType}`);
+    // Unknown position, can't move paddle
     return;
   }
 
@@ -446,16 +457,15 @@ function processKeyboardInput() {
 
   // Only send update if position changed
   if (moved && newPos !== paddlePos) {
-    console.log(`Keyboard paddle move (${paddleSide}): ${newPos}`);
     sendMessage({
       type: "paddleMove",
       position: newPos,
     });
 
     // Update local state for smoother rendering while waiting for server response
-    if (paddleSide === "left") {
+    if (playerPosition === "left") {
       gameState.paddles.left = newPos;
-    } else {
+    } else if (playerPosition === "right") {
       gameState.paddles.right = newPos;
     }
   }
@@ -519,8 +529,13 @@ function updateGameStateDisplay() {
 function updateScores() {
   if (!gameState || !gameState.score) return;
 
-  scoreLeft.textContent = gameState.score.mainPlayer;
-  scoreRight.textContent = gameState.score.secondPlayer;
+  // Simple direct access to left/right scores (no backward compatibility)
+  const leftVal = gameState.score.left || 0;
+  const rightVal = gameState.score.right || 0;
+
+  // Update HTML elements
+  if (scoreLeft) scoreLeft.textContent = leftVal;
+  if (scoreRight) scoreRight.textContent = rightVal;
 }
 
 // Render game on canvas

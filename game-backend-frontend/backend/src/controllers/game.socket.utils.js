@@ -1,6 +1,6 @@
 import { fastify } from "../server.js";
 import { connections } from "../gameLogic/gameConfig.js";
-import {WS_CLOSE, Game} from "../gameLogic/gameConfig.js"
+import { WS_CLOSE, Game } from "../gameLogic/gameConfig.js";
 
 export const Message = (messageType, messagePayload) =>
   JSON.stringify({ type: messageType, data: messagePayload });
@@ -22,30 +22,70 @@ export async function checkUserGamePermission(gameId, userId, gameRooms) {
   try {
     const gameRoom = gameRooms?.get(gameId);
     if (gameRoom) {
-      if (gameRoom.gameState.state === Game.FINISHED || gameRoom.gameState.state === Game.CANCELED) {
-        fastify.log.warn(`Cannot join a ${Game[gameRoom.gameState.state]} game ${gameId}`);
-        return { hasPermission: false, reason: `This game has already ended (${Game[gameRoom.gameState.state]})` };
+      if (
+        gameRoom.gameState.state === Game.FINISHED ||
+        gameRoom.gameState.state === Game.CANCELED
+      ) {
+        fastify.log.warn(
+          `Cannot join a ${Game[gameRoom.gameState.state]} game ${gameId}`
+        );
+        return {
+          hasPermission: false,
+          reason: `This game has already ended (${
+            Game[gameRoom.gameState.state]
+          })`,
+        };
       }
-    }    
+    }
+
+    // If we already have game data from previous checks, use it
+    if (gameRoom?.gameData) {
+      const game = gameRoom.gameData;
+      if (game.playerOneId === userId || game.playerTwoId === userId) {
+        return { hasPermission: true, gameData: game };
+      }
+    }
+
     const game = await fastify.prisma.game.findUnique({
       where: { id: gameId },
-    });    
+    });
+
     if (!game) {
       fastify.log.warn(`Game ${gameId} not found in database`);
       return { hasPermission: false, reason: "Game not found" };
-    }    
+    }
+
     if (["FINISHED", "CANCELED"].includes(game.status)) {
       fastify.log.warn(`Cannot join a ${game.status} game ${gameId}`);
-      return { hasPermission: false, reason: `This game has already ended (${game.status})` };
-    }    
+      return {
+        hasPermission: false,
+        reason: `This game has already ended (${game.status})`,
+      };
+    }
+
     if (game.playerOneId === userId || game.playerTwoId === userId) {
-      return { hasPermission: true };
-    }    
-    fastify.log.warn(`User ${userId} attempted to join game ${gameId} without permission`);
-    return { hasPermission: false, reason: "You don't have permission to join this game" };
+      // Store game data in the room for easy player identification
+      if (gameRooms.has(gameId)) {
+        gameRooms.get(gameId).gameData = game;
+      }
+      return { hasPermission: true, gameData: game };
+    }
+
+    fastify.log.warn(
+      `User ${userId} attempted to join game ${gameId} without permission`
+    );
+    return {
+      hasPermission: false,
+      reason: "You don't have permission to join this game",
+    };
   } catch (error) {
-    fastify.log.error(`Error checking game permissions for ${gameId}: ${error.message}`);
-    return { hasPermission: false, reason: "Server error while checking permissions" };
+    fastify.log.error(
+      `Error checking game permissions for ${gameId}: ${error.message}`
+    );
+    return {
+      hasPermission: false,
+      reason: "Server error while checking permissions",
+    };
   }
 }
 
@@ -170,11 +210,11 @@ export function handleOldConnection(
         );
 
         if (gameRoom.players && gameRoom.players[userId]) {
-          const playerType = gameRoom.players[userId].playerType;
+          const position = gameRoom.players[userId].position;
           newSocket.send(
             Message("joinedGame", {
               gameId: gameId,
-              playerType: playerType,
+              position: position,
               players: Object.values(gameRoom.players),
               gameState: gameRoom.gameState,
             })
@@ -182,14 +222,22 @@ export function handleOldConnection(
         }
       }
 
+      // Copy game data from old socket if available
+      if (oldSocket.gameData) {
+        newSocket.gameData = oldSocket.gameData;
+      }
+
+      // Copy user object from old socket if available
+      if (oldSocket.user) {
+        newSocket.user = oldSocket.user;
+      }
+
       fastify.log.info(
         `Sent current game state to reconnected player ${userId} from new location`
       );
       return true;
     } catch (err) {
-      fastify.log.error(
-        `Error for user ${userId}: ${err.message}`
-      );
+      fastify.log.error(`Error for user ${userId}: ${err.message}`);
       return false;
     }
   }
@@ -234,26 +282,56 @@ export function sendInitialGameData(
   }
 }
 
-export async function updateGameInDatabase(gameId, gameRoom, winnerType) {
+export async function updateGameInDatabase(gameId, gameRoom, winner) {
   try {
-    const game = await fastify.prisma.game.findUnique({
-      where: { id: gameId },
-    });
+    const game =
+      gameRoom.gameData ||
+      (await fastify.prisma.game.findUnique({
+        where: { id: gameId },
+      }));
 
+    if (!game) {
+      fastify.log.error(`Game ${gameId} not found in database for update`);
+      return false;
+    }
+
+    // Determine winner ID based on player position (left/right)
     let winnerId = null;
-    if (winnerType === "mainPlayer") {
+
+    // Check if we have a valid winner
+    if (winner === "left" && game.playerOneId) {
       winnerId = game.playerOneId;
-    } else if (winnerType === "secondPlayer") {
+    } else if (winner === "right" && game.playerTwoId) {
       winnerId = game.playerTwoId;
+    } else if (Object.keys(gameRoom.players).length > 0) {
+      // Fallback: use one of the remaining players if we have any
+      winnerId = parseInt(Object.keys(gameRoom.players)[0]);
+    } else {
+      // Final fallback if no players left
+      fastify.log.warn(`Could not determine a winner for game ${gameId}`);
+
+      // We need to update the game without setting a winner
+      await fastify.prisma.game.update({
+        where: { id: gameId },
+        data: {
+          status: "FINISHED",
+          endedAt: gameRoom.endedAt || new Date(),
+          playerOneScore: gameRoom.gameState.score.left,
+          playerTwoScore: gameRoom.gameState.score.right,
+          // Omit winnerId field
+        },
+      });
+
+      return true;
     }
 
     await fastify.prisma.game.update({
       where: { id: gameId },
       data: {
         status: "FINISHED",
-        endedAt: gameRoom.endedAt,
-        playerOneScore: gameRoom.gameState.score.mainPlayer,
-        playerTwoScore: gameRoom.gameState.score.secondPlayer,
+        endedAt: gameRoom.endedAt || new Date(),
+        playerOneScore: gameRoom.gameState.score.left,
+        playerTwoScore: gameRoom.gameState.score.right,
         winnerId: winnerId,
       },
     });
