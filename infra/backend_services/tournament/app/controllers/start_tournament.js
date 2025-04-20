@@ -8,16 +8,23 @@ export default async function start_tournament(req, res) {
         return res.status(400).send({error: 'Tournament ID is required'});
     }
 
-
-    // get tournament players_number
-    const record = await tournament.query().where({id}).first();
-    if (!record || record.owner_id != req.user.id){
+    const t = await tournament.query().where({id}).first();
+    if (!t || t.owner_id != req.user.id){
         return res.status(400).send({error: 'Tournament ID is not exist'});
     }
 
-    console.log(record);
+    if (t.status != 'READY'){
+        return res.status(400).send({error: 'Tournament is not ready'});
+    }
 
-    // loop for all players, need to equal players_number
+    const players = await tournament_players.query().where({tournament_id: id});
+    for (let i = 0; i < players.length; i++) {
+        if (players[i].round != t.players_number) {
+            return res.status(400).send({error: 'tournament already started'});
+        }
+    }
+
+    // all good so need to create games
 }
 
 

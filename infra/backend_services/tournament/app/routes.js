@@ -19,7 +19,7 @@ export default function routes(fastify) {
     fastify.post('/:id/leave', leave_tournament);
 
 
-    fastify.get('/:id/start', start_tournament);
+    fastify.post('/:id/start', start_tournament);
 
 
     // DONE
