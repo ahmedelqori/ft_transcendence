@@ -1,4 +1,5 @@
 import { tournament, tournament_settings, tournament_players } from "../models.js";
+import axios from "axios";
 
 
 export default async function start_tournament(req, res) {
@@ -23,8 +24,24 @@ export default async function start_tournament(req, res) {
             return res.status(400).send({error: 'tournament already started'});
         }
     }
-
-    // all good so need to create games
+    for (let i = 0; i < players.length; i+=2) {
+        console.log(players[i].id, "Vs", players[i+ 1].id);
+        const r = await axios.post(process.env.GAME_URL, {
+            playerOneId: players[i].id,
+            playerTwoId: players[i + 1].id,
+            tournamentId: id
+            }, {
+            headers: {
+                Authorization: req.headers.Authorization
+            }
+            }
+        ).then((response) => {
+            console.log(response.data);
+        }).catch((error) => {
+            console.log(error);
+            return null;
+        });
+    }
 }
 
 
