@@ -233,6 +233,11 @@ export function updatePaddlePosition(gameState, userId, position, isPlayerOne) {
     newPosition = topBoard - paddleHalfHeight;
   }
 
+  // Debug paddle movement
+  fastify.log.debug(
+    `Updating paddle: userId=${userId}, isLeft=${isPlayerOne}, position=${newPosition}`
+  );
+
   if (isPlayerOne) {
     gameState.paddles.left = newPosition;
     return true;

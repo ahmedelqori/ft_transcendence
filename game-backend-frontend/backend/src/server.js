@@ -7,7 +7,6 @@ import { authenticate } from "./middlewares/auth.middleware.js";
 import cors from "@fastify/cors";
 import swagger from "@fastify/swagger";
 import swaggerUI from "@fastify/swagger-ui";
-import {socketDocsPlugin, docsPortalPlugin} from './plugins/sockets-docs.plugin.js';
 
 
 export const gameConnections = new Map();
@@ -62,19 +61,14 @@ fastify.register(swaggerUI, {
     docExpansion: 'list',
   }
 });
-
-fastify.register(socketDocsPlugin);
-fastify.register(docsPortalPlugin);
 fastify.register(prismaPlugin);
-fastify.register(gameRoutes, { prefix: "/api/games" });
-fastify.register(setupWebSocketHandlers);
-fastify.addHook('preHandler', async (req, reply) => {
-  // const path = req.raw.url;
-  // if (path.startsWith('/swagger') || path.startsWith('/api-docs') || path.startsWith('/socket-docs') || path.startsWith('/api/games'))
-  //   return;
-  // await authenticate(req, reply);
-});
+fastify.register(gameRoutes, {
+   prefix: "/api/games",
+  //  preHandler: authenticate,
+  });
 
+
+fastify.register(setupWebSocketHandlers);
 
 
 const start = async function() {
