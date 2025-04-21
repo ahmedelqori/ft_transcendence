@@ -191,7 +191,7 @@ function handleMessage(event) {
         playerPosition = message.data.position; // Changed from playerType to position
         gameState = message.data.gameState;
         players = message.data.players;
-        playerPositionDisplay.textContent = playerPosition; // Display position instead of type
+        updatePlayerPositionDisplay(playerPosition); // Use a new function to update display
         console.log(`Joined as ${playerPosition} player`);
         updateStatus(
           `Joined as ${playerPosition} player. ${
@@ -217,8 +217,6 @@ function handleMessage(event) {
       case "gameStarted":
         console.log("Game started event received:", message.data);
         gameState = message.data.gameState;
-        // Add inProgress flag for renderer
-        gameState.inProgress = true;
         updateStatus("Game started!");
         updateGameStateDisplay();
         console.log("Game state after game started:", gameState);
@@ -228,8 +226,6 @@ function handleMessage(event) {
         const prevState = gameState ? { ...gameState } : null;
         gameState = message.data;
 
-        // Ensure inProgress flag is set
-        gameState.inProgress = gameState.state === GAME_STATES.IN_PLAY;
 
         // For debugging paddle movement issues
         if (prevState && prevState.paddles && gameState.paddles) {
@@ -250,16 +246,12 @@ function handleMessage(event) {
 
       case "gamePaused":
         gameState.state = GAME_STATES.PAUSED;
-        // Update inProgress flag
-        gameState.inProgress = false;
         updateStatus(`Game paused: ${message.data.message}`);
         updateGameStateDisplay();
         break;
 
       case "gameResumed":
         gameState.state = GAME_STATES.IN_PLAY;
-        // Update inProgress flag
-        gameState.inProgress = true;
         updateStatus(`Game resumed: ${message.data.message}`);
         updateGameStateDisplay();
         break;
@@ -272,20 +264,15 @@ function handleMessage(event) {
         gameState = message.data.gameState;
         playerPosition = message.data.position; // Changed from playerType to position
         players = message.data.players;
-        // Update inProgress flag
-        gameState.inProgress = gameState.state === GAME_STATES.IN_PLAY;
+        gameState.state === GAME_STATES.IN_PLAY;
         updateStatus(`Reconnected to game as ${playerPosition} player`);
-        playerPositionDisplay.textContent = playerPosition; // Display position instead of type
+        updatePlayerPositionDisplay(playerPosition); // Use the new function here too
         updateGameStateDisplay();
         break;
 
       case "gameFinished":
         gameState = message.data.gameState;
-        // Update flags for renderer
-        gameState.inProgress = false;
-        gameState.ended = true;
 
-        // Determine if user won based on position and winner
         const userWon = gameState.winner === playerPosition;
         const winner = userWon ? "You" : "Opponent";
         updateStatus(`Game finished. ${winner} won!`);
@@ -295,8 +282,6 @@ function handleMessage(event) {
 
       case "gameCanceled":
         gameState.state = GAME_STATES.CANCELED;
-        // Update inProgress flag
-        gameState.inProgress = false;
         updateStatus(`Game canceled: ${message.data.message}`);
         updateGameStateDisplay();
         break;
@@ -311,6 +296,17 @@ function handleMessage(event) {
   } catch (error) {
     console.error("Error handling message:", error);
     updateStatus("Error processing server message", "error");
+  }
+}
+
+// Add a new function to update player position display
+function updatePlayerPositionDisplay(position) {
+  playerPosition = position; // Make sure the global variable is updated
+  if (playerPositionDisplay) {
+    playerPositionDisplay.textContent = position;
+    console.log(`Updated position display to: ${position}`);
+  } else {
+    console.warn("playerPositionDisplay element not found");
   }
 }
 
@@ -367,12 +363,13 @@ function handleMouseMove(e) {
   // Constrain to valid range
   const paddlePos = Math.max(0, Math.min(100, y));
 
+  // Send the paddle position update to the server
   sendMessage({
     type: "paddleMove",
     position: paddlePos,
   });
 
-  // Only update our own paddle locally for smoother rendering
+  // Only update OUR paddle locally - this is critical
   if (playerPosition === "left") {
     gameState.paddles.left = paddlePos;
   } else if (playerPosition === "right") {
