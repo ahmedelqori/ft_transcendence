@@ -14,7 +14,10 @@ exports.up = function(knex) {
         table.integer('players_number').unsigned();
         table.enum('status', STATUS).defaultTo('CREATED');
         table.timestamp('created_at').defaultTo(knex.fn.now())
-    }).createTable('tournament_players', (table) => {
+    })
+    
+    
+    .createTable('tournament_players', (table) => {
         table.increments('id').primary();
         table.integer('tournament_id').unsigned()
           .references('id')
@@ -24,7 +27,10 @@ exports.up = function(knex) {
         table.integer('round').unsigned();
         table.string('nickname');
         table.timestamp('created_at').defaultTo(knex.fn.now());
-    }).createTable('tournament_settings', (table) => {
+    })
+    
+    
+    .createTable('tournament_settings', (table) => {
         table.increments('id').primary();
         table.integer('tournament_id').unsigned()
           .references('id')
@@ -32,6 +38,16 @@ exports.up = function(knex) {
           .onDelete('CASCADE')
         table.integer('code');
         // add more settings here
+    })
+    
+    
+    .createTable('tournament_games', (table) => {
+      table.increments('id').primary();
+      table.integer('game_id').unsigned();
+      table.integer('tournament_id').unsigned()
+        .references('id')
+        .inTable('tournament')
+        .onDelete('CASCADE')
     })
 };
 

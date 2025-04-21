@@ -1,4 +1,4 @@
-import { tournament, tournament_settings, tournament_players } from "../models.js";
+import { tournament, tournament_games, tournament_players } from "../models.js";
 import axios from "axios";
 
 
@@ -25,23 +25,35 @@ export default async function start_tournament(req, res) {
         }
     }
     for (let i = 0; i < players.length; i+=2) {
-        console.log(players[i].id, "Vs", players[i+ 1].id);
+        console.log("Create game: ", players[i].player_id, "Vs", players[i+ 1].player_id);
         const r = await axios.post(process.env.GAME_URL, {
-            playerOneId: players[i].id,
-            playerTwoId: players[i + 1].id,
+            playerOneId: players[i].player_id,
+            playerTwoId: players[i + 1].player_id,
             tournamentId: id
             }, {
             headers: {
-                Authorization: req.headers.Authorization
+                Authorization: req.headers.authorization
             }
             }
-        ).then((response) => {
-            console.log(response.data);
-        }).catch((error) => {
+        );
+        try {
+            await tournament_games.query().insert({
+                tournament_id: id,
+                game_id: r.data.id,
+            });
+            console.log("Game created: ", r.data.id);
+        } catch (error) {
             console.log(error);
-            return null;
-        });
+        }
     }
+
+
+    await tournament.query().patchAndFetchById(id, {
+        status: 'STARTED'
+    });
+    
+    res.status(200).send({message: 'Tournament started'});
+    // send notification to players
 }
 
 

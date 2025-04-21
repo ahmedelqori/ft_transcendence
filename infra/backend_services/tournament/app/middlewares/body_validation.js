@@ -16,7 +16,7 @@ export default async function body_validation(req, res) {
         res.code(400).send({ message: 'You can only create a tournament with 4, 8, or 16 players.' });   return;
     }
 
-    if (tournament_name.match(/[^a-zA-Z0-9-_]/) || nickname.match(/[^a-zA-Z0-9-_]/)) {
+    if (tournament_name.match(/[^a-zA-Z0-9-_ ]/) || nickname.match(/[^a-zA-Z0-9-_]/)) {
         res.code(400).send({ message: 'Tournament name and nickname can only contain letters, numbers, and underscores.' });
         return;
     }

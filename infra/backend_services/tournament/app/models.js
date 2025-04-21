@@ -63,3 +63,23 @@ export class tournament_settings extends Model {
     };
   }
 }
+
+
+export class tournament_games extends Model {
+  static get tableName(){
+    return 'tournament_games';
+  }
+
+  static get jsonSchema() {
+    return {
+      type: 'object',
+      required: ['tournament_id', 'game_id'],
+
+      properties: {
+        id: { type: 'integer' },
+        game_id: { type: 'integer' },
+        tournament_id: { type: 'integer' },
+      }
+    };
+  }
+}
