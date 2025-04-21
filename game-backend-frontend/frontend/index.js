@@ -1,4 +1,5 @@
 import { GameRenderer } from "./responsive-utils.js";
+import { SocketManager } from "./socket-manager.js";
 
 const GAME_STATES = {
   START: 0,
@@ -12,49 +13,44 @@ const GAME_STATES = {
 };
 
 // Game variables
-let socket = null;
-let gameConfig = null;
-let gameState = null;
-let gameId = null;
-let userId = null;
-let playerPosition = null; // Changed from playerType to playerPosition
-let isConnected = false;
-let players = {};
+let socketManager = null;
 let renderer = null;
 let animationFrameId = null;
 let keysPressed = {};
 let keyboardMoveSpeed = 3;
 
-// Canvas setup
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// UI Elements
 const connectBtn = document.getElementById("connectBtn");
 const disconnectBtn = document.getElementById("disconnectBtn");
 const pauseBtn = document.getElementById("pauseBtn");
 const cancelBtn = document.getElementById("cancelBtn");
 const statusMessage = document.getElementById("statusMessage");
-const playerPositionDisplay = document.getElementById("playerType"); // Element ID remains the same for compatibility
+const playerPositionDisplay = document.getElementById("playerType");
 const scoreLeft = document.getElementById("scoreLeft");
 const scoreRight = document.getElementById("scoreRight");
 const gameStateDisplay = document.getElementById("gameState");
 
-// Initialize game - get parameters from URL
-function init() {
+async function init() {
   const urlParams = new URLSearchParams(window.location.search);
-  gameId = urlParams.get("gameId");
-  userId = urlParams.get("userId");
+  const gameId = urlParams.get("gameId");
+  const userId = urlParams.get("userId");
 
   if (!gameId || !userId) {
     updateStatus("Error: Missing gameId or userId parameters", "error");
     connectBtn.disabled = true;
     return;
   }
-
+  console.log(`Ready to connect. Game ID: ${gameId}, User ID: ${userId}`);
   updateStatus(`Ready to connect. Game ID: ${gameId}, User ID: ${userId}`);
 
-  // Set up event listeners
+  // Create socket manager and set up event listeners
+  socketManager = new SocketManager();
+  socketManager.init(gameId, userId);
+  setupSocketListeners();
+
+  // Set up UI event listeners
   connectBtn.addEventListener("click", connectToGame);
   disconnectBtn.addEventListener("click", disconnectFromGame);
   cancelBtn.addEventListener("click", cancelGame);
@@ -62,246 +58,170 @@ function init() {
   pauseBtn.addEventListener("click", togglePauseResume);
 
   // Handle window resize
-  window.addEventListener("resize", () => {
+  window.addEventListener("resize", async () => {
     if (renderer) {
       renderer.setupResponsiveCanvas();
-      render(); // Re-render after resize
+      await render(); // Re-render after resize
     }
   });
+
   window.addEventListener("keydown", handleKeyDown);
   window.addEventListener("keyup", handleKeyUp);
   // Prevent context menu on right-click
   canvas.addEventListener("contextmenu", (e) => e.preventDefault());
 
-  startKeyboardControlLoop();
+  await startKeyboardControlLoop();
+}
+
+// Set up socket manager event listeners
+function setupSocketListeners() {
+  // Connection events
+  socketManager.addEventListener("onConnect", (data) => {
+    updateStatus("Connected to game server");
+    updateButtons(true);
+
+    // Log connection success
+    console.log("Connected to game server successfully");
+  });
+
+  socketManager.addEventListener("onDisconnect", (data) => {
+    updateStatus(`Disconnected: ${data.reason || "Connection closed"}`);
+    updateButtons(false);
+
+    // Stop animation if running
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = null;
+    }
+  });
+
+  socketManager.addEventListener("onError", (data) => {
+    updateStatus(`Error: ${data.message}`, "error");
+  });
+
+  // Game state events
+  socketManager.addEventListener("onGameState", (data) => {
+    if (data.state === "readyToStart") {
+      updateStatus("Both players connected, game starting in 2 seconds...");
+      console.log(
+        "Game ready to start - both players connected. Starting in 2 seconds..."
+      );
+    }
+    console.log(data);
+    updateGameStateDisplay();
+    updateScores();
+  });
+
+  // Player events
+  socketManager.addEventListener("onPlayerJoined", (data) => {
+    if (data.position) {
+      // This is our own join confirmation
+      updatePlayerPositionDisplay(socketManager.getPlayerPosition());
+      updateStatus(
+        `Joined as ${socketManager.getPlayerPosition()} player. ${
+          Object.keys(data.players).length
+        }/2 players connected.`
+      );
+      console.log(
+        `Successfully joined as ${socketManager.getPlayerPosition()} player.`
+      );
+      console.log(`Players connected: ${Object.keys(data.players).length}/2`);
+    } else {
+      // Another player joined
+      updateStatus(
+        `Player joined. ${
+          Object.values(data.players).length
+        }/2 players connected.`
+      );
+      console.log(
+        `Another player joined. Players connected: ${
+          Object.values(data.players).length
+        }/2`
+      );
+    }
+    updateGameStateDisplay();
+  });
+
+  // Game flow events
+  socketManager.addEventListener("onGameStart", (data) => {
+    updateStatus("Game started!");
+    console.log("Game started event received!");
+    updateGameStateDisplay();
+  });
+
+  socketManager.addEventListener("onGamePause", (data) => {
+    updateStatus(`Game paused: ${data.message}`);
+    updateGameStateDisplay();
+  });
+
+  socketManager.addEventListener("onGameResume", (data) => {
+    updateStatus(`Game resumed: ${data.message}`);
+    updateGameStateDisplay();
+  });
+
+  socketManager.addEventListener("onGameFinish", (data) => {
+    const gameState = socketManager.getGameState();
+    const playerPosition = socketManager.getPlayerPosition();
+    const userWon = gameState.winner === playerPosition;
+    const winner = userWon ? "You" : "Opponent";
+    updateStatus(`Game finished. ${winner} won!`);
+    updateGameStateDisplay();
+    updateScores();
+  });
+
+  // Reconnection events
+  socketManager.addEventListener("onReconnect", (data) => {
+    if (data.gameState) {
+      // We reconnected
+      updateStatus(
+        `Reconnected to game as ${socketManager.getPlayerPosition()} player`
+      );
+      updatePlayerPositionDisplay(socketManager.getPlayerPosition());
+    } else {
+      // Other player reconnected
+      updateStatus(`Player reconnected (position: ${data.position})`);
+    }
+    updateGameStateDisplay();
+  });
 }
 
 // Connect to WebSocket
-function connectToGame() {
-  if (socket) {
+async function connectToGame() {
+  if (socketManager.isConnected) {
     updateStatus("Already connected or connecting");
     return;
   }
 
   updateStatus("Connecting...");
 
-  // Create WebSocket connection - fix URL to be more flexible
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  const host =
-    window.location.hostname.split(":")[0] == "127.0.0.1"
-      ? "localhost:3000"
-      : window.location.host;
-  const wsUrl = `${protocol}//${host}/ws/game/${gameId}/${userId}`;
-
-  console.log("Connecting to WebSocket:", wsUrl);
-  socket = new WebSocket(wsUrl);
-
-  socket.onopen = () => {
-    isConnected = true;
-    updateStatus("Connected to game server");
-    updateButtons(true);
-    updateStatus("Reconnected to existing game");
-  };
-
-  socket.onclose = (event) => {
-    isConnected = false;
-    updateStatus(`Disconnected: ${event.reason || "Connection closed"}`);
-    updateButtons(false);
-    socket = null;
-
-    // Stop animation if it's running
-    if (animationFrameId) {
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = null;
-    }
-  };
-
-  socket.onerror = (error) => {
-    updateStatus("WebSocket error", "error");
-    console.error("WebSocket error:", error);
-  };
-
-  socket.onmessage = handleMessage;
+  try {
+    await socketManager.connect();
+    // Connection successful - handled by event listener
+    console.log("WebSocket connection successful");
+  } catch (error) {
+    updateStatus(`Connection failed: ${error.message}`, "error");
+    console.error("Connection error:", error);
+  }
 }
 
 // Disconnect from WebSocket
-function disconnectFromGame() {
-  if (socket) {
+async function disconnectFromGame() {
+  if (socketManager && socketManager.isConnected) {
     updateStatus("Disconnecting...");
-    socket.close(1000);
+    socketManager.disconnect();
   }
 }
 
-// Pause the game
-function pauseGame() {
-  if (
-    socket &&
-    isConnected &&
-    gameState &&
-    gameState.state === GAME_STATES.IN_PLAY
-  ) {
-    sendMessage({ type: "pauseGame" });
-    updateStatus("Requesting game pause...");
-  } else {
-    updateStatus("Cannot pause game in current state");
-  }
-}
-
-// Cancel the game
-function cancelGame() {
-  if (socket && isConnected) {
-    disconnectFromGame();
+// Cancel the game (just disconnect)
+async function cancelGame() {
+  if (socketManager && socketManager.isConnected) {
+    await disconnectFromGame();
     updateStatus("Game canceled");
   }
 }
 
-// Handle incoming WebSocket messages
-function handleMessage(event) {
-  try {
-    const message = JSON.parse(event.data);
-    console.log("Received:", message);
-
-    switch (message.type) {
-      case "connected":
-        // We're connected, now we'll automatically join
-        updateStatus("Connected, joining game...");
-        break;
-
-      case "initGame":
-        gameConfig = message.data.gameConfig;
-        gameState = message.data.gameState;
-        console.log("InitGame received:", gameConfig, gameState);
-
-        // Initialize the renderer
-        if (!renderer && gameConfig) {
-          console.log("Creating renderer with config:", gameConfig);
-          renderer = new GameRenderer(canvas, gameConfig, GAME_STATES);
-          console.log("Renderer created:", renderer);
-          // Start animation loop
-          startAnimationLoop();
-        }
-
-        updateStatus("Game initialized");
-        updateGameStateDisplay();
-        sendMessage({ type: "joinGame" });
-        updateStatus("Initialized, joining game...");
-        break;
-
-      case "joinedGame":
-        playerPosition = message.data.position; // Changed from playerType to position
-        gameState = message.data.gameState;
-        players = message.data.players;
-        updatePlayerPositionDisplay(playerPosition); // Use a new function to update display
-        console.log(`Joined as ${playerPosition} player`);
-        updateStatus(
-          `Joined as ${playerPosition} player. ${
-            Object.keys(players).length
-          }/2 players connected.`
-        );
-        updateGameStateDisplay();
-        break;
-
-      case "playerJoined":
-        players = message.data.players;
-        updateStatus(
-          `Player joined. ${Object.values(players).length}/2 players connected.`
-        );
-        break;
-
-      case "readyToStart":
-        gameState = message.data.gameState;
-        updateStatus("Both players connected, game starting in 2 seconds...");
-        updateGameStateDisplay();
-        break;
-
-      case "gameStarted":
-        console.log("Game started event received:", message.data);
-        gameState = message.data.gameState;
-        updateStatus("Game started!");
-        updateGameStateDisplay();
-        console.log("Game state after game started:", gameState);
-        break;
-
-      case "gameStateUpdate":
-        const prevState = gameState ? { ...gameState } : null;
-        gameState = message.data;
-
-
-        // For debugging paddle movement issues
-        if (prevState && prevState.paddles && gameState.paddles) {
-          const leftChanged = prevState.paddles.left !== gameState.paddles.left;
-          const rightChanged =
-            prevState.paddles.right !== gameState.paddles.right;
-
-          if (leftChanged || rightChanged) {
-            console.log(
-              `Paddle update - Left: ${gameState.paddles.left}, Right: ${gameState.paddles.right}`
-            );
-          }
-        }
-
-        updateGameStateDisplay();
-        updateScores();
-        break;
-
-      case "gamePaused":
-        gameState.state = GAME_STATES.PAUSED;
-        updateStatus(`Game paused: ${message.data.message}`);
-        updateGameStateDisplay();
-        break;
-
-      case "gameResumed":
-        gameState.state = GAME_STATES.IN_PLAY;
-        updateStatus(`Game resumed: ${message.data.message}`);
-        updateGameStateDisplay();
-        break;
-
-      case "playerReconnected":
-        updateStatus(`Player reconnected (position: ${message.data.position})`);
-        break;
-
-      case "reconnectedToGame":
-        gameState = message.data.gameState;
-        playerPosition = message.data.position; // Changed from playerType to position
-        players = message.data.players;
-        gameState.state === GAME_STATES.IN_PLAY;
-        updateStatus(`Reconnected to game as ${playerPosition} player`);
-        updatePlayerPositionDisplay(playerPosition); // Use the new function here too
-        updateGameStateDisplay();
-        break;
-
-      case "gameFinished":
-        gameState = message.data.gameState;
-
-        const userWon = gameState.winner === playerPosition;
-        const winner = userWon ? "You" : "Opponent";
-        updateStatus(`Game finished. ${winner} won!`);
-        updateGameStateDisplay();
-        updateScores();
-        break;
-
-      case "gameCanceled":
-        gameState.state = GAME_STATES.CANCELED;
-        updateStatus(`Game canceled: ${message.data.message}`);
-        updateGameStateDisplay();
-        break;
-
-      case "error":
-        updateStatus(`Error: ${message.data.message}`, "error");
-        break;
-
-      default:
-        console.log("Unknown message type:", message.type);
-    }
-  } catch (error) {
-    console.error("Error handling message:", error);
-    updateStatus("Error processing server message", "error");
-  }
-}
-
-// Add a new function to update player position display
+// Update player position display
 function updatePlayerPositionDisplay(position) {
-  playerPosition = position; // Make sure the global variable is updated
   if (playerPositionDisplay) {
     playerPositionDisplay.textContent = position;
     console.log(`Updated position display to: ${position}`);
@@ -310,7 +230,7 @@ function updatePlayerPositionDisplay(position) {
   }
 }
 
-function startAnimationLoop() {
+async function startAnimationLoop() {
   if (animationFrameId) {
     cancelAnimationFrame(animationFrameId);
   }
@@ -323,28 +243,25 @@ function startAnimationLoop() {
   animationFrameId = requestAnimationFrame(animate);
 }
 
-// Send a message to the server
-function sendMessage(message) {
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify(message));
-  } else {
-    updateStatus("Cannot send message: Not connected");
-  }
-}
-
-function togglePauseResume() {
-  if (!socket || !isConnected || !gameState) {
+async function togglePauseResume() {
+  if (
+    !socketManager ||
+    !socketManager.isConnected ||
+    !socketManager.getGameState()
+  ) {
     updateStatus("Cannot pause/resume: Not connected or no game in progress");
     return;
   }
 
+  const gameState = socketManager.getGameState();
+
   if (gameState.state === GAME_STATES.IN_PLAY) {
     // Game is running, so pause it
-    sendMessage({ type: "pauseGame" });
+    await socketManager.pauseGame();
     updateStatus("Requesting game pause...");
   } else if (gameState.state === GAME_STATES.PAUSED) {
     // Game is paused, so resume it
-    sendMessage({ type: "resumeGame" });
+    await socketManager.resumeGame();
     updateStatus("Requesting game resume...");
   } else {
     updateStatus(`Cannot pause/resume game in state: ${gameState.state}`);
@@ -352,7 +269,10 @@ function togglePauseResume() {
 }
 
 // Handle mouse movement to control paddle
-function handleMouseMove(e) {
+async function handleMouseMove(e) {
+  const gameState = socketManager.getGameState();
+  const playerPosition = socketManager.getPlayerPosition();
+
   if (!gameState || gameState.state !== GAME_STATES.IN_PLAY || !playerPosition)
     return;
 
@@ -363,30 +283,20 @@ function handleMouseMove(e) {
   // Constrain to valid range
   const paddlePos = Math.max(0, Math.min(100, y));
 
-  // Send the paddle position update to the server
-  sendMessage({
-    type: "paddleMove",
-    position: paddlePos,
-  });
-
-  // Only update OUR paddle locally - this is critical
-  if (playerPosition === "left") {
-    gameState.paddles.left = paddlePos;
-  } else if (playerPosition === "right") {
-    gameState.paddles.right = paddlePos;
-  }
+  // Send the paddle position update
+  await socketManager.sendPaddleMove(paddlePos);
 }
 
 // Handle key down events
 function handleKeyDown(e) {
-  if (!isConnected || !gameState) return;
+  if (!socketManager.isConnected || !socketManager.getGameState()) return;
 
   // Store which keys are pressed
   keysPressed[e.key] = true;
 
   // Handle immediate key press for more responsive controls
   if (
-    gameState.state === GAME_STATES.IN_PLAY &&
+    socketManager.getGameState().state === GAME_STATES.IN_PLAY &&
     (e.key === "ArrowUp" ||
       e.key === "ArrowDown" ||
       e.key === "w" ||
@@ -407,24 +317,35 @@ function handleKeyUp(e) {
 }
 
 // Continuous processing of keyboard inputs
-function startKeyboardControlLoop() {
+async function startKeyboardControlLoop() {
   // Process keyboard input approximately 20 times per second
-  const keyboardInterval = setInterval(() => {
-    if (!isConnected || !gameState || gameState.state !== GAME_STATES.IN_PLAY) {
+  const keyboardInterval = setInterval(async () => {
+    const gameState = socketManager?.getGameState();
+    if (
+      !socketManager?.isConnected ||
+      !gameState ||
+      gameState.state !== GAME_STATES.IN_PLAY
+    ) {
       return; // Skip if not in a game or not playing
     }
 
-    processKeyboardInput();
+    await processKeyboardInput();
   }, 50); // 50ms = 20 times per second
 
   // Clean up interval on page unload
-  window.addEventListener("beforeunload", () => {
+  window.addEventListener("beforeunload", async () => {
     clearInterval(keyboardInterval);
+    if (socketManager && socketManager.isConnected) {
+      await socketManager.disconnect();
+    }
   });
 }
 
 // Process keyboard inputs and move paddle accordingly
-function processKeyboardInput() {
+async function processKeyboardInput() {
+  const gameState = socketManager.getGameState();
+  const playerPosition = socketManager.getPlayerPosition();
+
   if (!gameState || !playerPosition || gameState.state !== GAME_STATES.IN_PLAY)
     return;
 
@@ -454,17 +375,7 @@ function processKeyboardInput() {
 
   // Only send update if position changed
   if (moved && newPos !== paddlePos) {
-    sendMessage({
-      type: "paddleMove",
-      position: newPos,
-    });
-
-    // Update local state for smoother rendering while waiting for server response
-    if (playerPosition === "left") {
-      gameState.paddles.left = newPos;
-    } else if (playerPosition === "right") {
-      gameState.paddles.right = newPos;
-    }
+    await socketManager.sendPaddleMove(newPos);
   }
 }
 
@@ -476,8 +387,11 @@ function updateButtons(connected) {
   cancelBtn.style.display = connected ? "inline-block" : "none";
 
   // Update button states based on game state
-  if (connected && gameState) {
-    pauseBtn.disabled = gameState.state !== GAME_STATES.IN_PLAY;
+  if (connected && socketManager.getGameState()) {
+    const gameState = socketManager.getGameState();
+    pauseBtn.disabled =
+      gameState.state !== GAME_STATES.IN_PLAY &&
+      gameState.state !== GAME_STATES.PAUSED;
   }
 }
 
@@ -489,6 +403,7 @@ function updateStatus(message, type = "info") {
 
 // Update game state display
 function updateGameStateDisplay() {
+  const gameState = socketManager.getGameState();
   if (!gameState) return;
 
   const states = [
@@ -520,13 +435,29 @@ function updateGameStateDisplay() {
     pauseBtn.classList.remove("resume-btn");
     pauseBtn.classList.add("pause-btn");
   }
+
+  // Initialize renderer if needed and game config is available
+  if (
+    !renderer &&
+    gameState &&
+    socketManager &&
+    socketManager.getGameConfig()
+  ) {
+    const gameConfig = socketManager.getGameConfig();
+    console.log("Creating renderer with config:", gameConfig);
+    renderer = new GameRenderer(canvas, gameConfig, GAME_STATES);
+    console.log("Renderer created:", renderer);
+    // Start animation loop
+    startAnimationLoop();
+  }
 }
 
 // Update score display
 function updateScores() {
+  const gameState = socketManager.getGameState();
   if (!gameState || !gameState.score) return;
 
-  // Simple direct access to left/right scores (no backward compatibility)
+  // Simple direct access to left/right scores
   const leftVal = gameState.score.left || 0;
   const rightVal = gameState.score.right || 0;
 
@@ -536,7 +467,8 @@ function updateScores() {
 }
 
 // Render game on canvas
-function render() {
+async function render() {
+  const gameState = socketManager.getGameState();
   if (!gameState) {
     console.log("No gameState available for rendering");
     return;
@@ -545,9 +477,11 @@ function render() {
     console.log("No renderer available");
     return;
   }
-  // console.log("Rendering game state:", gameState);
   renderer.renderGame(gameState);
 }
 
 // Initialize the app
-init();
+init().catch((error) => {
+  console.error("Error during initialization:", error);
+  updateStatus("Failed to initialize the game", "error");
+});

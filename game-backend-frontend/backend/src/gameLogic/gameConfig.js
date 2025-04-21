@@ -1,4 +1,5 @@
 export const boardCenter = 50;
+export const CLEANUP = 60000;
 export const gameRooms = new Map(); //gameRooms = Map<gameId, defaultGameRoom>
 export const connections = new Map(); //connections = Map<gameId, Map<userId, socket>>
 export const Game = Object.freeze({
