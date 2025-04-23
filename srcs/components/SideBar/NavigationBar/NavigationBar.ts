@@ -5,6 +5,7 @@ import {
   RouterLink,
   IComponent,
   ELEMENT_INTER,
+  eventBus,
 } from "../../../uccello/Uccello.js";
 
 interface NavigationBarState {
@@ -122,7 +123,9 @@ const NavigationBar = defineComponent<NavigationBarState>({
             ],
             on: {
               click: async () => {
-                await router.navigateTo("/");
+                localStorage.removeItem("user");
+                eventBus.emit("auth:logout");
+                router.navigateTo("/login");
               },
             },
           },

@@ -2244,7 +2244,7 @@ const ROUTER_EVENT = "router-event";
 export class HashRouter {
   private matchers: any[] = [];
   private isInitialized: boolean = false;
-  private onPopState: any = this.matchCurrentRoute();
+  private onPopState: any = () => this.matchCurrentRoute();
 
   private matchedRoute: any = null;
 
@@ -2641,3 +2641,33 @@ export const RouterOutlet = defineComponent<RouterOutletState>({
     ]);
   },
 });
+
+class EventBus {
+  private events: any;
+
+  constructor() {
+    this.events = {};
+  }
+
+  on(event: any, callback: any) {
+    if (!this.events[event]) {
+      this.events[event] = [];
+    }
+    this.events[event].push(callback);
+
+    // Return an unsubscribe function
+    return () => {
+      this.events[event] = this.events[event].filter(
+        (cb: any) => cb !== callback
+      );
+    };
+  }
+
+  emit(event?: any, data?: any) {
+    if (this.events[event]) {
+      this.events[event].forEach((callback: any) => callback(data));
+    }
+  }
+}
+
+export const eventBus = new EventBus();

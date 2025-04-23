@@ -1,4 +1,9 @@
-import { createElement, defineComponent } from "../uccello/Uccello.js";
+import { router } from "../router/Router.js";
+import {
+  createElement,
+  defineComponent,
+  eventBus,
+} from "../uccello/Uccello.js";
 
 const Login = defineComponent<void>({
   onMounted() {
@@ -6,7 +11,22 @@ const Login = defineComponent<void>({
   },
   state() {},
   render() {
-    return createElement("div", {}, ["Login Page"]);
+    return createElement("div", {}, [
+      "Login Page",
+      createElement(
+        "button",
+        {
+          on: {
+            click: () => {
+              localStorage.setItem("user", JSON.stringify("Meedivo"));
+              eventBus.emit("auth:login");
+              router.navigateTo("/dashboard");
+            },
+          },
+        },
+        ["Click Me"]
+      ),
+    ]);
   },
 });
 

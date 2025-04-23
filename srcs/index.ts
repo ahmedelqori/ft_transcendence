@@ -5,6 +5,7 @@ import {
   createApp,
   createElement,
   defineComponent,
+  eventBus,
   IComponent,
   RouterOutlet,
 } from "./uccello/Uccello.js";
@@ -14,21 +15,38 @@ const ROOT = document.getElementById("root");
 interface AppState {
   currentPath: string;
   canShowSideBar: boolean;
+  isLoggedIn: boolean;
 }
 
 const App = defineComponent<AppState>({
-  async onMounted(this: IComponent<AppState>) {
-    addEventListener("popstate", async (event) => {
-      const path = await router.getMatchedRoute?.path;
-      if (path == "/")
-        this.updateState({ currentPath: path, canShowSideBar: false });
-      else this.updateState({ currentPath: path, canShowSideBar: true });
+  async onMounted(
+    this: IComponent<AppState> & {
+      checkIfUserIsLoggedIn: (any: void) => boolean;
+    }
+  ) {
+    // addEventListener("popstate", async (event) => {
+    //   const path = await router.getMatchedRoute?.path;
+    //   router.navigateTo(path);
+    // });
+    this.updateState({ isLoggedIn: this.checkIfUserIsLoggedIn() });
+
+    eventBus.on("auth:login", () => {
+      this.updateState({ isLoggedIn: true });
     });
+
+    eventBus.on("auth:logout", () => {
+      this.updateState({ isLoggedIn: false });
+    });
+
+    // router.onRouteChange((route) => {
+    //   this.state.currentPath = route.path;
+    // });
   },
   state() {
     return {
       currentPath: router.getMatchedRoute?.path,
       canShowSideBar: true,
+      isLoggedIn: true,
     };
   },
   render(this: IComponent<AppState>) {
@@ -62,10 +80,28 @@ const App = defineComponent<AppState>({
               "max-lg:flex-col-reverse",
             ],
           },
-          [createElement(SideBar), createElement(RouterOutlet)]
+          [
+            ...(this.state.isLoggedIn
+              ? [createElement(SideBar)]
+              : [
+                  createElement(
+                    "button",
+                    {
+                      on: {
+                        click: () => router.navigateTo("/login"),
+                      },
+                    },
+                    ["Go To Login"]
+                  ),
+                ]),
+            createElement(RouterOutlet),
+          ]
         ),
       ]
     );
+  },
+  checkIfUserIsLoggedIn() {
+    return localStorage.getItem("user") !== null;
   },
 });
 
