@@ -281,6 +281,7 @@ import {
 
 const Game = defineComponent({
   onMounted(this: IComponent<any>) {
+    document.title = "Game";
     // WebSocket connection
     const socket = new WebSocket("ws://localhost:3003");
     let gameState: any = null;

@@ -53,6 +53,8 @@ const App = defineComponent<AppState>({
           "justify-start",
           "gap-4",
           "max-lg:gap-6",
+          "flex",
+          "flex-col",
         ],
       },
       [
@@ -78,7 +80,7 @@ const App = defineComponent<AppState>({
             createElement(RouterOutlet),
           ]
         ),
-        createElement(Footer),
+        !this.state.isLoggedIn ? createElement(Footer) : null,
       ]
     );
   },

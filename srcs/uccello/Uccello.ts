@@ -2352,7 +2352,7 @@ export class HashRouter {
    */
   async navigateTo(path: string): Promise<any> {
     const matcher = this.matchers.find((matcher) => matcher.checkMatch(path));
-
+    
     if (matcher == null) {
       console.warn(`[Router] No route matches path "${path}"`);
       this.matchedRoute = null;
@@ -2670,3 +2670,34 @@ class EventBus {
 }
 
 export const eventBus = new EventBus();
+
+type RequestInterceptor = (request: RequestInit) => RequestInit;
+type ResponseInterceptor = (response: Response) => Promise<Response>;
+
+export class EnhancedFetch {
+  private requestInterceptors: RequestInterceptor[] = [];
+  private responseInterceptors: ResponseInterceptor[] = [];
+
+  addRequestInterceptor(interceptor: RequestInterceptor): void {
+    this.requestInterceptors.push(interceptor);
+  }
+
+  addResponseInterceptor(interceptor: ResponseInterceptor): void {
+    this.responseInterceptors.push(interceptor);
+  }
+
+  async fetch(url: string, options: RequestInit = {}): Promise<Response> {
+    let modifiedOptions = { ...options };
+    for (const interceptor of this.requestInterceptors) {
+      modifiedOptions = interceptor(modifiedOptions);
+    }
+
+    let response = await fetch(url, modifiedOptions);
+
+    for (const interceptor of this.responseInterceptors) {
+      response = await interceptor(response);
+    }
+
+    return response;
+  }
+}

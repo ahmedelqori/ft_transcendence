@@ -14,38 +14,65 @@ const routes: any[] = [
   {
     path: "/",
     component: Welcome,
+    beforeEnter: () => {
+      if (isAuth()) return "/dashboard";
+    },
   },
   {
     path: "/login",
     component: Login,
+    beforeEnter: () => {
+      if (isAuth()) return "/dashboard";
+    },
   },
   {
     path: "/dashboard",
     component: Dashboard,
+    beforeEnter: () => {
+      if (!isAuth()) return "/login";
+    },
   },
   {
     path: "/profile",
     component: Profile,
+    beforeEnter: () => {
+      if (!isAuth()) return "/login";
+    },
   },
   {
     path: "/settings",
     component: Settings,
+    beforeEnter: () => {
+      if (!isAuth()) return "/login";
+    },
   },
   {
     path: "/leaderboard",
     component: LeaderBoard,
+    beforeEnter: () => {
+      if (!isAuth()) return "/login";
+    },
   },
   {
     path: "/chat",
     component: Chat,
+    beforeEnter: () => {
+      if (!isAuth()) return "/login";
+    },
   },
   {
     path: "/tournament",
     component: Tournament,
+    beforeEnter: () => {
+      if (!isAuth()) return "/login";
+    },
   },
   {
     path: "/game",
     component: Game,
+    beforeEnter: () => {
+      if (!isAuth()) return "/login";
+    },
   },
   {
     path: "*",
@@ -53,4 +80,7 @@ const routes: any[] = [
   },
 ];
 
+function isAuth() {
+  return localStorage.getItem("user") !== null;
+}
 export const router = new HashRouter(routes);
