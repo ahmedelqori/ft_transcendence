@@ -273,6 +273,7 @@
 // export default Game;
 
 // client.js
+import { router } from "../router/Router.js";
 import {
   createElement,
   defineComponent,

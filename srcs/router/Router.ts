@@ -83,4 +83,5 @@ const routes: any[] = [
 function isAuth() {
   return localStorage.getItem("user") !== null;
 }
+
 export const router = new HashRouter(routes);

@@ -12,7 +12,7 @@ const Login = defineComponent<void>({
   },
   state() {},
   render() {
-    console.log(router.getParams);
+
     return createElement(
       "main",
       { class: ["m-auto", "flex", "flex-col", "gap-8", "items-center"] },
