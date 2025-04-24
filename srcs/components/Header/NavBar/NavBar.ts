@@ -1,6 +1,5 @@
 import {
   createElement,
-  createFragment,
   defineComponent,
   IComponent,
 } from "../../../uccello/Uccello.js";
@@ -8,35 +7,23 @@ import UserPanel from "./UserPanel/UserPanel.js";
 import VisitorPanel from "./VisitorPanel/VisitorPanel.js";
 
 interface NavBarState {
-  isAuthenticated: boolean;
   isLoading: boolean;
 }
 
-const NavBar = defineComponent<NavBarState>({
-  async onMounted(this: IComponent<NavBarState>) {
-    try {
-      // const res: Response = await fetch("http://localhost:3000/auth");
+interface NavBarProps {
+  isLoggedIn: boolean;
+}
 
-      // const data = await res.json();
-      this.updateState({
-        isAuthenticated: true,
-        isLoading: false,
-      });
-    } catch (error) {
-      if (error instanceof Error) console.error(error.message);
-    }
-  },
+const NavBar = defineComponent<NavBarState, NavBarProps>({
+  async onMounted(this: IComponent<NavBarState, NavBarProps>) {},
   state(): NavBarState {
     return {
-      isAuthenticated: false,
       isLoading: true,
     };
   },
-  render(this: IComponent<NavBarState>) {
+  render(this: IComponent<NavBarState, NavBarProps>) {
     return createElement("nav", {}, [
-      this.state.isLoading
-        ? ""
-        : this.state.isAuthenticated
+      this.props.isLoggedIn
         ? createElement(UserPanel)
         : createElement(VisitorPanel),
     ]);

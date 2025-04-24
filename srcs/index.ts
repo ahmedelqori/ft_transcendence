@@ -1,3 +1,4 @@
+import Footer from "./components/Footer/Footer.js";
 import Header from "./components/Header/Header.js";
 import SideBar from "./components/SideBar/SideBar.js";
 import { router } from "./router/Router.js";
@@ -24,10 +25,6 @@ const App = defineComponent<AppState>({
       checkIfUserIsLoggedIn: (any: void) => boolean;
     }
   ) {
-    // addEventListener("popstate", async (event) => {
-    //   const path = await router.getMatchedRoute?.path;
-    //   router.navigateTo(path);
-    // });
     this.updateState({ isLoggedIn: this.checkIfUserIsLoggedIn() });
 
     eventBus.on("auth:login", () => {
@@ -37,10 +34,6 @@ const App = defineComponent<AppState>({
     eventBus.on("auth:logout", () => {
       this.updateState({ isLoggedIn: false });
     });
-
-    // router.onRouteChange((route) => {
-    //   this.state.currentPath = route.path;
-    // });
   },
   state() {
     return {
@@ -63,7 +56,7 @@ const App = defineComponent<AppState>({
         ],
       },
       [
-        createElement(Header),
+        createElement(Header, { isLoggedIn: this.state.isLoggedIn }),
         createElement(
           "main",
           {
@@ -81,22 +74,11 @@ const App = defineComponent<AppState>({
             ],
           },
           [
-            ...(this.state.isLoggedIn
-              ? [createElement(SideBar)]
-              : [
-                  createElement(
-                    "button",
-                    {
-                      on: {
-                        click: () => router.navigateTo("/login"),
-                      },
-                    },
-                    ["Go To Login"]
-                  ),
-                ]),
+            ...(this.state.isLoggedIn ? [createElement(SideBar)] : [null]),
             createElement(RouterOutlet),
           ]
         ),
+        createElement(Footer),
       ]
     );
   },
@@ -106,24 +88,3 @@ const App = defineComponent<AppState>({
 });
 
 createApp(App, {}, { router }).mount(ROOT as HTMLElement);
-
-// render(this: IComponent<AppState>) {
-//   return createElement(
-//     "div",
-//     {
-//       class: ["h-full", "m-auto", "w-full", "max-w-7xl", "px-4", "flex", "flex-col", "gap-4"],
-//     },
-//     [
-//       createElement(Header),
-//       createElement(
-//         "main",
-//         {
-//           class: ["flex", "w-full", "flex-1", "gap-4", "flex-col", "md:flex-row"]
-//         },
-//         [
-//           createElement("aside", { class: ["w-full", "md:w-64", "shrink-0"] }, ["sidebar"]),
-//           createElement("div", { class: ["flex-1", "min-w-0"] }, ["Dashboard"]),
-//         ]
-//       ),
-//     ]
-//   );

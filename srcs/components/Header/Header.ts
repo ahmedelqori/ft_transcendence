@@ -1,15 +1,23 @@
-import { createElement, defineComponent } from "../../uccello/Uccello.js";
+import {
+  createElement,
+  defineComponent,
+  IComponent,
+} from "../../uccello/Uccello.js";
 import NavBar from "./NavBar/NavBar.js";
 
-const Header = defineComponent<void>({
+interface HeaderProps {
+  isLoggedIn: boolean;
+}
+
+const Header = defineComponent<void, HeaderProps>({
   state() {},
-  render() {
+  render(this: IComponent<void, HeaderProps>) {
     return createElement(
       "header",
       {
-        class: ["w-full","pt-4"],
+        class: ["w-full", "pt-6"],
       },
-      [createElement(NavBar)]
+      [createElement(NavBar, { isLoggedIn: this.props.isLoggedIn })]
     );
   },
 });
