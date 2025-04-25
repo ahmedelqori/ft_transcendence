@@ -25,7 +25,7 @@ const User = defineComponent<void>({
       [
         createElement("img", {
           class: ["w-full", "h-full", "rounded-full", "cursor-pointer"],
-          src: "../../../../../../../public/assets/avatar.png",
+          src: "/public/assets/avatar.png",
         }),
       ]
     );
