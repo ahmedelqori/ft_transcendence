@@ -14,6 +14,7 @@ const routes: any[] = [
   {
     path: "/",
     component: Welcome,
+    // redirect: "/dashboard",
     beforeEnter: () => {
       if (isAuth()) return "/dashboard";
     },
@@ -81,6 +82,7 @@ const routes: any[] = [
 ];
 
 function isAuth() {
+  console.log("Hello");
   return localStorage.getItem("user") !== null;
 }
 
