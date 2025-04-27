@@ -20,7 +20,7 @@ export default async function refresh(req, res) {
         }
 
         const payload = { user_id: decoded.user_id };
-        const jwt_access_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '1m' });
+        const jwt_access_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '1h' });
 
         res.status(200).send({ access_token: jwt_access_token });
     } catch (error) {

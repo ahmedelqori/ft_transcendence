@@ -38,7 +38,8 @@ shell:
 	$(CMD) exec $(c) bash
 
 restart:
-	#$(CMD) stop 
-	docker rmi $(c) -f
+	docker container stop $(c)
+	docker container rm $(c)
+	docker rmi app-$(c) -f
 	$(CMD) up -d
 # docker container ls | grep $(c) | awk '{print $$1}' | xargs docker container stop

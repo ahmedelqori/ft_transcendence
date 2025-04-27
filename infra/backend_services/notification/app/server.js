@@ -5,7 +5,7 @@ import routes from './routes.js'
 import Knex from "knex";
 import { Model } from "objection";
 import ws from '@fastify/websocket';
-
+import cors from '@fastify/cors'; // to handle CORS
 
 const knex = Knex(knexConfig);
 
@@ -22,6 +22,13 @@ const fastify = Fastify({
     level: 'debug',
     stream: prettyStream,
   },
+});
+
+fastify.register(cors, {
+  origin: '*',
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'userid'],
+  exposedHeaders: ['Authorization']
 });
 
 // fastify.setErrorHandler((error, request, reply) => {

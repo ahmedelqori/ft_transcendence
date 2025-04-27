@@ -4,7 +4,6 @@ import get_user from "../utils/whothisguy.js";
 
 
 export default async function request(req, res) {
-
     const user_id  =  Number(req.params.user_id);
     if (isNaN(user_id)) {
         res.status(400).send({error: "Invalid user_id"});

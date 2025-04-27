@@ -4,7 +4,7 @@ services:
     container_name: nginx-modsecurity
     build: ./nginx-modsecurity/.
     ports:
-      - "8080:443"
+      - "443:443"
     networks:
       - appNet
     restart: always

@@ -67,22 +67,24 @@ export default async function callback(req, reply) {
     if (player.two_FA){
         const payload = { unverified_user_id: player.id };
         const jwt_access_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '5m' });
+        
+        // redirect to verify page
         reply
-            .status(200)
-            .send({ message: "Go to 2FA verification endpoint to verify", access_token: jwt_access_token });
+            .redirect(process.env.FRONTEND_2FA_VERIFY_URL + "?access_token=" + jwt_access_token);
         return ;
     }
     
-    
-    const payload = { user_id: player.id };
-    const jwt_access_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '5h' });
-    const jwt_refresh_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '7d' });
-    
+    const payload = {
+        user_id: player.id,
+        refresh_token: 0
+    };
+    const jwt_access_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '5m' });
     console.log('login in User:', player);
-
+    
     reply
-        .status(200)
-        .send({ access_token: jwt_access_token, refresh_token: jwt_refresh_token });
+        .redirect(process.env.FRONTEND_HOME_URL + "?access_token=" + jwt_access_token);
+    
+    return reply;
 }
 
 

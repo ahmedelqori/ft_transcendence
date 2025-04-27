@@ -46,26 +46,69 @@ paths:
     get:
       tags:
         - account
-      summary: 42/google login
-      operationId: googleLogin
+      summary: Login with provider
+      description: Redirects the user to the login page of the specified provider. After successful authentication, the backend processes the login and redirects the user back to the frontend with a temporary access token.
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - google
+              - 42
+      responses:
+        '302':
+          description: Redirects to the frontend with a temporary access token in the query string.
+          headers:
+            Location:
+              description: URL of the frontend containing the temporary access token, expired in 5 minutes.
+              schema:
+                type: string
+                example: https://frontend.example.com/home?access_token=TEMPORARY_ACCESS_TOKEN
+    parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - google
+              - 42
+  /api/account/set-cookie:
+    get:
+      tags:
+      - account
+      summary: Set refresh token in cookies
+      description: This endpoint is accessed using a temporary access token provided in the Authorization header. It sets the refresh token in cookies and returns an access token in the response body.
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          example: Bearer TEMPORARY_ACCESS_TOKEN
       responses:
         '200':
-          description: Successful login
+          description: Refresh token set in cookies and access token returned
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  access_token:
-                    type: string
-                    example: JWT.TOKEN.TEST
-                  refresh_token:
-                    type: string
-                    example: JWT.TOKEN.TEST
+                    access_token:
+                      type: string
+                      example: JWT.TOKEN.TEST
         '400':
-          description: Invalid input
-        '500':
-          description: Internal server error
+          description: Invalid temporary access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid temporary access token
         '401':
           description: Unauthorized
           content:
@@ -76,22 +119,11 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
-      parameters:
-        - name: provider
-          in: path
-          required: true
-          schema:
-            type: string
-            enum:
-              - google
-              - 42
   /api/account/login/refresh/:
     post:
       tags:
         - account
       summary: Refresh JWT tokens
-      security:
-        - bearerAuth: []
       operationId: refreshLogin
       requestBody:
         required: true
@@ -1425,9 +1457,6 @@ paths:
                   access_token:
                     type: string
                     example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpYXQiOjE3NDI0ODEyMzIsImV4cCI6MTc0MjQ5OTIzMn0.b4iUF9JrsemsYy2-TU66TF4wQVHVKz_vdkpy4wfvDo4WWio_GwLe8thxy0o16j-XSrhQRljA_-tGftpm6NkGf5KJVWok03iSaAjKe3KVTwzm8iVE0cIZzgcbEkjMvtqDR8O7ho8Pmfwo-7jfHPLASmbMtyfmh_FhLvTSzSysIfTJPRArI1HmoyEs8xpmJeM1NthlzxIfz6UTXLCyggeuat34IVGq6wq2wolrpv5bVIKQpsquVHzjjRFKyJtcfufRHf196qtcoJ6Ap_21VQE-qfyXXjANbb6mpki0evTMIClTs1WtNlxsFRxguRqJhtUfCWXA54HTcUVe__B594MKWg
-                  refresh_token:
-                    type: string
-                    example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpYXQiOjE3NDI0ODEyMzIsImV4cCI6MTc0MzA4NjAzMn0.dqirY0t7UifhJJ28Uqgr8KUNV5Oj4Xp_TxrTwS9w2L0JdJOEWp1NgVTzNG5pQIJNAO0l5atSMdGUvulw3S-99CmMz3CxdNClv9ydXuynEr22u2egUH1Jgfc6Xm45HDu-osl7HEkUsiOjid8Aqorl_wMtnzQcZQ9ow98Uhp-p27wj2cVV47ydcflF-6Kfy69Ag6ku5JS8taRuVx6ruM0_3zQI7nHfoOMo167H6h-WKxIRf2-ZiVoeWZpUa4_lsU0O89A0urutKKRaea1t9XGDsGvWx-EPP9lHA5Tgb908GfuxptlPTxAoH3tc3giI9j8ty4AMrlVfy1SvZzFQVkNBsQ
         '400':
           description: Invalid input
           content:

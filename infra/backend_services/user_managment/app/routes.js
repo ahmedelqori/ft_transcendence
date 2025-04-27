@@ -12,10 +12,8 @@ import users from './controllers/users.js';
 import users_validation from './middlewares/users_validation.js';
 import refresh from './controllers/refresh_token.js';
 import twoFA from './controllers/twofa.js';
+import first_refresh_token from './controllers/first_refresh_token.js';
 
-function not_yet(req, res) {
-    console.log(req.headers.host);
-}
 
 
 // Declare a route
@@ -23,7 +21,7 @@ export default async function routes(fastify) {
     fastify.get('/login/google/', google_login);
     fastify.get('/login/42/', login_42);
     fastify.get('/login/callback/', callback);
-    fastify.post('/login/refresh/', {preHandler: auth},refresh);
+    fastify.post('/login/refresh/',refresh);
     fastify.get('/whoami/', {preHandler: auth}, whoami);
     fastify.patch('/update-profile/', {preHandler: auth}, update_profile);
     fastify.post('/avatar/', { preHandler: auth, preValidation: fileValidation }, avatar);
@@ -31,4 +29,5 @@ export default async function routes(fastify) {
     fastify.get('/:id', {preHandler: auth}, who_this_guy);
     fastify.get('/users/', {preHandler: auth, preValidation: users_validation}, users);
     fastify.post('/twoFA', {preHandler: auth}, twoFA);
+    fastify.get('/set-cookie', {preHandler: auth}, first_refresh_token);
 }

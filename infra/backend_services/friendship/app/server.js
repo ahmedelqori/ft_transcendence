@@ -5,6 +5,7 @@ import cookie from '@fastify/cookie'; // cookies
 import Knex from 'knex'; // query builder (translate js queries to sql queries)
 import knexConfig from './knexfile.cjs'; // knex config
 import { Model } from 'objection'; // ORM build on top of Knex 
+import cors from '@fastify/cors'; // to handle CORS
 
 const knex = Knex(knexConfig);
 
@@ -21,6 +22,14 @@ const fastify = Fastify({
     stream: prettyStream,
   },
 });
+
+fastify.register(cors, {
+  origin: '*',
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'userid'],
+  exposedHeaders: ['Authorization']
+});
+
 
 fastify.register(cookie);
 fastify.register(routes, { prefix: '/api/friends/' });

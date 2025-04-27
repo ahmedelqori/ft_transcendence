@@ -6,6 +6,7 @@ import Knex from 'knex'; // query builder (translate js queries to sql queries)
 import knexConfig from './knexfile.cjs'; // knex config
 import { Model } from 'objection'; // ORM build on top of Knex 
 import multipart from '@fastify/multipart'; // to handle file uploads
+import cors from '@fastify/cors'; // to handle CORS
 
 const knex = Knex(knexConfig);
 
@@ -23,6 +24,13 @@ const fastify = Fastify({
   },
 });
 
+fastify.register(cors, {
+  // origin: ["https://pingpong.ma/", "https://accounts.google.com", "http://localhost:8000"],
+  origin: '*',
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'userid'],
+  exposedHeaders: ['Authorization']
+});
 
 // fastify.setErrorHandler((error, request, reply) => {
 //   reply.status(500).send({
