@@ -25,6 +25,7 @@ const EditAvatar = defineComponent<EditAvatarState>({
       "div",
       {
         class: [
+          "z-10",
           "w-full",
           "border-2",
           "rounded-[30px]",
@@ -37,7 +38,6 @@ const EditAvatar = defineComponent<EditAvatarState>({
           "col-span-2",
           "row-span-2",
           "h-fit",
-          "min-h-[220px]",
           "justify-start",
         ],
       },
@@ -86,7 +86,12 @@ const EditAvatar = defineComponent<EditAvatarState>({
           createElement("img", {
             alt: "Avatar",
             src: "../../../../public/assets/avatar.png",
-            class: ["w-[100px]", "rounded-full", "hover:scale-[110%]", "z-10"],
+            class: [
+              "w-[100px]",
+              "max-lg:w-[75px]",
+              "rounded-full",
+              "hover:scale-[110%]",
+            ],
           }),
           createElement("div", { class: ["items-start", "gap-2"] }, [
             createElement("h4", { class: ["font-medium", "pl-[10px]"] }, [
@@ -97,11 +102,16 @@ const EditAvatar = defineComponent<EditAvatarState>({
               {
                 class: [
                   "border-[1px]",
-                  "w-fit",
+                  "w-full",
+                  "max-w-[300px]",
                   "border-[var(--light-grey)]",
                   "rounded-full",
-                  "px-[20px]",
-                  "py-[10px]",
+                  "px-4",
+                  "py-2",
+                  "sm:px-5",
+                  "sm:py-2.5",
+                  "md:px-6",
+                  "md:py-3",
                 ],
               },
               [
@@ -114,11 +124,14 @@ const EditAvatar = defineComponent<EditAvatarState>({
                     "file:bg-[var(--light-yellow)]",
                     "file:rounded-[14px]",
                     "file:border-none",
-                    "file:px-[20px]",
+                    "file:px-3",
                     "file:cursor-pointer",
                     "cursor-pointer",
                     "text-[var(--light-grey)]",
-                    "file:mr-[35px]",
+                    "file:mr-4",
+                    "w-full",
+                    "text-sm",
+                    "sm:text-base",
                   ],
                   on: {
                     change: (e) => {
@@ -126,8 +139,8 @@ const EditAvatar = defineComponent<EditAvatarState>({
                       const filesize = +(file.size / 1024 / 1024).toFixed(4);
 
                       if (
-                        file.name != "item" &&
-                        typeof file.name != "undefined" &&
+                        file.name !== "item" &&
+                        typeof file.name !== "undefined" &&
                         filesize <= 10
                       ) {
                         this.updateState({

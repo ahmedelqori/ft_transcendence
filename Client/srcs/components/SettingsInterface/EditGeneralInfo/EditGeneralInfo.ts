@@ -25,21 +25,16 @@ const EditGeneralInfo = defineComponent<EditGeneralInfoState>({
           "z-10",
           "w-full",
           "border-2",
-          "rounded-3xl",
+          "rounded-[30px]",
           "border-[#878787]",
-          "border-opacity-30",
+          "border-opacity-[30%]",
           "items-start",
-          "px-6",
-          "md:px-10",
-          "py-4",
-          "md:py-5",
-          "gap-3",
-          "md:gap-5",
+          "px-[40px]",
+          "py-[20px]",
+          "gap-5",
           "col-span-2",
           "row-span-2",
-          "col-start-3",
-          "h-fit",
-          "min-h-[220px]",
+          "h-56",
           "justify-start",
         ],
       },
@@ -241,7 +236,9 @@ const EditGeneralInfo = defineComponent<EditGeneralInfoState>({
       ]
     );
   },
-  handleSubmit(this: IComponent<EditGeneralInfoState>) {},
+  handleSubmit(this: IComponent<EditGeneralInfoState>) {
+    this.updateState({ lastName: "", firstName: "" });
+  },
 });
 
 export default EditGeneralInfo;
