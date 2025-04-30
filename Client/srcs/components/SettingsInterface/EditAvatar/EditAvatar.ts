@@ -5,12 +5,20 @@ import {
 } from "../../../uccello/Uccello.js";
 
 interface EditAvatarState {
+  avatar: any;
   icon: string;
+  validAvatar: boolean;
+  color: string | null;
 }
 
 const EditAvatar = defineComponent<EditAvatarState>({
   state() {
-    return { icon: "ph-nut" };
+    return {
+      icon: "ph-nut",
+      validAvatar: false,
+      avatar: null,
+      color: `var(--main-color)`,
+    };
   },
   render(this: IComponent<EditAvatarState>) {
     return createElement(
@@ -44,13 +52,24 @@ const EditAvatar = defineComponent<EditAvatarState>({
               "text-[24px]",
               "font-medium",
               "ease-in-out",
+              `text-[${this.state.color}]`,
             ],
             on: {
-              mouseenter: () => {
-                this.updateState({ icon: "ph-check" });
-              },
-              mouseleave: () => {
-                this.updateState({ icon: "ph-nut" });
+              click: () => {
+                if (this.state.validAvatar && this.state.avatar) {
+                  console.log(this.state.avatar);
+                }
+                this.updateState({
+                  icon: "ph-nut",
+                  validAvatar: false,
+                  avatar: null,
+                  color: `var(--main-color)`,
+                }),
+                  ((
+                    document.getElementById(
+                      "fileInputAvatarSettingPage"
+                    ) as HTMLInputElement
+                  ).value = "");
               },
             },
           }),
@@ -89,6 +108,8 @@ const EditAvatar = defineComponent<EditAvatarState>({
                 createElement("input", {
                   type: "file",
                   placeholder: "Choose File",
+                  id: "fileInputAvatarSettingPage",
+                  accept: ".png,.jpeg,.jpg,.mp4",
                   class: [
                     "file:bg-[var(--light-yellow)]",
                     "file:rounded-[14px]",
@@ -99,6 +120,32 @@ const EditAvatar = defineComponent<EditAvatarState>({
                     "text-[var(--light-grey)]",
                     "file:mr-[35px]",
                   ],
+                  on: {
+                    change: (e) => {
+                      const file = e.currentTarget.files[0];
+                      const filesize = +(file.size / 1024 / 1024).toFixed(4);
+
+                      if (
+                        file.name != "item" &&
+                        typeof file.name != "undefined" &&
+                        filesize <= 10
+                      ) {
+                        this.updateState({
+                          icon: "ph-check",
+                          avatar: file,
+                          color: `var(--light-yellow)`,
+                          validAvatar: true,
+                        });
+                      } else {
+                        this.updateState({
+                          icon: "ph-nut",
+                          avatar: null,
+                          color: `var(--red-color)`,
+                          validAvatar: false,
+                        });
+                      }
+                    },
+                  },
                 }),
               ]
             ),
