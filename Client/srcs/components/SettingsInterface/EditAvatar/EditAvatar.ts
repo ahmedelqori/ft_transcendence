@@ -109,7 +109,7 @@ const EditAvatar = defineComponent<EditAvatarState>({
                   type: "file",
                   placeholder: "Choose File",
                   id: "fileInputAvatarSettingPage",
-                  accept: ".png,.jpeg,.jpg,.mp4",
+                  accept: ".png,.jpeg,.jpg",
                   class: [
                     "file:bg-[var(--light-yellow)]",
                     "file:rounded-[14px]",

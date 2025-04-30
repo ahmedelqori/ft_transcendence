@@ -15,14 +15,11 @@ const EditGeneralInfo = defineComponent<EditGeneralInfoState>({
   state() {
     return { firstName: "", lastName: "", icon: "ph-nut", color: "" };
   },
-  render(
-    this: IComponent<EditGeneralInfoState> & { handleSubmit: () => void }
-  ) {
+  render(this: IComponent<EditGeneralInfoState>) {
     return createElement(
       "div",
       {
         class: [
-          "z-10",
           "w-full",
           "border-2",
           "rounded-3xl",
@@ -56,9 +53,6 @@ const EditGeneralInfo = defineComponent<EditGeneralInfoState>({
               "ease-in-out",
               `text-[${this.state.color}]`,
             ],
-            on: {
-              click: this.handleSubmit,
-            },
           }),
         ]),
         createElement("hr", {
@@ -241,7 +235,6 @@ const EditGeneralInfo = defineComponent<EditGeneralInfoState>({
       ]
     );
   },
-  handleSubmit(this: IComponent<EditGeneralInfoState>) {},
 });
 
 export default EditGeneralInfo;
