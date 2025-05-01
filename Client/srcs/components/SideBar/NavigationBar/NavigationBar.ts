@@ -123,13 +123,17 @@ const NavigationBar = defineComponent<NavigationBarState>({
             ],
             on: {
               click: async () => {
-                await fetch("http://localhost:3000/reset", {
-                  mode: "cors",
-                  credentials: "include",
+                localStorage.clear();
+                document.cookie.split(";").forEach(function (c) {
+                  document.cookie = c
+                    .replace(/^ +/, "")
+                    .replace(
+                      /=.*/,
+                      "=;expires=" + new Date().toUTCString() + ";path=/"
+                    );
                 });
-                localStorage.removeItem("user");
+                await router.navigateTo("/");
                 eventBus.emit("auth:logout");
-                router.navigateTo("/login");
               },
             },
           },

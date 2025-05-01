@@ -72,9 +72,11 @@ const DashboardInterface = defineComponent<IDashboardInterface>({
   handleClick(
     this: IComponent<IDashboardInterface> & { startAutoRotation: () => void }
   ) {
+    // Toggle play button visibility on click
     const newVisibility = !this.state.isPlayButtonVisible;
     this.updateState({ isPlayButtonVisible: newVisibility });
 
+    // If auto-rotate is happening, stop it when showing play button
     if (newVisibility && this.state.autoRotateTimer) {
       clearInterval(this.state.autoRotateTimer);
       this.updateState({ autoRotateTimer: null });
@@ -143,10 +145,12 @@ const DashboardInterface = defineComponent<IDashboardInterface>({
           "div",
           {
             class: ["relative", "ml-[10%]", "w-fit", "rounded-[30px]"],
-            onMousemove: this.handleMouseMove.bind(this),
-            onMouseenter: this.handleMouseEnter.bind(this),
-            onMouseleave: this.handleMouseLeave.bind(this),
-            onClick: this.handleClick.bind(this),
+            on: {
+              mousemove: this.handleMouseMove.bind(this),
+              mouseenter: this.handleMouseEnter.bind(this),
+              mouseleave: this.handleMouseLeave.bind(this),
+              click: this.handleClick.bind(this),
+            },
             style: {
               transformStyle: "preserve-3d",
               transition: `transform ${this.state.transitionDuration}s ease-out`,
@@ -318,9 +322,9 @@ const DashboardInterface = defineComponent<IDashboardInterface>({
                       "justify-center",
                     ],
                     style: {
-                      transform: this.state.isPlayButtonVisible
-                        ? "rotate(0deg) scale(1)"
-                        : "rotate(-90deg) scale(0.5)",
+                      //   transform: this.state.isPlayButtonVisible
+                      //     ? "rotate(0deg) scale(1)"
+                      //     : "rotate(-90deg) scale(0.5)",
                       opacity: this.state.isPlayButtonVisible ? "1" : "0",
                       transition:
                         "transform 0.8s ease-out, opacity 0.8s ease-out",
@@ -332,19 +336,19 @@ const DashboardInterface = defineComponent<IDashboardInterface>({
                       "div",
                       {
                         class: [
-                          "bg-gradient-to-r",
-                          "from-yellow-400",
-                          "to-yellow-600",
+                          //   "bg-gradient-to-r",
+                          //   "from-yellow-400",
+                          //   "to-yellow-600",
                           "text-white",
                           "font-bold",
                           "text-4xl",
                           "py-4",
                           "px-8",
                           "rounded-lg",
-                          "shadow-lg",
+                          //   "shadow-lg",
                         ],
                         style: {
-                          transform: "rotate(45deg)",
+                          //   transform: "rotate(45deg)",
                           animation: this.state.isPlayButtonVisible
                             ? "pulse 1.5s infinite"
                             : "none",

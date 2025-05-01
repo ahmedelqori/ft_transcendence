@@ -131,7 +131,7 @@ const Login = defineComponent<void>({
   },
 
   async loginWithFortyTwo() {
-    window.location.href = "http://localhost:3000/ft";
+    window.location.href = "https://64.23.191.17/api/account/login/42/";
   },
 });
 

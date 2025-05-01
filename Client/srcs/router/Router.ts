@@ -9,6 +9,7 @@ import Dashboard from "../pages/Dashboard.js";
 import Tournament from "../pages/Tournament.js";
 import LeaderBoard from "../pages/LeaderBoard.js";
 import { eventBus, HashRouter } from "../uccello/Uccello.js";
+import AccessToken from "../pages/AccessToken.js";
 
 const routes: any[] = [
   {
@@ -75,26 +76,39 @@ const routes: any[] = [
     },
   },
   {
+    path: "/login/:accessToken",
+    component: AccessToken,
+    // beforeEnter: async () => {
+    //   getAccessToken();
+    // },
+  },
+  {
     path: "*",
     component: NotFound,
   },
 ];
 
+function getAccessToken() {}
+
 async function isAuth() {
   try {
-    const response = await fetch("http://localhost:3000/isAuth", {
+    const response = await fetch("https://64.23.191.17/api/account/whoami/", {
       mode: "cors",
       credentials: "include",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
     });
     const data = await response.json();
-    if (data.user !== "none") {
-      localStorage.setItem("user", data.user), eventBus.emit("auth:login");
+    if (!response.ok) {
+      eventBus.emit("auth:logout");
+      return false;
     }
-
-    return localStorage.getItem("user") !== null;
+    eventBus.emit("auth:login");
+    return true;
   } catch (err) {
-    console.log(err);
-    return localStorage.getItem("user") !== null;
+    eventBus.emit("auth:logout");
+    return false;
   }
 }
 
