@@ -22,8 +22,9 @@ const AccessToken = defineComponent({
       eventBus.emit("auth:loading");
       setTimeout(() => {
         router.navigateTo("/dashboard");
-      }, 5000);
+      }, 2000);
     } catch (err) {
+      localStorage.clear();
       router.navigateTo("/login");
     }
   },

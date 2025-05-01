@@ -24,7 +24,6 @@ const App = defineComponent<AppState>({
       checkIfUserIsLoggedIn: (any: void) => boolean;
     }
   ) {
-    // this.checkIfUserIsLoggedIn();
     eventBus.on("auth:login", () => {
       this.updateState({ isLoggedIn: true });
     });
@@ -84,17 +83,6 @@ const App = defineComponent<AppState>({
         this.state.isLoggedIn === false ? createElement(Footer) : null,
       ]
     );
-  },
-  async checkIfUserIsLoggedIn(this: IComponent<AppState>) {
-    try {
-      const response = await enhancedFetch.fetch(
-        "https://64.23.191.17/api/account/whoami/"
-      );
-      if (!response.ok) this.updateState({ isLoggedIn: false });
-      this.updateState({ isLoggedIn: true });
-    } catch (err) {
-      this.updateState({ isLoggedIn: false });
-    }
   },
 });
 
