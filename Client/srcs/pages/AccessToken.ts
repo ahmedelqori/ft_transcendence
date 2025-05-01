@@ -2,6 +2,8 @@ import { router } from "../router/Router.js";
 import {
   createFragment,
   defineComponent,
+  createElement,
+  eventBus,
 } from "../uccello/Uccello.js";
 
 const AccessToken = defineComponent({
@@ -17,14 +19,42 @@ const AccessToken = defineComponent({
 
       const data = await res.json();
       localStorage.setItem("access_token", data.access_token);
-      router.navigateTo("/dashboard");
+      eventBus.emit("auth:loading");
+      setTimeout(() => {
+        router.navigateTo("/dashboard");
+      }, 5000);
     } catch (err) {
-      router.navigateTo("/dashboard");
+      router.navigateTo("/login");
     }
   },
   state() {},
   render() {
-    return createFragment(["Is Loading"]);
+    return createElement(
+      "div",
+      {
+        class: [
+          "flex",
+          "items-center",
+          "justify-center",
+          "h-full",
+          "w-full",
+          "bg-transparent",
+        ],
+      },
+      [
+        createElement("div", {
+          class: [
+            "animate-spin",
+            "rounded-full",
+            "h-16",
+            "w-16",
+            "border-4",
+            "border-[var(--light-yellow)]",
+            "border-t-transparent",
+          ],
+        }),
+      ]
+    );
   },
 });
 

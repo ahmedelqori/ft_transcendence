@@ -2,12 +2,44 @@ import User from "./User/User.js";
 import Notifications from "./Notifications/Notification.js";
 import {
   createElement,
+  IComponent,
   defineComponent,
 } from "../../../../../uccello/Uccello.js";
+import enhancedFetch from "../../../../../Hooks/fetch.js";
 
-const Profile = defineComponent<void>({
-  state() {},
-  render() {
+interface ProfileState {
+  username: string | null;
+  avatar: string | null;
+  isLoading: boolean;
+}
+
+const Profile = defineComponent<ProfileState>({
+  async onMounted(this: IComponent<ProfileState>) {
+    try {
+      const response = await enhancedFetch.fetch(
+        "https://64.23.191.17/api/account/whoami/"
+      );
+      const data = await response.json();
+      console.log(data);
+      setTimeout(() => {
+        this.updateState({
+          avatar: data.avatar_url,
+          isLoading: false,
+          username: data.username,
+        });
+      }, 1000);
+    } catch (err) {
+      console.error("ProfileError: ", err);
+    }
+  },
+  state() {
+    return {
+      username: null,
+      avatar: null,
+      isLoading: true,
+    };
+  },
+  render(this: IComponent<ProfileState>) {
     return createElement(
       "div",
       {
@@ -15,10 +47,27 @@ const Profile = defineComponent<void>({
       },
       [
         createElement(Notifications),
-        createElement(User),
-        createElement("p", { class: ["hidden", "text-xl", "lg:block"] }, [
-          "sajaite",
-        ]),
+        createElement(User, {
+          avatar: this.state.avatar,
+          isLoading: this.state.isLoading,
+        }),
+        this.state.isLoading
+          ? createElement(
+              "div",
+              {
+                class: [
+                  "hidden",
+                  "lg:block",
+                  "bg-gray-300",
+                  "rounded",
+                  "animate-pulse",
+                ],
+              },
+              [this.state.username]
+            )
+          : createElement("p", { class: ["hidden", "text-xl", "lg:block"] }, [
+              this.state.username,
+            ]),
       ]
     );
   },

@@ -1,11 +1,16 @@
 import {
   createElement,
   defineComponent,
+  IComponent,
 } from "../../../../../../uccello/Uccello.js";
 
-const User = defineComponent<void>({
-  state() {},
-  render() {
+interface UserProps {
+  isLoading: boolean;
+  avatar: string | null;
+}
+
+const User = defineComponent<void, UserProps>({
+  render(this: IComponent<void, UserProps>) {
     return createElement(
       "div",
       {
@@ -18,15 +23,24 @@ const User = defineComponent<void>({
           "flex",
           "items-center",
           "justify-center",
-          "shadow-[0_0_8px_5px_#ddf247]",
           "z-10",
         ],
       },
       [
-        createElement("img", {
-          class: ["w-full", "h-full", "rounded-full", "cursor-pointer"],
-          src: "/public/assets/avatar.png",
-        }),
+        this.props.isLoading
+          ? createElement("div", {
+              class: [
+                "w-full",
+                "h-full",
+                "rounded-full",
+                "bg-gray-300",
+                "animate-pulse",
+              ],
+            })
+          : createElement("img", {
+              class: ["w-full", "h-full", "rounded-full", "cursor-pointer"],
+              src: this.props.avatar,
+            }),
       ]
     );
   },

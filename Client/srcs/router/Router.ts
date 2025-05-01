@@ -10,6 +10,7 @@ import Tournament from "../pages/Tournament.js";
 import LeaderBoard from "../pages/LeaderBoard.js";
 import { eventBus, HashRouter } from "../uccello/Uccello.js";
 import AccessToken from "../pages/AccessToken.js";
+import enhancedFetch from "../Hooks/fetch.js";
 
 const routes: any[] = [
   {
@@ -78,9 +79,6 @@ const routes: any[] = [
   {
     path: "/login/:accessToken",
     component: AccessToken,
-    // beforeEnter: async () => {
-    //   getAccessToken();
-    // },
   },
   {
     path: "*",
@@ -88,18 +86,11 @@ const routes: any[] = [
   },
 ];
 
-function getAccessToken() {}
-
-async function isAuth() {
+export async function isAuth() {
   try {
-    const response = await fetch("https://64.23.191.17/api/account/whoami/", {
-      mode: "cors",
-      credentials: "include",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-      },
-    });
-    const data = await response.json();
+    const response = await enhancedFetch.fetch(
+      "https://64.23.191.17/api/account/whoami/"
+    );
     if (!response.ok) {
       eventBus.emit("auth:logout");
       return false;

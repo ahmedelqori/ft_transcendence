@@ -1,6 +1,7 @@
 import Footer from "./components/Footer/Footer.js";
 import Header from "./components/Header/Header.js";
 import SideBar from "./components/SideBar/SideBar.js";
+import enhancedFetch from "./Hooks/fetch.js";
 import { router } from "./router/Router.js";
 import {
   createApp,
@@ -14,9 +15,7 @@ import {
 const ROOT = document.getElementById("root");
 
 interface AppState {
-  currentPath: string;
-  canShowSideBar: boolean;
-  isLoggedIn: boolean;
+  isLoggedIn: boolean | null;
 }
 
 const App = defineComponent<AppState>({
@@ -25,8 +24,7 @@ const App = defineComponent<AppState>({
       checkIfUserIsLoggedIn: (any: void) => boolean;
     }
   ) {
-    this.updateState({ isLoggedIn: this.checkIfUserIsLoggedIn() });
-
+    // this.checkIfUserIsLoggedIn();
     eventBus.on("auth:login", () => {
       this.updateState({ isLoggedIn: true });
     });
@@ -34,12 +32,13 @@ const App = defineComponent<AppState>({
     eventBus.on("auth:logout", () => {
       this.updateState({ isLoggedIn: false });
     });
+    eventBus.on("auth:loading", () => {
+      this.updateState({ isLoggedIn: null });
+    });
   },
   state() {
     return {
-      currentPath: router.getMatchedRoute?.path,
-      canShowSideBar: true,
-      isLoggedIn: true,
+      isLoggedIn: null,
     };
   },
   render(this: IComponent<AppState>) {
@@ -58,7 +57,9 @@ const App = defineComponent<AppState>({
         ],
       },
       [
-        createElement(Header, { isLoggedIn: this.state.isLoggedIn }),
+        this.state.isLoggedIn == null
+          ? null
+          : createElement(Header, { isLoggedIn: this.state.isLoggedIn }),
         createElement(
           "main",
           {
@@ -80,12 +81,20 @@ const App = defineComponent<AppState>({
             createElement(RouterOutlet),
           ]
         ),
-        !this.state.isLoggedIn ? createElement(Footer) : null,
+        this.state.isLoggedIn === false ? createElement(Footer) : null,
       ]
     );
   },
-  checkIfUserIsLoggedIn() {
-    return localStorage.getItem("user") !== null;
+  async checkIfUserIsLoggedIn(this: IComponent<AppState>) {
+    try {
+      const response = await enhancedFetch.fetch(
+        "https://64.23.191.17/api/account/whoami/"
+      );
+      if (!response.ok) this.updateState({ isLoggedIn: false });
+      this.updateState({ isLoggedIn: true });
+    } catch (err) {
+      this.updateState({ isLoggedIn: false });
+    }
   },
 });
 
