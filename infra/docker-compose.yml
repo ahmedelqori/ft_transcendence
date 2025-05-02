@@ -87,31 +87,31 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: ./volumes/profile_images
+      device: ./infra/volumes/profile_images
       o: bind
   user_managment_database:
     driver: local
     driver_opts:
       type: none
-      device: ./volumes/user_managment_database
+      device: ./infra/volumes/user_managment_database
       o: bind
   friendship_database:
     driver: local
     driver_opts:
       type: none
-      device: ./volumes/friendship_database
+      device: ./infra/volumes/friendship_database
       o: bind
   2fa_database:
     driver: local
     driver_opts:
       type: none
-      device: ./volumes/2fa_database
+      device: ./infra/volumes/2fa_database
       o: bind
   notification_database:
     driver: local
     driver_opts:
       type: none
-      device: ./volumes/notification_database
+      device: ./infra/volumes/notification_database
       o: bind
   # VolumeVault:
  

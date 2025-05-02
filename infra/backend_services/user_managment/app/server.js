@@ -25,8 +25,9 @@ const fastify = Fastify({
 });
 
 fastify.register(cors, {
-  // origin: ["https://pingpong.ma/", "https://accounts.google.com", "http://localhost:8000"],
-  origin: '*',
+  credentials: true,
+  origin: ["https://pingpong.ma/", "https://accounts.google.com", "http://localhost:5500"],
+  // origin: '*',
   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'userid'],
   exposedHeaders: ['Authorization']

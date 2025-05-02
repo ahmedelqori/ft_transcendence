@@ -70,7 +70,7 @@ export default async function callback(req, reply) {
         
         // redirect to verify page
         reply
-            .redirect(process.env.FRONTEND_2FA_VERIFY_URL + "?access_token=" + jwt_access_token);
+            .redirect(process.env.FRONTEND_2FA_VERIFY_URL + jwt_access_token);
         return ;
     }
     
@@ -80,9 +80,9 @@ export default async function callback(req, reply) {
     };
     const jwt_access_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '5m' });
     console.log('login in User:', player);
-    
+   
     reply
-        .redirect(process.env.FRONTEND_HOME_URL + "?access_token=" + jwt_access_token);
+        .redirect(process.env.FRONTEND_HOME_URL + jwt_access_token);
     
     return reply;
 }

@@ -16,7 +16,7 @@ export default async function first_refresh_token(req, res) {
 
     const jwt_access_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '1h' });
     const jwt_refresh_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '7d' });
-    
+
     res
         .setCookie('refresh_token', jwt_refresh_token, {
             // secure: true,   // Ensure the cookie is sent over HTTPS
