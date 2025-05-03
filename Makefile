@@ -19,7 +19,7 @@ ps:
 	$(CMD) ps -a
 
 logs:
-	$(CMD) logs $(c) -f
+	$(CMD) logs -f $(c)
 
 status:
 	@bash ./infra/tools/status.sh

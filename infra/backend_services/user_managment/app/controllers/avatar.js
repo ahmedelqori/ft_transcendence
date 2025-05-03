@@ -39,7 +39,7 @@ const avatar = async (req, reply) => {
     await remove_old_avatar(req.user.avatar_url);
     await fs.promises.writeFile(filePath, fileBuffer);
 
-    const avatar_url = `${process.env.DOMAIN}/${process.env.PROFILE_IMAGE_PATH}${filename}`;
+    const avatar_url = `${process.env.DOMAIN}/static/${filename}`;
 
     await Player.query().findById(req.user.id).patch({ avatar_url });
 

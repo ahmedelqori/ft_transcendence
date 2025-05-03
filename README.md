@@ -10,3 +10,4 @@
     - disable debug mode in backend services
     - kayen mochkil f verify/disable 2fa f origin first time ty3ti 401 and moraha tay5dem 3adi
     - kaynin chi machakil b7al f auth.js kana5ed authorization btari9a tatale3 error ila makanch
+    - mochkil f serve dyal default avatar

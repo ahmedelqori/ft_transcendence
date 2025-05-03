@@ -118,20 +118,20 @@ const image_url = async (image_url, username) => {
         'image/webp': '.webp',
     }
     
-    let path = '';
+    let avatar_name = '';
     try {
         const res = await axios.get(image_url, { responseType: 'arraybuffer' });
         if (res.status !== 200 || !extensions[res.headers['content-type']]) {
             throw new Error('Invalid image response');
         }
-        path = username.replace(' ', '_') + extensions[res.headers['content-type']];
-        fs.writeFileSync(process.env.PROFILE_IMAGE_PATH + path, res.data, 'binary');
+        avatar_name = username.replace(' ', '_') + extensions[res.headers['content-type']];
+        fs.writeFileSync(process.env.PROFILE_IMAGE_PATH + avatar_name, res.data, 'binary');
     } catch (error) {
         console.error('Error fetching image:', error.message);
-        path = process.env.PROFILE_IMAGE_PATH + 'default.jpg';
+        avatar_name = process.env.PROFILE_IMAGE_PATH + process.env.DEFAULT_IMAGE;
     }
     
-    return process.env.DOMAIN + '/static/' + path;
+    return process.env.DOMAIN + '/static/' + avatar_name;
 }
 
 const create_user = async (user_info, provider) => {
