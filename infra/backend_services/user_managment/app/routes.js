@@ -27,7 +27,7 @@ export default async function routes(fastify) {
     fastify.patch('/update-profile/', {preHandler: auth}, update_profile);
     fastify.post('/avatar/', { preHandler: auth, preValidation: fileValidation }, avatar);
     fastify.get('/search/', {preHandler: auth, preValidation: searchValidation}, search);
-    fastify.get('/:identifier', { preHandler: auth }, who_this_guy)
+    fastify.get('/:identifier', { preHandler: auth }, get_user)
     fastify.get('/users/', {preHandler: auth, preValidation: users_validation}, users);
     fastify.post('/twoFA', {preHandler: auth}, twoFA);
     fastify.get('/set-cookie', {preHandler: auth}, first_refresh_token);
