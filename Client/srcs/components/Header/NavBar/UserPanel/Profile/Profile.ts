@@ -7,7 +7,6 @@ import {
   eventBus,
 } from "../../../../../uccello/Uccello.js";
 import enhancedFetch from "../../../../../Hooks/fetch.js";
-import { router } from "../../../../../router/Router.js";
 
 interface ProfileState {
   username: string | null;
@@ -38,17 +37,13 @@ const Profile = defineComponent<ProfileState>({
       "div",
       {
         class: ["flex", "flex-row", "gap-6"],
-        on: {
-          click: () => {
-            router.navigateTo(`/profile/${this.state.username}`);
-          },
-        },
       },
       [
         createElement(Notifications),
         createElement(User, {
           avatar: this.state.avatar,
           isLoading: this.state.isLoading,
+          username: this.state.username,
         }),
         this.state.isLoading
           ? createElement(

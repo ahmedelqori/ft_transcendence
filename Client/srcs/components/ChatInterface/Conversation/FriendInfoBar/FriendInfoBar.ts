@@ -1,3 +1,4 @@
+import { router } from "../../../../router/Router.js";
 import {
   createElement,
   defineComponent,
@@ -130,6 +131,11 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
                     "gap-4",
                     "hover:text-[var(--light-yellow)]",
                   ],
+                  on: {
+                    click: () => {
+                      router.navigateTo(`/profile/${this.props.username}`);
+                    },
+                  },
                 },
                 [
                   createElement("i", {

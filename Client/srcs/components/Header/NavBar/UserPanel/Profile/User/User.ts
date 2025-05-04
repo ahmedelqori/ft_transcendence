@@ -4,14 +4,15 @@ import {
   eventBus,
   IComponent,
 } from "../../../../../../uccello/Uccello.js";
+import { router } from "../../../../../../router/Router.js";
 
 interface UserProps {
   isLoading: boolean;
   avatar: string | null;
+  username: string | null;
 }
 
-interface UserState {
-}
+interface UserState {}
 
 const User = defineComponent<UserState, UserProps>({
   render(this: IComponent<UserState, UserProps>) {
@@ -29,6 +30,11 @@ const User = defineComponent<UserState, UserProps>({
           "justify-center",
           "z-10",
         ],
+        on: {
+          click: () => {
+            router.navigateTo(`/profile/${this.props.username}`);
+          },
+        },
       },
       [
         this.props.isLoading
