@@ -10,7 +10,7 @@ const Chat = defineComponent<void>({
     return createElement(
       "main",
       {
-        class: ["flex", "w-full", "flex-col", "my-auto","gap-[20px]", "items-start"],
+        class: ["flex", "w-full", "flex-col", "gap-[20px]", "items-start"],
       },
       [
         createElement(
@@ -21,9 +21,11 @@ const Chat = defineComponent<void>({
               "max-lg:h-full",
               "max-lg:hidden",
               "w-[80%]",
+              "gap-3",
               "justify-start",
               "max-xl:text-[14px]",
               "max-xl:gap-3",
+              "text-[var(--light-grey)]",
             ],
           },
           [
@@ -32,9 +34,11 @@ const Chat = defineComponent<void>({
               {
                 class: [
                   "flex-row",
-                  "gap-5",
+                  "text-[var(--main-color)]",
+
+                  "gap-6",
                   "max-xl:gap-2",
-                  "text-[24px]",
+                  "text-4xl",
                   "max-xl:text-[18px]",
                 ],
               },
@@ -44,14 +48,14 @@ const Chat = defineComponent<void>({
                     "flex-row",
                     "ph",
                     "ph-chats",
-                    "text-[46px]",
+                    "text-6xl",
                     "max-xl:text-[28px]",
                   ],
                 }),
                 "Chat",
               ]
             ),
-            "Play ping pong with friends. Chat while you play!",
+            "Stay connected with friends while you play! Our in-game chat feature lets you easily communicate with your friends during your ping pong matches.",
           ]
         ),
         createElement(ChatInterface),

@@ -123,9 +123,17 @@ const NavigationBar = defineComponent<NavigationBarState>({
             ],
             on: {
               click: async () => {
-                localStorage.removeItem("user");
+                localStorage.clear();
+                document.cookie.split(";").forEach(function (c) {
+                  document.cookie = c
+                    .replace(/^ +/, "")
+                    .replace(
+                      /=.*/,
+                      "=;expires=" + new Date().toUTCString() + ";path=/"
+                    );
+                });
+                await router.navigateTo("/");
                 eventBus.emit("auth:logout");
-                router.navigateTo("/login");
               },
             },
           },

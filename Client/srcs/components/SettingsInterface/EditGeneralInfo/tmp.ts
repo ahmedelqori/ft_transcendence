@@ -1,4 +1,3 @@
-import enhancedFetch from "../../../Hooks/fetch.js";
 import {
   createElement,
   defineComponent,
@@ -13,41 +12,31 @@ interface EditGeneralInfoState {
 }
 
 const EditGeneralInfo = defineComponent<EditGeneralInfoState>({
-  async onMounted(this: IComponent<EditGeneralInfoState>) {
-    try {
-      const response = await enhancedFetch.fetch(
-        "https://64.23.191.17/api/account/whoami/"
-      );
-      const data = await response.json();
-      this.updateState({
-        firstName: data.first_name,
-        lastName: data.last_name,
-      });
-    } catch (err) {}
-  },
   state() {
     return { firstName: "", lastName: "", icon: "ph-nut", color: "" };
   },
-  render(
-    this: IComponent<EditGeneralInfoState> & { handleSubmit: () => void }
-  ) {
+  render(this: IComponent<EditGeneralInfoState>) {
     return createElement(
       "div",
       {
         class: [
-          "z-10",
           "w-full",
           "border-2",
-          "rounded-[30px]",
+          "rounded-3xl",
           "border-[#878787]",
-          "border-opacity-[30%]",
+          "border-opacity-30",
           "items-start",
-          "px-[40px]",
-          "py-[20px]",
-          "gap-5",
+          "px-6",
+          "md:px-10",
+          "py-4",
+          "md:py-5",
+          "gap-3",
+          "md:gap-5",
           "col-span-2",
           "row-span-2",
-          "h-56",
+          "col-start-3",
+          "h-fit",
+          "min-h-[220px]",
           "justify-start",
         ],
       },
@@ -64,9 +53,6 @@ const EditGeneralInfo = defineComponent<EditGeneralInfoState>({
               "ease-in-out",
               `text-[${this.state.color}]`,
             ],
-            on: {
-              click: this.handleSubmit,
-            },
           }),
         ]),
         createElement("hr", {
@@ -248,55 +234,6 @@ const EditGeneralInfo = defineComponent<EditGeneralInfoState>({
         ),
       ]
     );
-  },
-  async handleSubmit(this: IComponent<EditGeneralInfoState>) {
-    try {
-      if (this.state.firstName.length > 3 && this.state.lastName.length > 3) {
-        await enhancedFetch.fetch(
-          "https://64.23.191.17/api/account/update-profile/",
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              first_name: this.state.firstName,
-              last_name: this.state.lastName,
-            }),
-          }
-        );
-      } else if (this.state.firstName.length > 3) {
-        await enhancedFetch.fetch(
-          "https://64.23.191.17/api/account/update-profile/",
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              first_name: this.state.firstName,
-            }),
-          }
-        );
-      } else if (this.state.lastName.length > 3) {
-        await enhancedFetch.fetch(
-          "https://64.23.191.17/api/account/update-profile/",
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              last_name: this.state.lastName,
-            }),
-          }
-        );
-      }
-    } catch (err) {}
-    this.updateState({
-      icon: "ph-nut",
-      color: "white",
-    });
   },
 });
 

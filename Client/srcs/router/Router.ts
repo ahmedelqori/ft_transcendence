@@ -8,82 +8,102 @@ import NotFound from "../pages/NotFound.js";
 import Dashboard from "../pages/Dashboard.js";
 import Tournament from "../pages/Tournament.js";
 import LeaderBoard from "../pages/LeaderBoard.js";
-import { HashRouter } from "../uccello/Uccello.js";
+import { eventBus, HashRouter } from "../uccello/Uccello.js";
+import AccessToken from "../pages/AccessToken.js";
+import enhancedFetch from "../Hooks/fetch.js";
 
 const routes: any[] = [
   {
     path: "/",
     component: Welcome,
-    // redirect: "/dashboard",
-    beforeEnter: () => {
-      if (isAuth()) return "/dashboard";
+    beforeEnter: async () => {
+      if (await isAuth()) return "/dashboard";
     },
   },
   {
     path: "/login",
     component: Login,
-    beforeEnter: () => {
-      if (isAuth()) return "/dashboard";
+    beforeEnter: async () => {
+      if (await isAuth()) return "/dashboard";
     },
   },
   {
     path: "/dashboard",
     component: Dashboard,
-    beforeEnter: () => {
-      if (!isAuth()) return "/login";
+    beforeEnter: async () => {
+      if (!(await isAuth())) return "/login";
     },
   },
   {
-    path: "/profile",
+    path: "/profile/:username",
     component: Profile,
-    beforeEnter: () => {
-      if (!isAuth()) return "/login";
+    beforeEnter: async () => {
+      if (!(await isAuth())) return "/login";
     },
   },
   {
     path: "/settings",
     component: Settings,
-    beforeEnter: () => {
-      if (!isAuth()) return "/login";
+    beforeEnter: async () => {
+      if (!(await isAuth())) return "/login";
     },
   },
   {
     path: "/leaderboard",
     component: LeaderBoard,
-    beforeEnter: () => {
-      if (!isAuth()) return "/login";
+    beforeEnter: async () => {
+      if (!(await isAuth())) return "/login";
     },
   },
   {
     path: "/chat",
     component: Chat,
-    beforeEnter: () => {
-      if (!isAuth()) return "/login";
+    beforeEnter: async () => {
+      if (!(await isAuth())) return "/login";
     },
   },
   {
     path: "/tournament",
     component: Tournament,
-    beforeEnter: () => {
-      if (!isAuth()) return "/login";
+    beforeEnter: async () => {
+      if (!(await isAuth())) return "/login";
     },
   },
   {
     path: "/game",
     component: Game,
-    beforeEnter: () => {
-      if (!isAuth()) return "/login";
+    beforeEnter: async () => {
+      if (!(await isAuth())) return "/login";
     },
+  },
+  {
+    path: "/login/:accessToken",
+    component: AccessToken,
   },
   {
     path: "*",
     component: NotFound,
+    beforeEnter: async () => {
+      if (!(await isAuth())) return "/login";
+    },
   },
 ];
 
-function isAuth() {
-  console.log("Hello");
-  return localStorage.getItem("user") !== null;
+export async function isAuth() {
+  try {
+    const response = await enhancedFetch.fetch(
+      "https://64.23.191.17/api/account/whoami/"
+    );
+    if (!response.ok) {
+      eventBus.emit("auth:logout");
+      return false;
+    }
+    eventBus.emit("auth:login");
+    return true;
+  } catch (err) {
+    eventBus.emit("auth:logout");
+    return false;
+  }
 }
 
 export const router = new HashRouter(routes);

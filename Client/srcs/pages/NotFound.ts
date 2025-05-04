@@ -7,7 +7,6 @@ const NotFound = defineComponent<void>({
   },
   state() {},
   render() {
-    console.log(router.getQuery);
     return createElement("div", {}, ["NotFound Page"]);
   },
 });

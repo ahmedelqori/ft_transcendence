@@ -1,18 +1,106 @@
+import { router } from "../../../../../router/Router.js";
+import enhancedFetch from "../../../../../Hooks/fetch.js";
 import {
   createElement,
   defineComponent,
   IComponent,
 } from "../../../../../uccello/Uccello.js";
 
+interface User {
+  username: string;
+  avatar_url: string;
+  first_name: string;
+  last_name: string;
+}
+
 interface SearchBarState {
   inputValue: string;
+  suggestions: User[];
+  showSuggestions: boolean;
+  offset: number;
+  hasMoreResults: boolean;
+  isLoading: boolean;
+  totalResults: number;
 }
+
+const USERS_PER_PAGE = 3;
 
 const Searchbar = defineComponent<SearchBarState>({
   state() {
-    return { inputValue: "" };
+    return {
+      inputValue: "",
+      suggestions: [],
+      showSuggestions: false,
+      offset: 0,
+      hasMoreResults: false,
+      isLoading: false,
+      totalResults: 0,
+    };
   },
-  render(this: IComponent<SearchBarState>) {
+
+  async fetchUsers(
+    this: IComponent<SearchBarState>,
+    query: string,
+    resetResults: boolean = true
+  ) {
+    if (query.trim().length === 0) {
+      this.updateState({
+        suggestions: [],
+        showSuggestions: false,
+        offset: 0,
+        hasMoreResults: false,
+        totalResults: 0,
+      });
+      return;
+    }
+
+    const offset = resetResults ? 0 : this.state.offset;
+
+    this.updateState({ isLoading: true });
+
+    try {
+      const url = `https://64.23.191.17/api/account/search/?q=${encodeURIComponent(
+        query
+      )}&limit=${USERS_PER_PAGE}&offset=${offset}`;
+      const res = await enhancedFetch.fetch(url);
+      const data = await res.json();
+
+      const suggestions = resetResults
+        ? data.result || []
+        : [...this.state.suggestions, ...(data.result || [])];
+      const totalResults = data.count || 0;
+      const newOffset = offset + (data.result?.length || 0);
+      const hasMoreResults = newOffset < totalResults;
+      this.updateState({
+        suggestions,
+        offset: newOffset,
+        hasMoreResults,
+        showSuggestions: suggestions.length > 0,
+        totalResults,
+        isLoading: false,
+      });
+    } catch (err) {
+      console.error("Search error:", err);
+      this.updateState({ isLoading: false });
+    }
+  },
+
+  loadMoreUsers(
+    this: IComponent<SearchBarState> & {
+      fetchUsers: (a: string, b?: boolean) => void;
+    }
+  ) {
+    if (this.state.hasMoreResults && !this.state.isLoading) {
+      this.fetchUsers(this.state.inputValue, false);
+    }
+  },
+
+  render(
+    this: IComponent<SearchBarState> & {
+      fetchUsers: (a: string, b?: boolean) => void;
+      loadMoreUsers: () => void;
+    }
+  ) {
     return createElement(
       "div",
       {
@@ -24,15 +112,18 @@ const Searchbar = defineComponent<SearchBarState>({
           "lg:block",
           "items-center",
           "max-w-[525px]",
+          "z-20",
         ],
       },
       [
         createElement("input", {
           value: this.state.inputValue,
-          placeholder: "Search, users...",
+          placeholder: "Search users...",
           on: {
-            input: ({ target }) => {
-              this.updateState({ inputValue: target.value });
+            input: async ({ target }: { target: HTMLInputElement }) => {
+              const value = target.value;
+              this.updateState({ inputValue: value });
+              this.fetchUsers(value);
             },
           },
           class: [
@@ -62,6 +153,87 @@ const Searchbar = defineComponent<SearchBarState>({
             "fa-magnifying-glass",
           ],
         }),
+        this.state.showSuggestions
+          ? createElement(
+              "ul",
+              {
+                class: [
+                  "absolute",
+                  "top-[60px]",
+                  "left-0",
+                  "right-0",
+                  "rounded-lg",
+                  "shadow-md",
+                  "z-10",
+                ],
+              },
+              [
+                ...this.state.suggestions.map((user: User) =>
+                  createElement(
+                    "li",
+                    {
+                      class: [
+                        "px-4",
+                        "py-2",
+                        "cursor-pointer",
+                        "flex",
+                        "gap-5",
+                        "items-center",
+                      ],
+                      on: {
+                        click: () => {
+                          this.updateState({
+                            inputValue: "",
+                            suggestions: [],
+                            showSuggestions: false,
+                          });
+                          router.navigateTo(`/profile/${user.username}`);
+                        },
+                      },
+                    },
+                    [
+                      createElement("img", {
+                        src: user.avatar_url,
+                        class: ["w-12", "h-12", "rounded-full"],
+                      }),
+                      createElement("div", { class: ["items-start"] }, [
+                        createElement("div", {}, [user.username]),
+                        createElement(
+                          "div",
+                          { class: ["text-[var(--light-grey)]", "text-md"] },
+                          [user.first_name + " " + user.last_name]
+                        ),
+                      ]),
+                    ]
+                  )
+                ),
+                this.state.hasMoreResults
+                  ? createElement(
+                      "li",
+                      {
+                        class: [
+                          "px-4",
+                          "py-3",
+                          "text-center",
+                          "cursor-pointer",
+                          "border-t",
+                          "border-gray-200",
+                          "hover:bg-gray-100",
+                        ],
+                        on: {
+                          click: () => this.loadMoreUsers(),
+                        },
+                      },
+                      [
+                        this.state.isLoading
+                          ? "Loading..."
+                          : `Load more (${this.state.suggestions.length}/${this.state.totalResults})`,
+                      ]
+                    )
+                  : null,
+              ]
+            )
+          : null,
       ]
     );
   },

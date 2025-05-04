@@ -1,11 +1,21 @@
 import {
   createElement,
   defineComponent,
+  eventBus,
+  IComponent,
 } from "../../../../../../uccello/Uccello.js";
+import { router } from "../../../../../../router/Router.js";
 
-const User = defineComponent<void>({
-  state() {},
-  render() {
+interface UserProps {
+  isLoading: boolean;
+  avatar: string | null;
+  username: string | null;
+}
+
+interface UserState {}
+
+const User = defineComponent<UserState, UserProps>({
+  render(this: IComponent<UserState, UserProps>) {
     return createElement(
       "div",
       {
@@ -18,15 +28,30 @@ const User = defineComponent<void>({
           "flex",
           "items-center",
           "justify-center",
-          "shadow-[0_0_8px_5px_#ddf247]",
           "z-10",
         ],
+        on: {
+          click: () => {
+            router.navigateTo(`/profile/${this.props.username}`);
+          },
+        },
       },
       [
-        createElement("img", {
-          class: ["w-full", "h-full", "rounded-full", "cursor-pointer"],
-          src: "../../../../../../../public/assets/avatar.png",
-        }),
+        this.props.isLoading
+          ? createElement("div", {
+              class: [
+                "w-full",
+                "h-full",
+                "rounded-full",
+                "bg-gray-300",
+                "animate-pulse",
+              ],
+            })
+          : createElement("img", {
+              loading: "lazy",
+              class: ["w-full", "h-full", "rounded-full", "cursor-pointer"],
+              src: this.props.avatar,
+            }),
       ]
     );
   },
