@@ -17,7 +17,7 @@ export default async function fileValidation (req, reply) {
         notif(req, 'error', 'Invalid file type');
         return reply.status(400).send({ 'error': 'Invalid file type' });
     }
-    const maxSize = 1024 * 1024 * (10); // 10MB
+    const maxSize = 1024 * 1024 * 1; // 1MB
     if (data.file.byteCount > maxSize) {
         notif(req, 'error', 'File size too large');
         return reply.status(400).send({ 'error': 'File size too large' });

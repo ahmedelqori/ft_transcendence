@@ -13,6 +13,8 @@ import users_validation from './middlewares/users_validation.js';
 import refresh from './controllers/refresh_token.js';
 import twoFA from './controllers/twofa.js';
 import first_refresh_token from './controllers/first_refresh_token.js';
+import get_user_with_username from './controllers/get_user_with_username.js';
+
 
 
 
@@ -26,7 +28,16 @@ export default async function routes(fastify) {
     fastify.patch('/update-profile/', {preHandler: auth}, update_profile);
     fastify.post('/avatar/', { preHandler: auth, preValidation: fileValidation }, avatar);
     fastify.get('/search/', {preHandler: auth, preValidation: searchValidation}, search);
-    fastify.get('/:id', {preHandler: auth}, who_this_guy);
+    fastify.get('/:identifier', { preHandler: auth }, async (request, reply) => {
+        const { identifier } = request.params;
+        if (!isNaN(parseInt(identifier))) {
+            request.params.id = identifier;
+            return who_this_guy(request, reply);
+        } else {
+            request.params.username = identifier;
+            return get_user_with_username(request, reply);
+        }
+    });
     fastify.get('/users/', {preHandler: auth, preValidation: users_validation}, users);
     fastify.post('/twoFA', {preHandler: auth}, twoFA);
     fastify.get('/set-cookie', {preHandler: auth}, first_refresh_token);
