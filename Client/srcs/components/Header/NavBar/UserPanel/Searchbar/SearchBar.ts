@@ -1,3 +1,4 @@
+import enhancedFetch from "../../../../../Hooks/fetch.js";
 import {
   createElement,
   defineComponent,
@@ -6,12 +7,31 @@ import {
 
 interface SearchBarState {
   inputValue: string;
+  suggestions: string[];
+  allUsers: string[];
+  showSuggestions: boolean;
 }
 
 const Searchbar = defineComponent<SearchBarState>({
-  state() {
-    return { inputValue: "" };
+  async onMounted(this: IComponent<SearchBarState>) {
+    try {
+      const res = await enhancedFetch.fetch(
+        "https://64.23.191.17/api/account/users/"
+      );
+      const data = await res.json();
+      console.log(data)
+      this.updateState({ allUsers: data });
+    } catch (err) {}
   },
+  state() {
+    return {
+      inputValue: "",
+      suggestions: [],
+      allUsers: [],
+      showSuggestions: false,
+    };
+  },
+
   render(this: IComponent<SearchBarState>) {
     return createElement(
       "div",
@@ -29,10 +49,18 @@ const Searchbar = defineComponent<SearchBarState>({
       [
         createElement("input", {
           value: this.state.inputValue,
-          placeholder: "Search, users...",
+          placeholder: "Search users...",
           on: {
-            input: ({ target }) => {
-              this.updateState({ inputValue: target.value });
+            input: ({ target }: { target: any }) => {
+              const value = target.value;
+              const suggestions = this.state.allUsers.filter((user: any) =>
+                user.username.toLowerCase().includes(value.toLowerCase())
+              );
+              this.updateState({
+                inputValue: value,
+                suggestions,
+                showSuggestions: value.length > 0 && suggestions.length > 0,
+              });
             },
           },
           class: [
@@ -62,6 +90,41 @@ const Searchbar = defineComponent<SearchBarState>({
             "fa-magnifying-glass",
           ],
         }),
+        this.state.showSuggestions
+          ? createElement(
+              "ul",
+              {
+                class: [
+                  "absolute",
+                  "top-[60px]",
+                  "left-0",
+                  "right-0",
+                  "border",
+                  "rounded-lg",
+                  "shadow-md",
+                  "z-10",
+                ],
+              },
+              this.state.suggestions.map((user) => {
+                return createElement(
+                  "li",
+                  {
+                    class: ["px-4", "py-2", "cursor-pointer"],
+                    on: {
+                      click: () => {
+                        this.updateState({
+                          inputValue: user,
+                          suggestions: [],
+                          showSuggestions: false,
+                        });
+                      },
+                    },
+                  },
+                  [user]
+                );
+              })
+            )
+          : null,
       ]
     );
   },

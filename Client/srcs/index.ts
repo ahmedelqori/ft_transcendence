@@ -1,7 +1,6 @@
 import Footer from "./components/Footer/Footer.js";
 import Header from "./components/Header/Header.js";
 import SideBar from "./components/SideBar/SideBar.js";
-import enhancedFetch from "./Hooks/fetch.js";
 import { router } from "./router/Router.js";
 import {
   createApp,

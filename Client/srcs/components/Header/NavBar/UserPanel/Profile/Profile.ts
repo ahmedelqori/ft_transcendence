@@ -4,8 +4,10 @@ import {
   createElement,
   IComponent,
   defineComponent,
+  eventBus,
 } from "../../../../../uccello/Uccello.js";
 import enhancedFetch from "../../../../../Hooks/fetch.js";
+import { router } from "../../../../../router/Router.js";
 
 interface ProfileState {
   username: string | null;
@@ -14,23 +16,15 @@ interface ProfileState {
 }
 
 const Profile = defineComponent<ProfileState>({
-  async onMounted(this: IComponent<ProfileState>) {
-    try {
-      const response = await enhancedFetch.fetch(
-        "https://64.23.191.17/api/account/whoami/"
-      );
-      const data = await response.json();
-      console.log(data);
-      setTimeout(() => {
-        this.updateState({
-          avatar: data.avatar_url,
-          isLoading: false,
-          username: data.username,
-        });
-      }, 1000);
-    } catch (err) {
-      console.error("ProfileError: ", err);
-    }
+  async onMounted(
+    this: IComponent<ProfileState> & { loadAvatar: () => Promise<void> }
+  ) {
+    eventBus.on("load:avatar", (data: any) => {
+      this.updateState({ isLoading: true });
+
+      this.updateState({ avatar: data.avatar, isLoading: false });
+    });
+    await this.loadAvatar();
   },
   state() {
     return {
@@ -44,6 +38,11 @@ const Profile = defineComponent<ProfileState>({
       "div",
       {
         class: ["flex", "flex-row", "gap-6"],
+        on: {
+          click: () => {
+            router.navigateTo(`/profile/${this.state.username}`);
+          },
+        },
       },
       [
         createElement(Notifications),
@@ -70,6 +69,21 @@ const Profile = defineComponent<ProfileState>({
             ]),
       ]
     );
+  },
+  async loadAvatar(this: IComponent<ProfileState>) {
+    try {
+      const response = await enhancedFetch.fetch(
+        "https://64.23.191.17/api/account/whoami/"
+      );
+      const data = await response.json();
+      this.updateState({
+        avatar: data.avatar_url,
+        isLoading: false,
+        username: data.username,
+      });
+    } catch (err) {
+      console.log(err);
+    }
   },
 });
 

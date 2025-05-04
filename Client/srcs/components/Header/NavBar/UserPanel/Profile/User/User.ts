@@ -1,6 +1,7 @@
 import {
   createElement,
   defineComponent,
+  eventBus,
   IComponent,
 } from "../../../../../../uccello/Uccello.js";
 
@@ -9,8 +10,11 @@ interface UserProps {
   avatar: string | null;
 }
 
-const User = defineComponent<void, UserProps>({
-  render(this: IComponent<void, UserProps>) {
+interface UserState {
+}
+
+const User = defineComponent<UserState, UserProps>({
+  render(this: IComponent<UserState, UserProps>) {
     return createElement(
       "div",
       {
@@ -38,6 +42,7 @@ const User = defineComponent<void, UserProps>({
               ],
             })
           : createElement("img", {
+              loading: "lazy",
               class: ["w-full", "h-full", "rounded-full", "cursor-pointer"],
               src: this.props.avatar,
             }),

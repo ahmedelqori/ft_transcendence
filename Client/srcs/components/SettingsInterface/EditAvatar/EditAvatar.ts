@@ -1,26 +1,44 @@
+import enhancedFetch from "../../../Hooks/fetch.js";
 import {
   createElement,
   defineComponent,
+  eventBus,
   IComponent,
 } from "../../../uccello/Uccello.js";
 
 interface EditAvatarState {
-  avatar: any;
+  avatarUrl: string;
+  avatarFile: File | null;
   icon: string;
   validAvatar: boolean;
-  color: string | null;
+  color: string;
 }
 
 const EditAvatar = defineComponent<EditAvatarState>({
+  async onMounted() {
+    try {
+      const res = await enhancedFetch.fetch(
+        "https://64.23.191.17/api/account/whoami/"
+      );
+      const data = await res.json();
+
+      this.updateState({
+        avatarUrl: data.avatar_url,
+      });
+    } catch (err) {
+      console.error("Error fetching user data:", err);
+    }
+  },
   state() {
     return {
       icon: "ph-nut",
       validAvatar: false,
-      avatar: null,
-      color: `var(--main-color)`,
+      avatarUrl: "",
+      avatarFile: null,
+      color: "var(--main-color)",
     };
   },
-  render(this: IComponent<EditAvatarState>) {
+  render(this: IComponent<EditAvatarState> & { updateAvatar: () => void }) {
     return createElement(
       "div",
       {
@@ -52,24 +70,29 @@ const EditAvatar = defineComponent<EditAvatarState>({
               "text-[24px]",
               "font-medium",
               "ease-in-out",
-              `text-[${this.state.color}]`,
             ],
+            style: {
+              color: this.state.color,
+            },
             on: {
               click: () => {
-                if (this.state.validAvatar && this.state.avatar) {
-                  console.log(this.state.avatar);
+                if (this.state.validAvatar && this.state.avatarFile) {
+                  this.updateAvatar();
                 }
+
                 this.updateState({
                   icon: "ph-nut",
                   validAvatar: false,
-                  avatar: null,
-                  color: `var(--main-color)`,
-                }),
-                  ((
-                    document.getElementById(
-                      "fileInputAvatarSettingPage"
-                    ) as HTMLInputElement
-                  ).value = "");
+                  avatarFile: null,
+                  color: "var(--main-color)",
+                });
+
+                const fileInput = document.getElementById(
+                  "fileInputAvatarSettingPage"
+                ) as HTMLInputElement;
+                if (fileInput) {
+                  fileInput.value = "";
+                }
               },
             },
           }),
@@ -85,9 +108,11 @@ const EditAvatar = defineComponent<EditAvatarState>({
         createElement("div", { class: ["flex-row", "gap-[30px]"] }, [
           createElement("img", {
             alt: "Avatar",
-            src: "../../../../public/assets/avatar.png",
+            loading: "lazy",
+            src: this.state.avatarUrl,
             class: [
               "w-[100px]",
+              "h-[100px]",
               "max-lg:w-[75px]",
               "rounded-full",
               "hover:scale-[110%]",
@@ -135,7 +160,12 @@ const EditAvatar = defineComponent<EditAvatarState>({
                   ],
                   on: {
                     change: (e) => {
-                      const file = e.currentTarget.files[0];
+                      const fileInput = e.currentTarget as HTMLInputElement;
+                      if (!fileInput.files || fileInput.files.length === 0) {
+                        return;
+                      }
+
+                      const file = fileInput.files[0];
                       const filesize = +(file.size / 1024 / 1024).toFixed(4);
 
                       if (
@@ -143,17 +173,20 @@ const EditAvatar = defineComponent<EditAvatarState>({
                         typeof file.name !== "undefined" &&
                         filesize <= 10
                       ) {
+                        const previewUrl = URL.createObjectURL(file);
+
                         this.updateState({
                           icon: "ph-check",
-                          avatar: file,
-                          color: `var(--light-yellow)`,
+                          avatarFile: file,
+                          avatarUrl: previewUrl,
+                          color: "var(--light-yellow)",
                           validAvatar: true,
                         });
                       } else {
                         this.updateState({
                           icon: "ph-nut",
-                          avatar: null,
-                          color: `var(--red-color)`,
+                          avatarFile: null,
+                          color: "var(--red-color)",
                           validAvatar: false,
                         });
                       }
@@ -173,6 +206,22 @@ const EditAvatar = defineComponent<EditAvatarState>({
         ]),
       ]
     );
+  },
+  async updateAvatar(this: IComponent<EditAvatarState>) {
+    try {
+      if (!this.state.avatarFile) {
+        return;
+      }
+      const formData = new FormData();
+      formData.append("avatar", this.state.avatarFile);
+      await enhancedFetch.fetch("https://64.23.191.17/api/account/avatar/", {
+        method: "POST",
+        body: formData,
+      });
+      location.reload();
+    } catch (err) {
+      console.error("Error updating avatar:", err);
+    }
   },
 });
 

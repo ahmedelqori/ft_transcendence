@@ -35,7 +35,7 @@ const routes: any[] = [
     },
   },
   {
-    path: "/profile",
+    path: "/profile/:username",
     component: Profile,
     beforeEnter: async () => {
       if (!(await isAuth())) return "/login";
@@ -83,6 +83,9 @@ const routes: any[] = [
   {
     path: "*",
     component: NotFound,
+    beforeEnter: async () => {
+      if (!(await isAuth())) return "/login";
+    },
   },
 ];
 
