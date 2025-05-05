@@ -48,6 +48,10 @@ const routes: any[] = [
     component: Game,
   },
   {
+    path: "/game/:userId",
+    component: Game,
+  },
+  {
     path: "*",
     component: NotFound,
   },
