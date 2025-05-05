@@ -10,7 +10,6 @@ export default async function fileValidation (req, reply) {
     const allowedMimeTypes = [
         'image/jpeg',
         'image/png',
-        'image/gif',
         'image/webp'
     ];
     if (!allowedMimeTypes.includes(data.mimetype)) {

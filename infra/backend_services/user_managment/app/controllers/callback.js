@@ -2,6 +2,7 @@ import axios from "axios"
 import Player from "../models.js"
 import fs from 'fs';
 import jwt from 'jsonwebtoken'
+import sharp from 'sharp';
 
 export default async function callback(req, reply) {
     const state = req.cookies.state;
@@ -87,7 +88,6 @@ export default async function callback(req, reply) {
     return reply;
 }
 
-
 const get_oauth2_urls = (provider) => {
     if (provider == '42'){
         return {
@@ -114,7 +114,6 @@ const image_url = async (image_url, username) => {
     const extensions = {
         'image/jpeg': '.jpg',
         'image/png': '.png',
-        'image/gif': '.gif',
         'image/webp': '.webp',
     }
     
@@ -124,8 +123,12 @@ const image_url = async (image_url, username) => {
         if (res.status !== 200 || !extensions[res.headers['content-type']]) {
             throw new Error('Invalid image response');
         }
-        avatar_name = username.replace(' ', '_') + extensions[res.headers['content-type']];
-        fs.writeFileSync(process.env.PROFILE_IMAGE_PATH + avatar_name, res.data, 'binary');
+        const buffer = res.data;
+        const webpbuffer = await sharp(buffer)
+            .webp({ quality: 80 })
+            .toBuffer();
+        avatar_name = username.replace(' ', '_') + '.webp';
+        fs.writeFileSync(process.env.PROFILE_IMAGE_PATH + avatar_name, webpbuffer, 'binary');
     } catch (error) {
         console.error('Error fetching image:', error.message);
         avatar_name = process.env.PROFILE_IMAGE_PATH + process.env.DEFAULT_IMAGE;
