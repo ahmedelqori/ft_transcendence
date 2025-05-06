@@ -6,9 +6,10 @@ import {
 } from "@/uccello/Uccello.js";
 import ReceivedMessage from "./ReceivedMessage/ReceivedMessage.js";
 import SentMessage from "./SentMessage/SentMessage.js";
+import { MessageInterface } from "../Conversation.js";
 
 interface MessagesProps {
-  messages: (string | null)[];
+  messages: MessageInterface[];
 }
 
 const Messages = defineComponent<void, MessagesProps>({
@@ -49,12 +50,11 @@ const Messages = defineComponent<void, MessagesProps>({
       [
         createFragment([
           ...this.props.messages.map((e) => {
-            if (e?.endsWith("/[]1337")) {
-              const m = e.substring(0, e.length - 7);
+            if (e.received)
               return createElement(ReceivedMessage, {
-                message: m,
+                message: e.content,
               });
-            } else return createElement(SentMessage, { message: e });
+            else return createElement(SentMessage, { message: e.content });
           }),
         ]),
       ]

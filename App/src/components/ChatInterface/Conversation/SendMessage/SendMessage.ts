@@ -96,11 +96,11 @@ const SendMessage = defineComponent<SendState, SendProps>({
   ) {
     if (this.state.inputValue && this.state.inputValue.trim().length) {
       this.props.onSendMessage(this.state.inputValue);
-      if (this.props.socket.readyState === WebSocket.OPEN) {
-        this.props.socket.send(
-          this.state.inputValue + " answer me in one sentence"
-        );
-      }
+      // if (this.props.socket.readyState === WebSocket.OPEN) {
+      //   this.props.socket.send(
+      //     this.state.inputValue + " answer me in one sentence"
+      //   );
+      // }
       this.updateState({ inputValue: "" });
     } else this.updateState({ inputValue: "" });
   },

@@ -38,7 +38,7 @@ const Profile = defineComponent<ProfileState>({
       },
       [
         this.state.isLoading
-          ? null
+          ? "Nothing"
           : createElement(ProfileInterface, {
               username: this.state.username,
               whoami: this.state.whoami,

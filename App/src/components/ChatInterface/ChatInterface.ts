@@ -8,12 +8,13 @@ import Friends from "./Friends/Friends.js";
 
 interface ChatInterfaceState {
   showSelectedUser: string | null;
+  userId: number;
   showConversation: boolean;
   isMobile: boolean;
 }
 
 const ChatInterface = defineComponent<ChatInterfaceState>({
-  onMounted(this: IComponent<ChatInterfaceState>) {
+  async onMounted(this: IComponent<ChatInterfaceState>) {
     if (window.innerWidth <= 768)
       this.updateState({ isMobile: true, showConversation: false });
     else this.updateState({ isMobile: false, showConversation: true });
@@ -28,9 +29,11 @@ const ChatInterface = defineComponent<ChatInterfaceState>({
       showSelectedUser: "",
       showConversation: true,
       isMobile: false,
+      userId: -1,
     };
   },
   render(this: IComponent<ChatInterfaceState>) {
+    console.log(this.state.userId, this.state.showSelectedUser);
     return createElement(
       "section",
       {
@@ -59,18 +62,24 @@ const ChatInterface = defineComponent<ChatInterfaceState>({
               setShowSelectedUser: (user: string) => {
                 this.updateState({ showSelectedUser: user });
               },
+              setUserId: (id: number) => {
+                this.updateState({ userId: id });
+              },
             }),
         this.state.isMobile && this.state.showConversation
           ? createElement(Conversation, {
               username: this.state.showSelectedUser,
+              userId: this.state.userId,
             })
           : !this.state.isMobile
           ? createElement(Conversation, {
               username: this.state.showSelectedUser,
+              userId: this.state.userId,
             })
           : this.state.isMobile && this.state.showSelectedUser?.length
           ? createElement(Conversation, {
               username: this.state.showSelectedUser,
+              userId: this.state.userId,
             })
           : null,
       ]

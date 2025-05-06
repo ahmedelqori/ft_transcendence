@@ -2352,7 +2352,7 @@ export class HashRouter {
    */
   async navigateTo(path: string): Promise<any> {
     const matcher = this.matchers.find((matcher) => matcher.checkMatch(path));
-    
+
     if (matcher == null) {
       console.warn(`[Router] No route matches path "${path}"`);
       this.matchedRoute = null;

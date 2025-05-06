@@ -7,9 +7,11 @@ import {
 
 interface FriendProps {
   username: string;
+  id: number;
   setOption: (str: string) => void;
   setUser: (str: string) => void;
   setSelectedFriend: (str: string) => void;
+  setFriendUserId: (id: number) => void;
 }
 
 interface FriendState {
@@ -73,6 +75,7 @@ const Friend = defineComponent<FriendState, FriendProps>({
             on: {
               click: () => {
                 this.props.setSelectedFriend(this.props.username);
+                this.props.setFriendUserId(this.props.id);
               },
             },
           },
@@ -115,6 +118,7 @@ const Friend = defineComponent<FriendState, FriendProps>({
             on: {
               click: () => {
                 this.props.setSelectedFriend(this.props.username);
+                this.props.setFriendUserId(this.props.id);
               },
             },
           },

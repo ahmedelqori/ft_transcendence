@@ -5,34 +5,48 @@ import {
 } from "@/uccello/Uccello.js";
 import Friend from "./Friend/Friends.js";
 import Search from "./Search/Search.js";
+import enhancedFetch from "@/Hooks/fetch.js";
+
+interface UserInterface {
+  username: string;
+  id: string;
+  avatar: any;
+}
 
 interface FriendsState {
   searchValue: string | null;
-  friends: (string | null)[];
+  friends: UserInterface[];
   selectedUser: string | null;
   option: string | null;
 }
 
 interface FriendsProps {
   setShowSelectedUser: (user: string) => void;
+  setUserId: (id: number) => void;
 }
 
 const Friends = defineComponent<FriendsState, FriendsProps>({
+  async onMounted(this: IComponent<FriendsState, FriendsProps>) {
+    try {
+      const response = await enhancedFetch.fetch(
+        "https://64.23.191.17/api/account/users/?n=10&sort=newest"
+      );
+      const data = await response.json();
+
+      const users: UserInterface[] = data.map((user: any) => {
+        return {
+          username: user.username,
+          id: user.id,
+          avatar: user.avatar_url,
+        };
+      });
+      this.updateState({ friends: users });
+    } catch (err) {}
+  },
   state() {
     return {
       searchValue: null,
-      friends: [
-        "sajaite",
-        "ael-qori",
-        "afanidi",
-        "ybouchma",
-        "relhamma",
-        "zibnoukh",
-        "aes-arg",
-        "mbentahi",
-        "baarif",
-        "htalhao",
-      ],
+      friends: [],
       selectedUser: null,
       option: null,
     };
@@ -41,7 +55,7 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
     if (this.state.option && this.state.selectedUser) {
       if (this.state.option == "unfriend") {
         const newFriends = this.state.friends.filter(
-          (e) => e != this.state.selectedUser
+          (e) => e.username != this.state.selectedUser
         );
         this.updateState({
           friends: newFriends,
@@ -49,9 +63,10 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
           selectedUser: null,
         });
         this.props.setShowSelectedUser("");
+        this.props.setUserId(-1);
       } else if (this.state.option == "block") {
         const newFriends = this.state.friends.filter(
-          (e) => e != this.state.selectedUser
+          (e) => e.username != this.state.selectedUser
         );
         this.updateState({
           friends: newFriends,
@@ -59,6 +74,7 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
           selectedUser: null,
         });
         this.props.setShowSelectedUser("");
+        this.props.setUserId(-1);
       } else {
         this.updateState({
           option: null,
@@ -117,10 +133,11 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
             ],
           },
           this.state.searchValue && this.state.searchValue.trim().length
-            ? this.state.friends.map((e) => {
-                if (e?.includes(this.state.searchValue?.trim()!))
+            ? this.state.friends.map((e: UserInterface) => {
+                if (e.username.includes(this.state.searchValue?.trim()!))
                   return createElement(Friend, {
-                    username: e,
+                    username: e.username,
+                    id: e.id,
                     setOption: (input: string) => {
                       this.updateState({ option: input });
                     },
@@ -130,12 +147,16 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
                     setSelectedFriend: (username: string) => {
                       this.props.setShowSelectedUser(username);
                     },
+                    setFriendUserId: (id: number) => {
+                      this.props.setUserId(id);
+                    },
                   });
                 return null;
               })
             : this.state.friends.map((e) =>
                 createElement(Friend, {
-                  username: e,
+                  username: e.username,
+                  id: e.id,
                   setOption: (input: string) => {
                     this.updateState({ option: input });
                   },
@@ -144,6 +165,9 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
                   },
                   setSelectedFriend: (username: string) => {
                     this.props.setShowSelectedUser(username);
+                  },
+                  setFriendUserId: (id: number) => {
+                    this.props.setUserId(id);
                   },
                 })
               )
