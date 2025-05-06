@@ -1,10 +1,12 @@
 import {
   createElement,
   defineComponent,
+  eventBus,
   type IComponent,
 } from "@/uccello/Uccello.js";
 import Conversation from "./Conversation/Conversation.js";
 import Friends from "./Friends/Friends.js";
+import enhancedFetch from "@/Hooks/fetch.js";
 
 interface ChatInterfaceState {
   showSelectedUser: string | null;
@@ -33,7 +35,6 @@ const ChatInterface = defineComponent<ChatInterfaceState>({
     };
   },
   render(this: IComponent<ChatInterfaceState>) {
-    console.log(this.state.userId, this.state.showSelectedUser);
     return createElement(
       "section",
       {
@@ -64,6 +65,7 @@ const ChatInterface = defineComponent<ChatInterfaceState>({
               },
               setUserId: (id: number) => {
                 this.updateState({ userId: id });
+                eventBus.emit("get:messages");
               },
             }),
         this.state.isMobile && this.state.showConversation

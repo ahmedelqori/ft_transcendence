@@ -1,6 +1,7 @@
 import {
   createElement,
   defineComponent,
+  eventBus,
   type IComponent,
 } from "@/uccello/Uccello.js";
 import FriendInfoBar from "./FriendInfoBar/FriendInfoBar.js";
@@ -15,7 +16,7 @@ export interface MessageInterface {
 
 interface ConversationProps {
   username: string;
-  userId:number
+  userId: number;
 }
 
 interface ConversationState {
@@ -39,9 +40,27 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
       const response = await enhancedFetch.fetch(
         "https://64.23.191.17/api/account/whoami/"
       );
-      const data = await response.json();
-      this.updateState({ userId:data.id });
+      let data = await response.json();
+      this.updateState({ userId: data.id });
     } catch (err) {}
+
+    eventBus.on("get:messages", async () => {
+      try {
+        const res = await enhancedFetch.fetch(
+          `http://localhost:3000/api/messages/${this.state.userId}`,
+          {
+            mode: "cors",
+            credentials: "include",
+          }
+        );
+        const data = await res.json();
+        this.updateState({
+          messages: data.map((msg: any) => {
+            return { content: msg.content, received: true };
+          }),
+        });
+      } catch (err) {}
+    });
   },
   state() {
     return {
@@ -75,6 +94,7 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
             createElement(Messages, { messages: this.state.messages }),
             createElement(SendMessage, {
               messages: this.state.messages,
+              id: this.props.userId,
               onSendMessage: (message: string) => {
                 this.updateState({
                   messages: [
@@ -130,7 +150,9 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
       setupWebSocket: () => void;
     }
   ) {
-    this.state.socket = new WebSocket(`ws://localhost:3000/ws?token=${localStorage.getItem("access_token")}`);
+    this.state.socket = new WebSocket(
+      `ws://localhost:3000/ws?token=${localStorage.getItem("access_token")}`
+    );
 
     this.state.socket.addEventListener("message", ({ data }: { data: any }) => {
       data = JSON.parse(data);

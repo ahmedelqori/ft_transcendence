@@ -1,3 +1,4 @@
+import enhancedFetch from "@/Hooks/fetch";
 import {
   createElement,
   defineComponent,
@@ -10,6 +11,7 @@ interface SendState {
 
 interface SendProps {
   socket: any;
+  id: number;
   messages: (string | null)[];
   onSendMessage: (message: string) => void;
 }
@@ -91,7 +93,7 @@ const SendMessage = defineComponent<SendState, SendProps>({
       ]
     );
   },
-  handleSendMessage(
+  async handleSendMessage(
     this: IComponent<SendState, SendProps> & { sendMessage: () => void }
   ) {
     if (this.state.inputValue && this.state.inputValue.trim().length) {
@@ -101,6 +103,20 @@ const SendMessage = defineComponent<SendState, SendProps>({
       //     this.state.inputValue + " answer me in one sentence"
       //   );
       // }
+      try {
+        console.log(JSON.stringify({ message: this.state.inputValue }));
+        const res = await enhancedFetch.fetch(
+          `http://localhost:3000/api/messages/send/${this.props.id}`,
+          {
+            method: "POST",
+            body: JSON.stringify({ message: this.state.inputValue }),
+          }
+        );
+        const data = await res.json();
+        // console.log(data);
+      } catch (err) {
+        console.log(err);
+      }
       this.updateState({ inputValue: "" });
     } else this.updateState({ inputValue: "" });
   },

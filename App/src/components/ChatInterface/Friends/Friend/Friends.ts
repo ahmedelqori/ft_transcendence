@@ -2,6 +2,7 @@ import { router } from "@/router/Router.js";
 import {
   createElement,
   defineComponent,
+  eventBus,
   type IComponent,
 } from "@/uccello/Uccello.js";
 
@@ -76,6 +77,7 @@ const Friend = defineComponent<FriendState, FriendProps>({
               click: () => {
                 this.props.setSelectedFriend(this.props.username);
                 this.props.setFriendUserId(this.props.id);
+                eventBus.emit("get:messages");
               },
             },
           },
