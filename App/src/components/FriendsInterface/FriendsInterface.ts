@@ -3,7 +3,7 @@ import {
   type IComponent,
   defineComponent,
 } from "@/uccello/Uccello.js";
-import FriendItem from "./FirendItem/FriendItem.js";
+import FriendItem from "./FriendItem.js";
 
 interface FriendsInterfaceState {
   friends: (string | null)[];

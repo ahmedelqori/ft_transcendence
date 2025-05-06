@@ -3,8 +3,8 @@ import {
   defineComponent,
   type IComponent,
 } from "@/uccello/Uccello.js";
-import Friend from "./Friend/Friends.js";
-import Search from "./Search/Search.js";
+import Friend from "./Friend.js";
+import Search from "./Search.js";
 import enhancedFetch from "@/Hooks/fetch.js";
 
 interface UserInterface {

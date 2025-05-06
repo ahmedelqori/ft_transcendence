@@ -4,8 +4,8 @@ import {
   defineComponent,
   type IComponent,
 } from "@/uccello/Uccello.js";
-import ReceivedMessage from "./ReceivedMessage/ReceivedMessage.js";
-import SentMessage from "./SentMessage/SentMessage.js";
+import ReceivedMessage from "./ReceivedMessage.js";
+import SentMessage from "./SentMessage.js";
 import { MessageInterface } from "../Conversation.js";
 
 interface MessagesProps {

@@ -7,8 +7,8 @@ import {
 } from "@/uccello/Uccello.js";
 
 interface FriendProps {
-  username: string;
   id: number;
+  username: string;
   setOption: (str: string) => void;
   setUser: (str: string) => void;
   setSelectedFriend: (str: string) => void;
@@ -121,6 +121,7 @@ const Friend = defineComponent<FriendState, FriendProps>({
               click: () => {
                 this.props.setSelectedFriend(this.props.username);
                 this.props.setFriendUserId(this.props.id);
+                eventBus.emit("get:messages");
               },
             },
           },

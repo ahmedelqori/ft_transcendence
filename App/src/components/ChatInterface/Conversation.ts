@@ -4,9 +4,9 @@ import {
   eventBus,
   type IComponent,
 } from "@/uccello/Uccello.js";
-import FriendInfoBar from "./FriendInfoBar/FriendInfoBar.js";
-import Messages from "./Messages/Messages.js";
-import SendMessage from "./SendMessage/SendMessage.js";
+import FriendInfoBar from "./FriendInfoBar.js";
+import Messages from "./Messages.js";
+import SendMessage from "./SendMessage.js";
 import enhancedFetch from "@/Hooks/fetch.js";
 
 export interface MessageInterface {
@@ -47,7 +47,7 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
     eventBus.on("get:messages", async () => {
       try {
         const res = await enhancedFetch.fetch(
-          `http://localhost:3000/api/messages/${this.state.userId}`,
+          `http://localhost:3000/api/messages/${this.props.userId}`,
           {
             mode: "cors",
             credentials: "include",
@@ -56,7 +56,10 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
         const data = await res.json();
         this.updateState({
           messages: data.map((msg: any) => {
-            return { content: msg.content, received: true };
+            return {
+              content: msg.content,
+              received: msg.receiverId == this.props.userId,
+            };
           }),
         });
       } catch (err) {}
