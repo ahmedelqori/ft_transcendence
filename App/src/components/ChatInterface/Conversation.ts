@@ -26,6 +26,7 @@ interface ConversationState {
   intervalId: any;
   userId: number;
   receiverId: number;
+  isLoading: boolean;
 }
 
 const Conversation = defineComponent<ConversationState, ConversationProps>({
@@ -46,6 +47,7 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
 
     eventBus.on("get:messages", async () => {
       try {
+        this.updateState({ isLoading: true });
         const res = await enhancedFetch.fetch(
           `http://localhost:3000/api/messages/${this.props.userId}`,
           {
@@ -61,6 +63,7 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
               received: msg.receiverId == this.props.userId,
             };
           }),
+          isLoading: false,
         });
       } catch (err) {}
     });
@@ -73,6 +76,7 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
       intervalId: null,
       receiverId: -1,
       userId: -1,
+      isLoading: true,
     };
   },
   render(this: IComponent<ConversationState, ConversationProps>) {
@@ -87,14 +91,15 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
           this.props.username != "" ? "justify-between" : "justify-center",
         ],
       },
-
       this.props.username != ""
         ? [
             createElement(FriendInfoBar, {
               username: this.props.username,
               online: this.state.online,
             }),
-            createElement(Messages, { messages: this.state.messages }),
+            !this.state.isLoading
+              ? createElement(Messages, { messages: this.state.messages })
+              : createElement("div", {}, ["is loading"]),
             createElement(SendMessage, {
               messages: this.state.messages,
               id: this.props.userId,

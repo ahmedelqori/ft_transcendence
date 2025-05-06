@@ -21,7 +21,7 @@ const Dashboard = defineComponent({
           "items-start",
         ],
       },
-      [createElement(DashboardInterface), createElement(DashboardInterface)]
+      [createElement(DashboardInterface)]
     );
   },
 });

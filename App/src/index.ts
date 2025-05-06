@@ -25,7 +25,7 @@ const App = defineComponent<AppState>({
     }
   ) {
     eventBus.on("auth:login", () => {
-      this.updateState({ isLoggedIn: true });
+      if (this.state.isLoggedIn != true) this.updateState({ isLoggedIn: true });
     });
 
     eventBus.on("auth:logout", () => {

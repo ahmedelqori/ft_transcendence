@@ -91,6 +91,7 @@ const routes: any[] = [
 
 export async function isAuth() {
   try {
+    console.log("Before Fetch")
     const response = await enhancedFetch.fetch(
       "https://64.23.191.17/api/account/whoami/"
     );
@@ -99,6 +100,7 @@ export async function isAuth() {
       return false;
     }
     eventBus.emit("auth:login");
+
     return true;
   } catch (err) {
     eventBus.emit("auth:logout");

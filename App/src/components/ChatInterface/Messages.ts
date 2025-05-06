@@ -6,7 +6,7 @@ import {
 } from "@/uccello/Uccello.js";
 import ReceivedMessage from "./ReceivedMessage.js";
 import SentMessage from "./SentMessage.js";
-import { MessageInterface } from "../Conversation.js";
+import { MessageInterface } from "./Conversation.js";
 
 interface MessagesProps {
   messages: MessageInterface[];
