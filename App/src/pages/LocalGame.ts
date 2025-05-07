@@ -23,13 +23,11 @@ const LocalGame = defineComponent<LocalGameState>({
   },
 
   onMounted(this: IComponent<LocalGameState> & LocalGameMethods) {
-    console.log("[LocalGame] Component mounted");
     document.title = "Local Game";
     this.setupLocalGame();
   },
   
   async setupLocalGame(this: IComponent<LocalGameState> & LocalGameMethods) {
-    console.log("[LocalGame] Setting up local game");
     try {
       this.updateState({ isLoading: true, error: null });
       
@@ -42,22 +40,18 @@ const LocalGame = defineComponent<LocalGameState>({
       }
       
       const user = await response.json();
-      console.log(`[LocalGame] User authenticated: ${user.id}`);
       
       const gameId = `local_${Date.now()}`;
-      console.log(`[LocalGame] Created game ID: ${gameId}`);
       
       const socketManager = new SocketManager();
       socketManager.init(gameId, user.id);
       socketManager.setLocalGameMode(true);
       
-      console.log("[LocalGame] Socket manager initialized for local game");
       this.updateState({ 
         socketManager, 
         isLoading: false 
       });
     } catch (err) {
-      console.error("[LocalGame] Failed to setup local game:", err);
       this.updateState({ 
         error: err instanceof Error ? err.message : "Failed to setup local game", 
         isLoading: false 
@@ -135,15 +129,7 @@ const LocalGame = defineComponent<LocalGameState>({
     } else if (isLoading || !socketManager) {
       content = createElement(
         "div", 
-        { 
-          class: [
-            "text-white", 
-            "text-center", 
-            "w-full", 
-            "py-8"
-          ] 
-        }, 
-        ["Loading game..."]
+        {},
       );
     } else {
       content = createElement(GameInterface, { localSocketManager: socketManager });

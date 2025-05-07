@@ -71,11 +71,6 @@ export class ResponsiveCanva {
     height = Math.min(height, this.maxHeight);
 
     if (this.canvas.width !== width || this.canvas.height !== height) {
-      console.log(
-        `[ResponsiveCanva] Setting canvas dimensions: ${width.toFixed(
-          0
-        )}x${height.toFixed(0)}`
-      );
       this.canvas.width = width;
       this.canvas.height = height;
       this.calculateScaleFactor();
@@ -155,13 +150,10 @@ export const GameRenderer = defineComponent<
     if (this.props.gameConfig) {
       setTimeout(() => {
         if (this.initCanvas()) {
-          console.log("[GameRenderer] Canvas initialized successfully");
           this.handleResize();
           this.startAnimationLoop();
         }
       }, 50);
-    } else {
-      console.log("[GameRenderer] Waiting for game configuration");
     }
 
     let resizeTimeout: number | null = null;
@@ -194,13 +186,11 @@ export const GameRenderer = defineComponent<
   ): boolean {
     try {
       if (!this.props.gameConfig) {
-        console.log("[GameRenderer] Waiting for game configuration");
         return false;
       }
 
       const canvas = this.getHtmlElement.querySelector("canvas");
       if (!canvas) {
-        console.error("[GameRenderer] Canvas element not found");
         return false;
       }
 
@@ -212,7 +202,6 @@ export const GameRenderer = defineComponent<
       this.updateState({ responsiveCanva });
       return true;
     } catch (error) {
-      console.error("[GameRenderer] Error initializing canvas:", error);
       return false;
     }
   },
@@ -221,9 +210,6 @@ export const GameRenderer = defineComponent<
     this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods
   ) {
     if (!this.props.gameConfig) {
-      console.log(
-        "[GameRenderer] Not starting animation loop - waiting for game config"
-      );
       return;
     }
     const animate = () => {
@@ -293,16 +279,13 @@ export const GameRenderer = defineComponent<
       }
 
       this.drawScore(ctx, gameState, responsiveCanva!);
-    } catch (error) {
-      console.error("[GameRenderer] Error rendering game:", error);
-    }
+    } catch (error) {}
   },
 
   handleResize(
     this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods
   ) {
     if (this.state.responsiveCanva) {
-      console.log("[GameRenderer] Handling resize event");
       this.state.responsiveCanva.setup();
       this.renderGame();
     }
