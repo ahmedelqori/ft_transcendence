@@ -1,4 +1,6 @@
 import { EnhancedFetch, eventBus } from "@/uccello/Uccello.js";
+import { authState } from "./Auth";
+import { router } from "@/router/Router";
 
 const enhancedFetch = new EnhancedFetch();
 
@@ -19,14 +21,13 @@ enhancedFetch.addRequestInterceptor((request) => {
 //   return request;
 // });
 
-// enhancedFetch.addResponseInterceptor(async (response) => {
-//   if (!response.ok && response.status == 401) {
-//     console.log("its happen");
-//     eventBus.emit("auth:logout");
-//     navi
-//   }
-//   return response;
-// });
+enhancedFetch.addResponseInterceptor(async (response) => {
+  if (!response.ok && response.status == 401) {
+    authState.setState({ isAuthenticated: false, user: null });
+    router.navigateTo("/login");
+  }
+  return response;
+});
 
 // enhancedFetch.addResponseInterceptor(async (response) => {
 //   if (response.ok) {

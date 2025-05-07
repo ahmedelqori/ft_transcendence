@@ -1,3 +1,4 @@
+import { authState } from "@/Hooks/Auth";
 import { router } from "@/router/Router.js";
 import {
   createElement,
@@ -132,8 +133,8 @@ const NavigationBar = defineComponent<NavigationBarState>({
                       "=;expires=" + new Date().toUTCString() + ";path=/"
                     );
                 });
+                authState.setState({ isAuthenticated: false, user: null });
                 await router.navigateTo("/");
-                eventBus.emit("auth:logout");
               },
             },
           },

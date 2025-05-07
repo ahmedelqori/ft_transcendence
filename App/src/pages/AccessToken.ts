@@ -4,6 +4,8 @@ import {
   createElement,
   eventBus,
 } from "../uccello/Uccello.js";
+import enhancedFetch from "@/Hooks/fetch.js";
+import { authState } from "@/Hooks/Auth.js";
 
 const AccessToken = defineComponent({
   async onMounted() {
@@ -18,13 +20,26 @@ const AccessToken = defineComponent({
 
       const data = await res.json();
       localStorage.setItem("access_token", data.access_token);
-      eventBus.emit("auth:loading");
-      // setTimeout(() => {
+      const response = await enhancedFetch.fetch(
+        "https://64.23.191.17/api/account/whoami/"
+      );
+      let userdata = await response.json();
+      authState.setState({
+        isAuthenticated: true,
+        user: {
+          username: userdata.username,
+          id: userdata.id,
+          avatar: userdata.avatar_url,
+        },
+      });
       router.navigateTo("/dashboard");
-      // }, 2000);
     } catch (err) {
-      localStorage.clear();
       router.navigateTo("/login");
+      authState.setState({
+        isAuthenticated: false,
+        user: null,
+      });
+      localStorage.clear();
     }
   },
   state() {},

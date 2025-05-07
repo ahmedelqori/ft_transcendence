@@ -10,7 +10,8 @@ import {
   eventBus,
   type IComponent,
   RouterOutlet,
-} from "/uccello/Uccello.js";
+} from "@/uccello/Uccello.js";
+import { authState } from "@/Hooks/Auth";
 
 const ROOT = document.getElementById("root");
 
@@ -18,25 +19,23 @@ interface AppState {
   isLoggedIn: boolean | null;
 }
 
-interface User
-
-const auth = createAuthState<MyUser>();
-
 const App = defineComponent<AppState>({
   async onMounted(
     this: IComponent<AppState> & {
       checkIfUserIsLoggedIn: (any: void) => boolean;
     }
   ) {
-    eventBus.on("auth:login", () => {
-      if (this.state.isLoggedIn != true) this.updateState({ isLoggedIn: true });
-    });
-
     eventBus.on("auth:logout", () => {
       this.updateState({ isLoggedIn: false });
     });
-    eventBus.on("auth:loading", () => {
-      this.updateState({ isLoggedIn: null });
+    authState.subscribe((state) => {
+      console.log(state.isAuthenticated, this.state.isLoggedIn);
+
+      if (state.isAuthenticated && !this.state.isLoggedIn)
+        this.updateState({ isLoggedIn: true });
+      else if (!state.isAuthenticated && this.state.isLoggedIn) {
+        this.updateState({ isLoggedIn: false });
+      }
     });
   },
   state() {
