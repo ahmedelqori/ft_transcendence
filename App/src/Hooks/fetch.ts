@@ -1,4 +1,4 @@
-import { EnhancedFetch } from "@/uccello/Uccello.js";
+import { EnhancedFetch, eventBus } from "@/uccello/Uccello.js";
 
 const enhancedFetch = new EnhancedFetch();
 
@@ -20,8 +20,10 @@ enhancedFetch.addRequestInterceptor((request) => {
 // });
 
 // enhancedFetch.addResponseInterceptor(async (response) => {
-//   if (!response.ok) {
-//     console.error("Error response:", response.status, response.statusText);
+//   if (!response.ok && response.status == 401) {
+//     console.log("its happen");
+//     eventBus.emit("auth:logout");
+//     navi
 //   }
 //   return response;
 // });

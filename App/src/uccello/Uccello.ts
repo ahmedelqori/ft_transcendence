@@ -2701,3 +2701,36 @@ export class EnhancedFetch {
     return response;
   }
 }
+
+export interface BaseAuthState<TUser = unknown> {
+  isAuthenticated: boolean;
+  user: TUser | null;
+}
+
+type Listener<TUser> = (state: BaseAuthState<TUser>) => void;
+
+export const createAuthState = <TUser = unknown>() => {
+  let state: BaseAuthState<TUser> = {
+    isAuthenticated: false,
+    user: null,
+  };
+
+  const listeners = new Set<Listener<TUser>>();
+
+  return {
+    getState(): BaseAuthState<TUser> {
+      return state;
+    },
+
+    setState(newState: Partial<BaseAuthState<TUser>>): void {
+      state = { ...state, ...newState };
+      listeners.forEach((listener) => listener(state));
+    },
+
+    subscribe(listener: Listener<TUser>): () => void {
+      listeners.add(listener);
+      listener(state);
+      return () => listeners.delete(listener);
+    },
+  };
+};

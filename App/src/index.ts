@@ -2,21 +2,25 @@ import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
 import SideBar from "@/components/SideBar/SideBar";
 import { router } from "@/router/Router";
-
 import {
   createApp,
+  createAuthState,
   createElement,
   defineComponent,
   eventBus,
   type IComponent,
   RouterOutlet,
-} from "./uccello/Uccello.js";
+} from "/uccello/Uccello.js";
 
 const ROOT = document.getElementById("root");
 
 interface AppState {
   isLoggedIn: boolean | null;
 }
+
+interface User
+
+const auth = createAuthState<MyUser>();
 
 const App = defineComponent<AppState>({
   async onMounted(

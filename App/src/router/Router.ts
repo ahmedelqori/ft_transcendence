@@ -91,7 +91,6 @@ const routes: any[] = [
 
 export async function isAuth() {
   try {
-    console.log("Before Fetch")
     const response = await enhancedFetch.fetch(
       "https://64.23.191.17/api/account/whoami/"
     );
