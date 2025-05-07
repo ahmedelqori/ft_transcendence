@@ -335,7 +335,9 @@ export class SocketManager {
   isLocalGame(): boolean {
     return this.isLocal;
   }
-
+  getGameId(): string {
+    return this.gameId;
+  }
   /**
    * Event listener management
    */

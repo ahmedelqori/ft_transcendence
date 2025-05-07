@@ -7,6 +7,7 @@ import {
   resetBallAndPaddles,
   pauseGame,
   resumeGame,
+  gameLoops
 } from "../gameLogic/gameplay.js";
 import {
   defaultGameConfig,
@@ -285,6 +286,7 @@ function handleReconnection(gameId, userId, gameRoom) {
       fastify.log.info(`Reconnection timer cleared for game ${gameId}`);
     }
 
+    // Send one-time state update to the reconnecting player
     sendToUser(gameId, userId, Message("gameStateUpdate", gameRoom.gameState));
     sendToUser(
       gameId,
@@ -328,8 +330,12 @@ function handleReconnection(gameId, userId, gameRoom) {
       );
     }
 
-    // Update all clients with current game state
-    broadcastAll(gameId, Message("gameStateUpdate", gameRoom.gameState));
+    // Only send a state update broadcast if the game is actually running
+    const gameLoop = gameLoops.get(gameId);
+    if (gameLoop && gameLoop.running) {
+      broadcastAll(gameId, Message("gameStateUpdate", gameRoom.gameState));
+    }
+    
     return true;
   } catch (error) {
     fastify.log.error(
@@ -433,7 +439,12 @@ function initiateGameStart(gameId, userId, gameRoom) {
       if (updatedGameState.state == Game.FINISHED) {
         handleGameOver(gameId, updatedGameState);
       }
-      broadcastAll(gameId, Message("gameStateUpdate", updatedGameState));
+      
+      // Only send gameStateUpdate messages when the game is actively running
+      const gameLoop = gameLoops.get(gameId);
+      if (gameLoop && gameLoop.running) {
+        broadcastAll(gameId, Message("gameStateUpdate", updatedGameState));
+      }
     } catch (loopError) {
       fastify.log.error(
         `Error in game loop for game ${gameId}: ${loopError.message}`

@@ -4,14 +4,14 @@ import {
   stopGameLoop,
   updatePaddlePosition,
   resetBallAndPaddles,
+  gameLoops,
+  pauseGame,
+  resumeGame
 } from "../gameLogic/gameplay.js";
 import {
   defaultGameConfig,
-  gameRooms,
-  connections,
   WS_CLOSE,
   Game,
-  createGameState,
   createGameRoom,
   CLEANUP
 } from "../gameLogic/gameConfig.js";
@@ -20,8 +20,6 @@ import {
   Message,
   runHeartBeatMechanism,
   sendToUser,
-  broadcastAll,
-  setupNewConnection,
 } from "./game.socket.utils.js";
 
 export const localGameConnections = new Map();
@@ -126,6 +124,7 @@ function setupLocalSocketEventHandlers(socket) {
 function handleLocalMessage(socket, data) {
   const messageHandlers = {
     startOfflineGame: () => handleOfflineGameStart(socket),
+    joinGame: () => handleOfflineGameStart(socket), // Add support for joinGame message
     offlinePaddleMove: () => handleOfflinePaddleMove(socket.gameId, socket.userId, data.position, data.side),
     pauseGame: () => handlePauseLocalGame(socket.gameId),
     resumeGame: () => handleResumeLocalGame(socket.gameId),
@@ -202,10 +201,13 @@ function initiateLocalGameStart(gameId, userId, gameRoom) {
         handleLocalGameOver(gameId, updatedGameState);
       }
       
-      const connections = localGameConnections.get(gameId);
-      if (connections) {
-        for (const socket of connections.values()) {
-          socket.send(Message("gameStateUpdate", updatedGameState));
+      const gameLoop = gameLoops.get(gameId);
+      if (gameLoop && gameLoop.running) {
+        const connections = localGameConnections.get(gameId);
+        if (connections) {
+          for (const socket of connections.values()) {
+            socket.send(Message("gameStateUpdate", updatedGameState));
+          }
         }
       }
     } catch (loopError) {
@@ -240,6 +242,7 @@ function handlePauseLocalGame(gameId) {
   if (gameRoom.gameState.state !== Game.IN_PLAY) return;
   
   gameRoom.gameState.state = Game.PAUSED;
+  pauseGame(gameId); // Add this line to actually pause the game loop
   
   const connections = localGameConnections.get(gameId);
   if (connections) {
@@ -261,6 +264,7 @@ function handleResumeLocalGame(gameId) {
   if (gameRoom.gameState.state !== Game.PAUSED) return;
   
   gameRoom.gameState.state = Game.IN_PLAY;
+  resumeGame(gameId); // Add this line to actually resume the game loop
   
   const connections = localGameConnections.get(gameId);
   if (connections) {

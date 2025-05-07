@@ -97,7 +97,7 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
       } else {
         console.error("[GameCanvas] Canvas element not found for event listeners");
       }
-    }, 100);
+    }, 1000);
   },
 
   /**
@@ -139,15 +139,15 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
       }
     }
     
-    // Reset bound handlers
-    this.updateState({
-      boundHandlers: {
-        keyDown: null,
-        keyUp: null,
-        mouseMove: null,
-        contextMenu: null
-      }
-    });
+    // Don't update state during unmounting - we're cleaning up anyway
+    // this.updateState({
+    //   boundHandlers: {
+    //     keyDown: null,
+    //     keyUp: null,
+    //     mouseMove: null,
+    //     contextMenu: null
+    //   }
+    // });
   },
 
   /**

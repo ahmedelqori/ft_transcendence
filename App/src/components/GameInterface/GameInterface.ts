@@ -69,7 +69,7 @@ interface GameInterfaceMethods {
   cancelGame(): void;
   handlePlayAgain(): void;
   startCountdown(seconds: number): void;
-  setupOnlineGame(): Promise<void>;
+  setupOnlineGame(providedGameId?: string): Promise<void>;
   setupLocalGame(socketManager: SocketManager): void;
 }
 
@@ -125,6 +125,7 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     if (this.props.localSocketManager) {
       this.setupLocalGame(this.props.localSocketManager);
     } else {
+      // Set up a new online game (no reconnection)
       await this.setupOnlineGame();
     }
   },
@@ -174,12 +175,14 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
    */
   async setupOnlineGame(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
-      GameInterfaceMethods
+      GameInterfaceMethods,
+    providedGameId?: string
   ) {
     console.log("[GameInterface] Setting up online game");
 
     const router = this.getAppContext?.router;
-    const gameId = extractNumericId(router?.getParams?.gameId);
+    const gameIdFromUrl = extractNumericId(router?.getParams?.gameId);
+    const gameId = providedGameId || gameIdFromUrl;
 
     if (!gameId) {
       console.error("[GameInterface] Missing game ID in URL");
@@ -216,6 +219,7 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
 
     const handleBeforeUnload = () => {
       if (socketManager.getIsConnected()) {
+        // Simple disconnect, no state saving
         socketManager.disconnect();
       }
     };
@@ -227,6 +231,10 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     });
 
     window.addEventListener("beforeunload", handleBeforeUnload);
+
+    // Also handle navigation within the app
+    window.addEventListener("popstate", handleBeforeUnload);
+
     this.setupSocketListeners();
     this.connectToGame();
   },
@@ -251,6 +259,7 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
 
     if (beforeUnloadHandler) {
       window.removeEventListener("beforeunload", beforeUnloadHandler);
+      window.removeEventListener("popstate", beforeUnloadHandler);
     }
 
     if (countdownTimerId !== null) {
@@ -490,8 +499,9 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
         handler as any
       );
     });
-
-    this.updateState({ socketEventHandlers: {} });
+    
+    // Don't update state during unmounting - this causes the "Component is not mounted" error
+    // this.updateState({ socketEventHandlers: {} });
   },
 
   /**

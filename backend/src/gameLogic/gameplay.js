@@ -6,7 +6,7 @@ import {
 } from "./gameConfig.js";
 import { fastify } from "../server.js";
 // import { validateSocketConnection } from "../middlewares/auth.middleware.js";
-const gameLoops = new Map(); // Map<gameId, {interval, callback, running, gameState}>
+export const gameLoops = new Map(); // Map<gameId, {interval, callback, running, gameState}>
 const buttomBoard = 0;
 const topBoard = 100;
 const leftBoard = 0;
