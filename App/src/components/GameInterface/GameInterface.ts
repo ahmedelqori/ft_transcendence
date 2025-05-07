@@ -28,6 +28,10 @@ import { WaitingConfigurationOverlay } from "./GameOverlays/WaitingConfiguration
 import { WaitingOpponentOverlay } from "./GameOverlays/WaitingOpponentOverlay.js";
 import { CountdownOverlay } from "./GameOverlays/CountdownOverlay.js";
 
+interface GameInterfaceProps {
+  localSocketManager?: SocketManager;
+}
+
 interface GameInterfaceState {
   socketManager: SocketManager | null;
   gameState: GameState | null;
@@ -67,7 +71,7 @@ function extractNumericId(value: string | undefined): string | undefined {
   return matches ? matches[0] : undefined;
 }
 
-const GameInterface = defineComponent<GameInterfaceState>({
+const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
   state(): GameInterfaceState {
     return {
       socketManager: null,
@@ -91,9 +95,51 @@ const GameInterface = defineComponent<GameInterfaceState>({
     };
   },
 
-  async onMounted(this: IComponent<GameInterfaceState> & GameInterfaceMethods) {
+  async onMounted(
+    this: IComponent<GameInterfaceState, GameInterfaceProps> &
+      GameInterfaceMethods
+  ) {
     console.log("[GameInterface] Component mounted");
 
+    // If local socket manager is provided, use it
+    if (this.props.localSocketManager) {
+      console.log("[GameInterface] Using provided local socket manager");
+      const socketManager = this.props.localSocketManager;
+
+      const handleBeforeUnload = () => {
+        if (socketManager.getIsConnected()) {
+          socketManager.disconnect();
+        }
+      };
+
+      this.updateState({
+        socketManager,
+        beforeUnloadHandler: handleBeforeUnload,
+      });
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+
+      this.setupSocketListeners();
+
+      // For local games, we need to start the game with special message
+      if (socketManager.isLocalGame()) {
+        console.log("[GameInterface] Starting local game");
+        socketManager
+          .connect()
+          .then(() => {
+            socketManager.startOfflineGame();
+          })
+          .catch((error) => {
+            console.error(
+              `[GameInterface] Local game connection failed: ${error.message}`
+            );
+          });
+      }
+
+      return;
+    }
+
+    // Regular online game flow
     const router = this.getAppContext?.router;
     const gameId = extractNumericId(router?.getParams?.gameId);
     let userId;
@@ -133,7 +179,10 @@ const GameInterface = defineComponent<GameInterfaceState>({
     this.updateState({ showWaitingConfigOverlay: true });
   },
 
-  onUnmounted(this: IComponent<GameInterfaceState> & GameInterfaceMethods) {
+  onUnmounted(
+    this: IComponent<GameInterfaceState, GameInterfaceProps> &
+      GameInterfaceMethods
+  ) {
     if (this.state.socketManager?.getIsConnected()) {
       this.state.socketManager.disconnect();
     }
@@ -153,7 +202,8 @@ const GameInterface = defineComponent<GameInterfaceState>({
   },
 
   setupSocketListeners(
-    this: IComponent<GameInterfaceState> & GameInterfaceMethods
+    this: IComponent<GameInterfaceState, GameInterfaceProps> &
+      GameInterfaceMethods
   ) {
     const { socketManager } = this.state;
     if (!socketManager) return;
@@ -351,7 +401,8 @@ const GameInterface = defineComponent<GameInterfaceState>({
   },
 
   removeSocketListeners(
-    this: IComponent<GameInterfaceState> & GameInterfaceMethods
+    this: IComponent<GameInterfaceState, GameInterfaceProps> &
+      GameInterfaceMethods
   ) {
     const { socketManager, socketEventHandlers } = this.state;
     if (!socketManager) return;
@@ -366,7 +417,10 @@ const GameInterface = defineComponent<GameInterfaceState>({
     this.updateState({ socketEventHandlers: {} });
   },
 
-  connectToGame(this: IComponent<GameInterfaceState> & GameInterfaceMethods) {
+  connectToGame(
+    this: IComponent<GameInterfaceState, GameInterfaceProps> &
+      GameInterfaceMethods
+  ) {
     const { socketManager } = this.state;
     if (!socketManager || socketManager.getIsConnected()) {
       console.log("[GameInterface] Already connected or connecting");
@@ -386,7 +440,8 @@ const GameInterface = defineComponent<GameInterfaceState>({
   },
 
   disconnectFromGame(
-    this: IComponent<GameInterfaceState> & GameInterfaceMethods
+    this: IComponent<GameInterfaceState, GameInterfaceProps> &
+      GameInterfaceMethods
   ) {
     const { socketManager } = this.state;
     if (socketManager && socketManager.getIsConnected()) {
@@ -396,7 +451,8 @@ const GameInterface = defineComponent<GameInterfaceState>({
   },
 
   togglePauseResume(
-    this: IComponent<GameInterfaceState> & GameInterfaceMethods
+    this: IComponent<GameInterfaceState, GameInterfaceProps> &
+      GameInterfaceMethods
   ) {
     const { socketManager, gameState } = this.state;
 
@@ -418,7 +474,10 @@ const GameInterface = defineComponent<GameInterfaceState>({
     }
   },
 
-  cancelGame(this: IComponent<GameInterfaceState> & GameInterfaceMethods) {
+  cancelGame(
+    this: IComponent<GameInterfaceState, GameInterfaceProps> &
+      GameInterfaceMethods
+  ) {
     const { socketManager } = this.state;
     if (socketManager && socketManager.getIsConnected()) {
       this.disconnectFromGame();
@@ -426,7 +485,10 @@ const GameInterface = defineComponent<GameInterfaceState>({
     }
   },
 
-  handlePlayAgain(this: IComponent<GameInterfaceState> & GameInterfaceMethods) {
+  handlePlayAgain(
+    this: IComponent<GameInterfaceState, GameInterfaceProps> &
+      GameInterfaceMethods
+  ) {
     this.updateState({
       showVictoryOverlay: false,
       showDefeatOverlay: false,
@@ -441,7 +503,8 @@ const GameInterface = defineComponent<GameInterfaceState>({
   },
 
   startCountdown(
-    this: IComponent<GameInterfaceState> & GameInterfaceMethods,
+    this: IComponent<GameInterfaceState, GameInterfaceProps> &
+      GameInterfaceMethods,
     seconds: number
   ) {
     if (this.state.countdownTimerId !== null) {
@@ -472,7 +535,10 @@ const GameInterface = defineComponent<GameInterfaceState>({
     this.updateState({ countdownTimerId: timerId });
   },
 
-  render(this: IComponent<GameInterfaceState> & GameInterfaceMethods) {
+  render(
+    this: IComponent<GameInterfaceState, GameInterfaceProps> &
+      GameInterfaceMethods
+  ) {
     const {
       socketManager,
       gameState,

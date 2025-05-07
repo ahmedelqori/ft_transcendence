@@ -115,10 +115,11 @@ export class SocketManager {
   private socket: WebSocket | null = null;
   private isConnected: boolean = false;
   private gameId: string  = "";
-  private userId: string  = "";;
-  private playerPosition: string  = "";;
+  private userId: string  = "";
+  private playerPosition: string  = "";
   private gameState: GameState | any = null;
   private gameConfig: GameConfig | any = null;
+  private isLocal: boolean = false;
   private listeners: EventCallbacks = {
     onConnect: [],
     onDisconnect: [],
@@ -144,13 +145,16 @@ export class SocketManager {
         return reject(new Error("Missing gameId or userId"));
       }
 
-      // const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      // const host =
-      //   window.location.hostname.split(":")[0] === "127.0.0.1"
-      //     ? "localhost:3000"
-      //     : window.location.host;
-      const token = `Bearer ${localStorage.getItem("access_token")}`
-      const wsUrl = `ws://10.32.137.74:3000/ws/game/${this.gameId}?token=${token}`;
+      let wsUrl: string;
+
+      if (this.isLocal) {
+        wsUrl = `ws://10.32.137.74:3000/ws/local/${this.gameId}`;
+        console.log("[SocketManager] Connecting to local game:", wsUrl);
+      } else {
+        const token = `Bearer ${localStorage.getItem("access_token")}`
+        wsUrl = `ws://10.32.137.74:3000/ws/game/${this.gameId}?token=${token}`;
+        console.log("[SocketManager] Connecting to online game:", wsUrl);
+      }
 
       console.log("Connecting to WebSocket:", wsUrl);
       this.socket = new WebSocket(wsUrl);
@@ -209,12 +213,42 @@ export class SocketManager {
     return false;
   }
 
-  // Doesn't appear to be used in the provided code
   joinGame(): boolean {
     return this.sendMessage({ type: "joinGame" });
   }
 
+  startOfflineGame(): boolean {
+    console.log("[SocketManager] Starting offline game");
+    return this.sendMessage({ type: "startOfflineGame" });
+  }
+
+  sendOfflinePaddleMove(position: number, side: 'left' | 'right'): boolean {
+    if (this.isLocal && this.gameState) {
+      if (side === "left") {
+        this.gameState.paddles.left = position;
+      } else if (side === "right") {
+        this.gameState.paddles.right = position;
+      }
+    }
+    
+    return this.sendMessage({
+      type: "offlinePaddleMove",
+      position: position,
+      side: side
+    });
+  }
+
   sendPaddleMove(position: number): boolean {
+    if (this.isLocal) {
+      const normalizedPosition = Math.max(0, Math.min(100, position));
+      
+      let side: 'left' | 'right' = this.playerPosition as 'left' | 'right' || 'left';
+      
+      // For keyboard controls we want to just rely on the position that's set
+      return this.sendOfflinePaddleMove(normalizedPosition, side);
+    }
+    
+    // Regular online game handling
     if (this.gameState && this.playerPosition) {
       if (this.playerPosition === "left") {
         this.gameState.paddles.left = position;
@@ -251,6 +285,10 @@ export class SocketManager {
 
   getIsConnected(): boolean {
     return this.isConnected;
+  }
+  
+  isLocalGame(): boolean {
+    return this.isLocal;
   }
 
   addEventListener<K extends keyof EventCallbacks>(event: K, callback: EventCallbacks[K][number]): void {
@@ -413,5 +451,9 @@ export class SocketManager {
         }
       });
     }
+  }
+
+  setLocalGameMode(local: boolean) {
+    this.isLocal = local;
   }
 }

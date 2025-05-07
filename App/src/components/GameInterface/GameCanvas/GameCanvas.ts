@@ -137,12 +137,12 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
 
   handleMouseMove(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods, e: MouseEvent) {
     const { socketManager, gameState } = this.props;
-    const playerPosition = socketManager?.getPlayerPosition();
-    
-    if (!gameState || 
-        gameState.state !== GameStates.IN_PLAY || 
-        !playerPosition ||
-        !socketManager) {
+    if (socketManager?.isLocalGame()) {
+      return;
+    }    
+    if (!socketManager || 
+        !gameState || 
+        gameState.state !== GameStates.IN_PLAY) {
       return;
     }
 
@@ -151,9 +151,8 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     
     const rect = canvas.getBoundingClientRect();
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-
+    
     const paddlePos = Math.max(0, Math.min(100, y));
-
     socketManager.sendPaddleMove(paddlePos);
   },
 
@@ -214,11 +213,47 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     if (!socketManager) return;
     
     const gameState = socketManager.getGameState();
-    const playerPosition = socketManager.getPlayerPosition();
-
-    if (!gameState || !playerPosition || gameState.state !== GameStates.IN_PLAY)
+    if (!gameState || gameState.state !== GameStates.IN_PLAY) return;
+    
+    if (socketManager.isLocalGame()) {
+      let leftPaddlePos = gameState.paddles.left || 50;
+      let leftMoved = false;
+      let leftNewPos = leftPaddlePos;
+      
+      if (keysPressed["w"]) {
+        leftNewPos = Math.max(0, leftPaddlePos - keyboardMoveSpeed);
+        leftMoved = true;
+      } else if (keysPressed["s"]) {
+        leftNewPos = Math.min(100, leftPaddlePos + keyboardMoveSpeed);
+        leftMoved = true;
+      }
+      
+      if (leftMoved && leftNewPos !== leftPaddlePos) {
+        socketManager.sendOfflinePaddleMove(leftNewPos, 'left');
+      }
+      
+      let rightPaddlePos = gameState.paddles.right || 50;
+      let rightMoved = false;
+      let rightNewPos = rightPaddlePos;
+      
+      if (keysPressed["ArrowUp"]) {
+        rightNewPos = Math.max(0, rightPaddlePos - keyboardMoveSpeed);
+        rightMoved = true;
+      } else if (keysPressed["ArrowDown"]) {
+        rightNewPos = Math.min(100, rightPaddlePos + keyboardMoveSpeed);
+        rightMoved = true;
+      }
+      
+      if (rightMoved && rightNewPos !== rightPaddlePos) {
+        socketManager.sendOfflinePaddleMove(rightNewPos, 'right');
+      }
+      
       return;
+    }
 
+    const playerPosition = socketManager.getPlayerPosition();
+    if (!playerPosition) return;
+    
     let paddlePos = 50;
 
     if (playerPosition === "left") {

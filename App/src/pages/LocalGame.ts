@@ -25,22 +25,14 @@ const LocalGame = defineComponent<LocalGameState>({
   
   async setupLocalGame(this: IComponent<LocalGameState> & LocalGameMethods) {
     try {
-      // Get the current user
       const response = await enhancedFetch.fetch(
         "https://64.23.191.17/api/account/whoami/"
       );
-      const user = await response.json();
-      
-      // Create a pseudo-random game ID for the local session
-      const gameId = `local_${Date.now()}`;
-      
-      // Initialize socket manager
+      const user = await response.json();      
+      const gameId = `local_${Date.now()}`;      
       const socketManager = new SocketManager();
-      socketManager.init(gameId, user.id);
-      
-      // Set it to local game mode - this is important
-      // socketManager.setLocalGameMode(true);
-      
+      socketManager.init(gameId, user.id);      
+      socketManager.setLocalGameMode(true);
       this.updateState({ socketManager });
     } catch (err) {
       console.error("Failed to setup local game:", err);
