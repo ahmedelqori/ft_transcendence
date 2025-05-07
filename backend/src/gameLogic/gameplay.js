@@ -162,32 +162,43 @@ export function updateAfterPaddleCollision(paddleType, gameState) {
     defaultGameConfig.paddleHeight;
   relativeIntersection = Math.max(0, Math.min(1, relativeIntersection));
 
-  const bounceAngle = (relativeIntersection - 0.5) * Math.PI * 0.6;
+
+  const maxBounceAngle = Math.PI * 0.5;
+  const rawBounceAngle = (relativeIntersection * 2 - 1) * maxBounceAngle;
+  
+  const minHorizontalComponent = 0.3;
+  const limitedAngle = Math.sign(rawBounceAngle) * 
+    Math.min(Math.abs(rawBounceAngle), Math.PI/2 - Math.asin(minHorizontalComponent));
 
   const aspectAdjustedBounceAngle = Math.atan(
-    Math.tan(bounceAngle) * defaultGameConfig.ratio
+    Math.tan(limitedAngle) * defaultGameConfig.ratio
   );
 
   const incomingAngle = Math.atan2(gameState.ball.yDir, gameState.ball.xDir);
+  
   const currentSpeed = Math.sqrt(
     gameState.ball.xDir * gameState.ball.xDir +
-      gameState.ball.yDir * gameState.ball.yDir
+    gameState.ball.yDir * gameState.ball.yDir
   );
+
   const newSpeed = Math.min(
-    currentSpeed * 1.05,
+    currentSpeed * 1.02,
     defaultGameConfig.maxBallSpeed
   );
 
   const direction = paddleType === "left" ? 1 : -1;
 
-  const adjustedAngle =
-    aspectAdjustedBounceAngle * 0.7 +
-    incomingAngle * 0.3 * (direction < 0 ? -1 : 1);
+  const adjustedAngle = aspectAdjustedBounceAngle * 0.8 + 
+    incomingAngle * 0.2 * (direction < 0 ? -1 : 1);
 
-  gameState.ball.xDir = direction * Math.cos(adjustedAngle) * newSpeed;
+  const minHorizontalSpeed = newSpeed * 0.7;
+  
+  gameState.ball.xDir = direction * Math.max(
+    Math.abs(Math.cos(adjustedAngle) * newSpeed),
+    minHorizontalSpeed
+  );
 
-  gameState.ball.yDir =
-    Math.sin(adjustedAngle) * newSpeed * defaultGameConfig.ratio;
+  gameState.ball.yDir = Math.sin(adjustedAngle) * newSpeed;
 
   gameState.ball.x =
     paddleType === "left"

@@ -9,6 +9,7 @@ export enum GameStates {
   FINISHED = 7
 }
 
+// Game data interfaces
 export interface PaddlePositions {
   left: number;
   right: number;
@@ -50,6 +51,7 @@ export interface Players {
   [position: string]: Player;
 }
 
+// Event data interfaces
 export interface ConnectData {
   message: string;
 }
@@ -114,11 +116,16 @@ interface EventCallbacks {
 export class SocketManager {
   private socket: WebSocket | null = null;
   private isConnected: boolean = false;
-  private gameId: string  = "";
-  private userId: string  = "";
-  private playerPosition: string  = "";
-  private gameState: GameState | any = null;
-  private gameConfig: GameConfig | any = null;
+  private gameId: string = "";
+  private userId: string = "";
+  private playerPosition: string = "";
+  private gameState: GameState = {
+    state: GameStates.START,
+    paddles: { left: 50, right: 50 },
+    ball: { x: 50, y: 50 },
+    score: { left: 0, right: 0 }
+  };
+  private gameConfig: GameConfig | null = null;
   private isLocal: boolean = false;
   private listeners: EventCallbacks = {
     onConnect: [],
@@ -133,15 +140,23 @@ export class SocketManager {
     onReconnect: []
   };
 
+  /**
+   * Initialize the socket manager with game ID and user ID
+   */
   init(gameId: string, userId: string): SocketManager {
+    console.log(`[SocketManager] Initializing for game ${gameId}, user ${userId}`);
     this.gameId = gameId;
     this.userId = userId;
     return this;
   }
 
+  /**
+   * Connect to WebSocket server
+   */
   connect(): Promise<{ message: string }> {
     return new Promise((resolve, reject) => {
       if (!this.gameId || !this.userId) {
+        console.error("[SocketManager] Cannot connect: Missing gameId or userId");
         return reject(new Error("Missing gameId or userId"));
       }
 
@@ -151,16 +166,16 @@ export class SocketManager {
         wsUrl = `ws://10.32.137.74:3000/ws/local/${this.gameId}`;
         console.log("[SocketManager] Connecting to local game:", wsUrl);
       } else {
-        const token = `Bearer ${localStorage.getItem("access_token")}`
+        const token = `Bearer ${localStorage.getItem("access_token")}`;
         wsUrl = `ws://10.32.137.74:3000/ws/game/${this.gameId}?token=${token}`;
         console.log("[SocketManager] Connecting to online game:", wsUrl);
       }
 
-      console.log("Connecting to WebSocket:", wsUrl);
       this.socket = new WebSocket(wsUrl);
       
       const connectionTimeout = setTimeout(() => {
         if (this.socket && this.socket.readyState !== WebSocket.OPEN) {
+          console.error("[SocketManager] Connection timeout");
           reject(new Error("Connection timeout"));
           this.socket.close();
           this.socket = null;
@@ -170,7 +185,7 @@ export class SocketManager {
       this.socket.onopen = () => {
         this.isConnected = true;
         clearTimeout(connectionTimeout);
-        console.log("WebSocket connection established");
+        console.log("[SocketManager] WebSocket connection established");
         this._notifyListeners("onConnect", {
           message: "Connected to game server"
         });
@@ -180,6 +195,7 @@ export class SocketManager {
       this.socket.onclose = (event) => {
         this.isConnected = false;
         clearTimeout(connectionTimeout);
+        console.log(`[SocketManager] Connection closed, code: ${event.code}`);
         this._notifyListeners("onDisconnect", {
           code: event.code,
           reason: event.reason || "Connection closed"
@@ -188,7 +204,7 @@ export class SocketManager {
       };
 
       this.socket.onerror = (error) => {
-        console.log("WebSocket error:", error);
+        console.error("[SocketManager] WebSocket error:", error);
         this._notifyListeners("onError", {
           message: "WebSocket connection error",
           error
@@ -199,31 +215,50 @@ export class SocketManager {
     });
   }
 
+  /**
+   * Disconnect from WebSocket server
+   */
   disconnect(): void {
     if (this.socket) {
+      console.log("[SocketManager] Disconnecting from server");
       this.socket.close(1000);
     }
   }
 
+  /**
+   * Send message to WebSocket server
+   */
   sendMessage(message: any): boolean {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      console.log("[SocketManager] Sending message:", message.type);
       this.socket.send(JSON.stringify(message));
       return true;
     }
+    console.warn("[SocketManager] Failed to send message: Socket not open");
     return false;
   }
 
+  /**
+   * Join an online game
+   */
   joinGame(): boolean {
+    console.log("[SocketManager] Joining game");
     return this.sendMessage({ type: "joinGame" });
   }
 
+  /**
+   * Start a local game
+   */
   startOfflineGame(): boolean {
     console.log("[SocketManager] Starting offline game");
     return this.sendMessage({ type: "startOfflineGame" });
   }
 
+  /**
+   * Move paddle in local game
+   */
   sendOfflinePaddleMove(position: number, side: 'left' | 'right'): boolean {
-    if (this.isLocal && this.gameState) {
+    if (this.isLocal) {
       if (side === "left") {
         this.gameState.paddles.left = position;
       } else if (side === "right") {
@@ -238,18 +273,17 @@ export class SocketManager {
     });
   }
 
+  /**
+   * Move paddle in online game
+   */
   sendPaddleMove(position: number): boolean {
     if (this.isLocal) {
       const normalizedPosition = Math.max(0, Math.min(100, position));
-      
       let side: 'left' | 'right' = this.playerPosition as 'left' | 'right' || 'left';
-      
-      // For keyboard controls we want to just rely on the position that's set
       return this.sendOfflinePaddleMove(normalizedPosition, side);
     }
     
-    // Regular online game handling
-    if (this.gameState && this.playerPosition) {
+    if (this.playerPosition) {
       if (this.playerPosition === "left") {
         this.gameState.paddles.left = position;
       } else if (this.playerPosition === "right") {
@@ -263,19 +297,30 @@ export class SocketManager {
     });
   }
 
+  /**
+   * Pause game
+   */
   pauseGame(): boolean {
+    console.log("[SocketManager] Requesting game pause");
     return this.sendMessage({ type: "pauseGame" });
   }
 
+  /**
+   * Resume game
+   */
   resumeGame(): boolean {
+    console.log("[SocketManager] Requesting game resume");
     return this.sendMessage({ type: "resumeGame" });
   }
 
-  getGameState(): GameState | null {
+  /**
+   * Getters
+   */
+  getGameState(): GameState {
     return this.gameState;
   }
 
-  getPlayerPosition(): string | null {
+  getPlayerPosition(): string {
     return this.playerPosition;
   }
 
@@ -291,6 +336,9 @@ export class SocketManager {
     return this.isLocal;
   }
 
+  /**
+   * Event listener management
+   */
   addEventListener<K extends keyof EventCallbacks>(event: K, callback: EventCallbacks[K][number]): void {
     if (this.listeners[event]) {
       (this.listeners[event] as Function[]).push(callback);
@@ -305,57 +353,59 @@ export class SocketManager {
     }
   }
 
+  /**
+   * Handle incoming WebSocket messages
+   */
   private _handleMessage(event: MessageEvent): void {
     try {
       const message = JSON.parse(event.data.toString());
-      console.log("Received message:", message.type, message);
+      console.log("[SocketManager] Received message:", message.type);
 
       switch (message.type) {
         case "connected":
-          console.log("Connected to game server");
+          console.log("[SocketManager] Connected to game server");
           break;
 
         case "initGame":
           this.gameConfig = message.data.gameConfig;
           this.gameState = message.data.gameState;
-          console.log("Game initialized with config:", this.gameConfig);
-          console.log("join game automatically after initGame event");
+          console.log("[SocketManager] Game initialized with config", this.gameConfig);
           this.joinGame();
           break;
 
         case "joinedGame":
           this.playerPosition = message.data.position;
           this.gameState = message.data.gameState;
+          console.log(`[SocketManager] Joined as ${this.playerPosition} player`);
           this._notifyListeners("onPlayerJoined", {
             position: this.playerPosition,
             gameState: this.gameState,
             players: message.data.players
           });
-          console.log(`Joined as ${this.playerPosition} player`);
           break;
 
         case "playerJoined":
+          console.log("[SocketManager] Another player joined the game");
           this._notifyListeners("onPlayerJoined", {
             players: message.data.players
           });
-          console.log("Other player joined the game");
           break;
 
         case "readyToStart":
           this.gameState = message.data.gameState;
+          console.log("[SocketManager] Game ready to start - countdown should begin");
           this._notifyListeners("onGameState", {
             state: "readyToStart",
             gameState: this.gameState
           });
-          console.log("Game ready to start - countdown should begin");
           break;
 
         case "gameStarted":
           this.gameState = message.data.gameState;
+          console.log("[SocketManager] Game started");
           this._notifyListeners("onGameStart", {
             gameState: this.gameState
           });
-          console.log("Game started");
           break;
 
         case "gameStateUpdate":
@@ -367,73 +417,73 @@ export class SocketManager {
           break;
 
         case "gamePaused":
-          if (this.gameState) this.gameState.state = GameStates.PAUSED;
+          this.gameState.state = GameStates.PAUSED;
+          console.log(`[SocketManager] Game paused: ${message.data.message}`);
           this._notifyListeners("onGamePause", {
             message: message.data.message,
             reason: message.data.reason
           });
-          console.log(`Game paused: ${message.data.message}`);
           break;
 
         case "gameResumed":
-          if (this.gameState) this.gameState.state = GameStates.IN_PLAY;
+          this.gameState.state = GameStates.IN_PLAY;
+          console.log(`[SocketManager] Game resumed: ${message.data.message}`);
           this._notifyListeners("onGameResume", {
             message: message.data.message
           });
-          console.log(`Game resumed: ${message.data.message}`);
           break;
 
         case "playerReconnected":
+          console.log(`[SocketManager] Player reconnected (position: ${message.data.position})`);
           this._notifyListeners("onReconnect", {
             position: message.data.position
           });
-          console.log(`Player reconnected (position: ${message.data.position})`);
           break;
 
         case "reconnectedToGame":
           this.gameState = message.data.gameState;
           this.playerPosition = message.data.position;
+          console.log(`[SocketManager] Reconnected to game as ${this.playerPosition} player`);
           this._notifyListeners("onReconnect", {
             gameState: this.gameState,
             position: this.playerPosition,
             players: message.data.players,
             reconnectionTime: message.data.reconnectionTime
           });
-          console.log(`Reconnected to game as ${this.playerPosition} player`);
           break;
 
         case "gameFinished":
           this.gameState = message.data.gameState;
+          console.log(`[SocketManager] Game finished. Winner: ${this.gameState.winner}`);
           this._notifyListeners("onGameFinish", {
             gameState: this.gameState,
-            winner: this.gameState.winner,
+            winner: this.gameState.winner || "",
             message: message.data.message
           });
-          console.log(`Game finished. Winner: ${this.gameState.winner}`);
           break;
 
         case "gameCanceled":
-          if (this.gameState) this.gameState.state = GameStates.CANCELED;
+          this.gameState.state = GameStates.CANCELED;
+          console.log(`[SocketManager] Game canceled: ${message.data.message}`);
           this._notifyListeners("onGameState", {
             state: "canceled",
             gameState: this.gameState,
             message: message.data.message
           });
-          console.log(`Game canceled: ${message.data.message}`);
           break;
 
         case "error":
+          console.error(`[SocketManager] Server error: ${message.data.message}`);
           this._notifyListeners("onError", {
             message: message.data.message
           });
-          console.error(`Server error: ${message.data.message}`);
           break;
 
         default:
-          console.log("Unknown message type:", message.type);
+          console.warn("[SocketManager] Unknown message type:", message.type);
       }
     } catch (error) {
-      console.error("Error handling message:", error);
+      console.error("[SocketManager] Error handling message:", error);
       this._notifyListeners("onError", {
         message: "Error processing server message",
         error: error
@@ -441,19 +491,29 @@ export class SocketManager {
     }
   }
 
-  private _notifyListeners<K extends keyof EventCallbacks>(event: K, data: Parameters<EventCallbacks[K][number]>[0]): void {
+  /**
+   * Notify registered listeners of events
+   */
+  private _notifyListeners<K extends keyof EventCallbacks>(
+    event: K, 
+    data: Parameters<EventCallbacks[K][number]>[0]
+  ): void {
     if (this.listeners[event]) {
       this.listeners[event].forEach((callback) => {
         try {
           (callback as Function)(data);
         } catch (e) {
-          console.error(`Error in ${event} listener:`, e);
+          console.error(`[SocketManager] Error in ${event} listener:`, e);
         }
       });
     }
   }
 
+  /**
+   * Set local game mode
+   */
   setLocalGameMode(local: boolean) {
+    console.log(`[SocketManager] Setting local game mode to: ${local}`);
     this.isLocal = local;
   }
 }

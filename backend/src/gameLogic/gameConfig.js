@@ -14,7 +14,7 @@ export const Game = Object.freeze({
 export const defaultGameConfig = {
   playersNumber: 2,
   ballSpeed: 0.5,
-  maxBallSpeed: 2,
+  maxBallSpeed: 1.3,
   ballSize: 2,
   paddleWidth: 1.5,
   paddleHeight: 15,
