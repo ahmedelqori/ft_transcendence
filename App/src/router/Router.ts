@@ -11,6 +11,8 @@ import LeaderBoard from "../pages/LeaderBoard.js";
 import { eventBus, HashRouter } from "../uccello/Uccello.js";
 import AccessToken from "../pages/AccessToken.js";
 import enhancedFetch from "../Hooks/fetch.js";
+import LocalGame from "@/pages/LocalGame.js";
+import GameSetup from "@/pages/GameSetup.js";
 
 const routes: any[] = [
   {
@@ -71,6 +73,20 @@ const routes: any[] = [
   },
   {
     path: "/game",
+    component: GameSetup,
+    beforeEnter: async () => {
+      if (!(await isAuth())) return "/login";
+    },
+  },
+  {
+    path: "/localGame/:gameId",
+    component: LocalGame,
+    beforeEnter: async () => {
+      if (!(await isAuth())) return "/login";
+    },
+  },
+  {
+    path: "/onlineGame/:gameId",
     component: Game,
     beforeEnter: async () => {
       if (!(await isAuth())) return "/login";

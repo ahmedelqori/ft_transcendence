@@ -149,7 +149,8 @@ export class SocketManager {
       //   window.location.hostname.split(":")[0] === "127.0.0.1"
       //     ? "localhost:3000"
       //     : window.location.host;
-      const wsUrl = `ws://10.32.137.74:3000/ws/game/${this.gameId}/${this.userId}`;
+      const token = `Bearer ${localStorage.getItem("access_token")}`
+      const wsUrl = `ws://10.32.137.74:3000/ws/game/${this.gameId}?token=${token}`;
 
       console.log("Connecting to WebSocket:", wsUrl);
       this.socket = new WebSocket(wsUrl);

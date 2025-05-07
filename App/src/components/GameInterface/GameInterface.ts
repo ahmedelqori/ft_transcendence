@@ -5,6 +5,7 @@ import {
 } from "@/uccello/Uccello.js";
 import { GameControls } from "./GameControls/GameControls.js";
 import { GameCanvas } from "./GameCanvas/GameCanvas.js";
+import enhancedFetch from "@/Hooks/fetch.js";
 import {
   SocketManager,
   GameState,
@@ -90,12 +91,21 @@ const GameInterface = defineComponent<GameInterfaceState>({
     };
   },
 
-  onMounted(this: IComponent<GameInterfaceState> & GameInterfaceMethods) {
+  async onMounted(this: IComponent<GameInterfaceState> & GameInterfaceMethods) {
     console.log("[GameInterface] Component mounted");
 
     const router = this.getAppContext?.router;
-    const userId = extractNumericId(router?.getParams.userId?.split("?")[0]);
-    const gameId = extractNumericId(router?.getQuery?.gameId);
+    const gameId = extractNumericId(router?.getParams?.gameId);
+    let userId;
+    try {
+      const response = await enhancedFetch.fetch(
+        "https://64.23.191.17/api/account/whoami/"
+      );
+      const user = await response.json();
+      userId = user.id;
+    } catch (err) {
+      console.log(err);
+    }
 
     if (!gameId || !userId) {
       return;

@@ -8,5 +8,11 @@
     ["class:\\s*\\[([^\\]]*)\\]", "[\"'`]([^\"'`]*)[\"'`]"]
   ],
   "tailwindCSS.mode": "content",
-  "tailwindCSS.validate": true
+  "tailwindCSS.validate": true,
+  "github.copilot.enable": {
+    "*": false,
+    "plaintext": false,
+    "markdown": false,
+    "scminput": false
+  }
 }
