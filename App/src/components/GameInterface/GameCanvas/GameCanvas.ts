@@ -10,6 +10,7 @@ import {
   GameStates,
 } from "@/services/socket-manager.js";
 import { GameRenderer } from "../GameRenderer.js";
+import { CanvasManager } from "@/services/canvas-manager.js";
 
 interface GameCanvasProps {
   gameState: GameState | null;
@@ -40,6 +41,7 @@ interface GameCanvasMethods {
   cleanupEventListeners(): void;
   processLocalGameInput(): void;
   processOnlineGameInput(): void;
+  setupCanvasEventListeners(): void;
 }
 
 export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
@@ -87,17 +89,29 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     // Start the input processing loop
     this.startKeyboardControlLoop();
     
-    // Need a delay for canvas to be available in DOM
+    // Set up canvas event listeners after a delay to ensure canvas is created
     setTimeout(() => {
-      const gameCanvas = this.findCanvasElement();
-      if (gameCanvas) {
-        console.log("[GameCanvas] Canvas element found, adding mouse event listeners");
-        gameCanvas.addEventListener("contextmenu", contextMenuHandler);
-        gameCanvas.addEventListener("mousemove", mouseMoveHandler);
-      } else {
-        console.error("[GameCanvas] Canvas element not found for event listeners");
-      }
-    }, 1000);
+      this.setupCanvasEventListeners();
+    }, 300);
+  },
+
+  /**
+   * Setup canvas-specific event listeners
+   */
+  setupCanvasEventListeners(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods) {
+    const { boundHandlers } = this.state;
+    const canvas = this.findCanvasElement();
+    
+    if (canvas && boundHandlers.mouseMove && boundHandlers.contextMenu) {
+      console.log("[GameCanvas] Canvas element found, adding mouse event listeners");
+      canvas.addEventListener("contextmenu", boundHandlers.contextMenu);
+      canvas.addEventListener("mousemove", boundHandlers.mouseMove);
+    } else {
+      console.log("[GameCanvas] Canvas element not available yet, will retry");
+      setTimeout(() => {
+        this.setupCanvasEventListeners();
+      }, 300);
+    }
   },
 
   /**
@@ -138,24 +152,14 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
         gameCanvas.removeEventListener("contextmenu", boundHandlers.contextMenu);
       }
     }
-    
-    // Don't update state during unmounting - we're cleaning up anyway
-    // this.updateState({
-    //   boundHandlers: {
-    //     keyDown: null,
-    //     keyUp: null,
-    //     mouseMove: null,
-    //     contextMenu: null
-    //   }
-    // });
   },
 
   /**
-   * Find the canvas element in the DOM
+   * Find the canvas element using the CanvasManager
    */
   findCanvasElement(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods): HTMLCanvasElement | null {
-    const canvas = document.querySelector(".game-canvas");
-    return canvas as HTMLCanvasElement | null;
+    // Use the canvas manager to get the canvas element
+    return CanvasManager.getInstance().getCanvas();
   },
 
   /**
@@ -387,10 +391,19 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
             "bg-opacity-10",
           ]
         },
+        [
+          createElement(
+            "div",
+            {
+              class: ["text-center", "text-[var(--light-grey)]", "text-lg"]
+            },
+            ["Waiting for game configuration..."]
+          )
+        ]
       );
     }
     
-    // Render actual game canvas with renderer
+    // Render game container with renderer
     return createElement(
       "div", {
         class: [
@@ -404,7 +417,6 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
           "max-h-[90vh]"
         ],
         style: {
-          aspectRatio: `${gameConfig.ratio}`,
           maxWidth: "1200px",
           margin: "0 auto"
         }
