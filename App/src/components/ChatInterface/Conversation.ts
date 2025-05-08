@@ -8,9 +8,10 @@ import FriendInfoBar from "./FriendInfoBar.js";
 import Messages from "./Messages.js";
 import SendMessage from "./SendMessage.js";
 import enhancedFetch from "@/Hooks/fetch.js";
+import { authState } from "@/Hooks/Auth.js";
 
 export interface MessageInterface {
-  received: boolean;
+  received: number;
   content: any;
 }
 
@@ -33,39 +34,15 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
   async onMounted(
     this: IComponent<ConversationState, ConversationProps> & {
       setupWebSocket: () => void;
+      getMessages: () => Promise<void>;
     }
   ) {
     this.state.intervalId = null;
     this.setupWebSocket.call(this);
-    try {
-      const response = await enhancedFetch.fetch(
-        "https://64.23.191.17/api/account/whoami/"
-      );
-      let data = await response.json();
-      this.updateState({ userId: data.id });
-    } catch (err) {}
+    this.updateState({ userId: authState.getState().user?.id });
 
     eventBus.on("get:messages", async () => {
-      try {
-        this.updateState({ isLoading: true });
-        const res = await enhancedFetch.fetch(
-          `http://localhost:3000/api/messages/${this.props.userId}`,
-          {
-            mode: "cors",
-            credentials: "include",
-          }
-        );
-        const data = await res.json();
-        this.updateState({
-          messages: data.map((msg: any) => {
-            return {
-              content: msg.content,
-              received: msg.receiverId == this.props.userId,
-            };
-          }),
-          isLoading: false,
-        });
-      } catch (err) {}
+      await this.getMessages();
     });
   },
   state() {
@@ -107,7 +84,10 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
                 this.updateState({
                   messages: [
                     ...this.state.messages,
-                    { received: false, content: message },
+                    {
+                      received: this.props.userId,
+                      content: message,
+                    },
                   ],
                 });
               },
@@ -165,8 +145,12 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
     this.state.socket.addEventListener("message", ({ data }: { data: any }) => {
       data = JSON.parse(data);
       this.updateState({
-        messages: [...this.state.messages, { received: true, content: data }],
+        messages: [
+          ...this.state.messages,
+          { received: data.message.receiverId, content: data.message.content },
+        ],
       });
+      eventBus.emit("scroll:height");
     });
 
     this.state.socket.addEventListener("open", () => {
@@ -176,6 +160,28 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
     this.state.socket.addEventListener("close", () => {
       this.updateState({ online: false });
     });
+  },
+  async getMessages(this: IComponent<ConversationState, ConversationProps>) {
+    try {
+      this.updateState({ isLoading: true });
+      const res = await enhancedFetch.fetch(
+        `http://localhost:3000/api/messages/${this.props.userId}`,
+        {
+          mode: "cors",
+          credentials: "include",
+        }
+      );
+      const data = await res.json();
+      this.updateState({
+        messages: data.map((msg: any) => {
+          return {
+            content: msg.content,
+            received: msg.receiverId,
+          };
+        }),
+        isLoading: false,
+      });
+    } catch (err) {}
   },
 });
 

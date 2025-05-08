@@ -2,11 +2,13 @@ import {
   createElement,
   createFragment,
   defineComponent,
+  eventBus,
   type IComponent,
 } from "@/uccello/Uccello.js";
 import ReceivedMessage from "./ReceivedMessage.js";
 import SentMessage from "./SentMessage.js";
 import { MessageInterface } from "./Conversation.js";
+import { authState } from "@/Hooks/Auth.js";
 
 interface MessagesProps {
   messages: MessageInterface[];
@@ -15,15 +17,14 @@ interface MessagesProps {
 const Messages = defineComponent<void, MessagesProps>({
   onMounted(this: IComponent<void, MessagesProps>) {
     const el = this.getHtmlElement;
-    setTimeout(() => {
+
+    el.scrollTop = el.scrollHeight;
+    eventBus.on("scroll:height", () => {
       el.scrollTop = el.scrollHeight;
-    }, 50);
+    });
   },
   state() {},
   render(this: IComponent<void, MessagesProps>) {
-    setTimeout(() => {
-      this.getHtmlElement.scrollTop = this.getHtmlElement.scrollHeight;
-    }, 0);
     return createElement(
       "div",
       {
@@ -50,11 +51,15 @@ const Messages = defineComponent<void, MessagesProps>({
       [
         createFragment([
           ...this.props.messages.map((e) => {
-            if (e.received)
-              return createElement(ReceivedMessage, {
-                message: e.content,
+            if (e.received !== authState.getState().user?.id!)
+              return createElement(SentMessage, {
+                message: e.content as string,
               });
-            else return createElement(SentMessage, { message: e.content });
+            else if (e.received === authState.getState().user?.id!)
+              return createElement(ReceivedMessage, {
+                message: e.content as string,
+              });
+            else return null;
           }),
         ]),
       ]
@@ -63,55 +68,3 @@ const Messages = defineComponent<void, MessagesProps>({
 });
 
 export default Messages;
-
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(SentMessage),
-// createElement(SentMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(SentMessage),
-// createElement(SentMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(SentMessage),
-// createElement(SentMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(SentMessage),
-// createElement(SentMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(SentMessage),
-// createElement(SentMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(SentMessage),
-// createElement(SentMessage),
-// createElement(SentMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(SentMessage),
-// createElement(SentMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(SentMessage),
-// createElement(SentMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(SentMessage),
-// createElement(SentMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(ReceivedMessage),
-// createElement(SentMessage),
-// createElement(SentMessage),

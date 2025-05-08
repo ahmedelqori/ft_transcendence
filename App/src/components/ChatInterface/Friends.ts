@@ -6,6 +6,7 @@ import {
 import Friend from "./Friend.js";
 import Search from "./Search.js";
 import enhancedFetch from "@/Hooks/fetch.js";
+import { authState } from "@/Hooks/Auth.js";
 
 interface UserInterface {
   username: string;
@@ -33,13 +34,15 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
       );
       const data = await response.json();
 
-      const users: UserInterface[] = data.map((user: any) => {
+      let users: UserInterface[] = data.map((user: any) => {
         return {
           username: user.username,
           id: user.id,
           avatar: user.avatar_url,
         };
       });
+      const currentUser = authState.getState().user?.username;
+      users = users.filter((e) => e.username !== currentUser);
       this.updateState({ friends: users });
     } catch (err) {}
   },

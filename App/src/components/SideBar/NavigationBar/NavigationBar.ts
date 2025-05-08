@@ -29,7 +29,6 @@ const NavigationItem = defineComponent<void, NavigationItem>({
       icons: string;
     }
   ) {
-    console.log(this.props.current, this.props.path);
     return createElement(RouterLink, { to: this.props?.path }, [
       createElement(
         "div",
