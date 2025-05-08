@@ -1,5 +1,10 @@
 import GameInterface from "@/components/GameInterface/GameInterface.js";
-import { createElement, defineComponent, type IComponent } from "@/uccello/Uccello.js";
+import {
+  createElement,
+  defineComponent,
+  eventBus,
+  type IComponent,
+} from "@/uccello/Uccello.js";
 import { SocketManager } from "@/services/socket-manager.js";
 import enhancedFetch from "@/Hooks/fetch.js";
 
@@ -18,47 +23,49 @@ const LocalGame = defineComponent<LocalGameState>({
     return {
       socketManager: null,
       isLoading: true,
-      error: null
+      error: null,
     };
   },
 
   onMounted(this: IComponent<LocalGameState> & LocalGameMethods) {
     document.title = "Local Game";
+    eventBus.emit("navigate:bar", { data: "/game" });
     this.setupLocalGame();
   },
-  
+
   async setupLocalGame(this: IComponent<LocalGameState> & LocalGameMethods) {
     try {
       this.updateState({ isLoading: true, error: null });
-      
+
       const response = await enhancedFetch.fetch(
         "https://64.23.191.17/api/account/whoami/"
       );
-      
+
       if (!response.ok) {
         throw new Error(`Failed to get user info: ${response.statusText}`);
       }
-      
+
       const user = await response.json();
-      
+
       const gameId = `local_${Date.now()}`;
-      
+
       const socketManager = new SocketManager();
       socketManager.init(gameId, user.id);
       socketManager.setLocalGameMode(true);
-      
-      this.updateState({ 
-        socketManager, 
-        isLoading: false 
+
+      this.updateState({
+        socketManager,
+        isLoading: false,
       });
     } catch (err) {
-      this.updateState({ 
-        error: err instanceof Error ? err.message : "Failed to setup local game", 
-        isLoading: false 
+      this.updateState({
+        error:
+          err instanceof Error ? err.message : "Failed to setup local game",
+        isLoading: false,
       });
     }
   },
-  
+
   render(this: IComponent<LocalGameState> & LocalGameMethods) {
     const { socketManager, isLoading, error } = this.state;
     const header = createElement(
@@ -110,29 +117,28 @@ const LocalGame = defineComponent<LocalGameState>({
     let content;
     if (error) {
       content = createElement(
-        "div", 
-        { 
+        "div",
+        {
           class: [
-            "text-red-500", 
-            "text-center", 
-            "w-full", 
+            "text-red-500",
+            "text-center",
+            "w-full",
             "py-8",
             "bg-red-100",
             "rounded-lg",
             "border",
             "border-red-300",
-            "p-4"
-          ] 
-        }, 
+            "p-4",
+          ],
+        },
         [`Error: ${error}. Please try again.`]
       );
     } else if (isLoading || !socketManager) {
-      content = createElement(
-        "div", 
-        {},
-      );
+      content = createElement("div", {});
     } else {
-      content = createElement(GameInterface, { localSocketManager: socketManager });
+      content = createElement(GameInterface, {
+        localSocketManager: socketManager,
+      });
     }
 
     return createElement(

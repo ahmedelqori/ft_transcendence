@@ -87,7 +87,6 @@ const routes: any[] = [
     },
   },
   {
-    
     path: "/:gameId",
     component: Game,
     beforeEnter: async () => {
