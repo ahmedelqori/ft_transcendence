@@ -138,6 +138,7 @@ const image_url = async (image_url, username) => {
 }
 
 const create_user = async (user_info, provider) => {
+    console.log("user info from ", provider, "\n", user_info);
     let userInfo = {};
     if (provider === '42') {
         userInfo = {

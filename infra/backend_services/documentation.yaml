@@ -439,16 +439,16 @@ paths:
                   error:
                     type: string
                     example: Invalid parameters
-  /api/account/{id}:
+  /api/account/{id/username}:
     get:
       tags:
         - account
-      summary: Get user by ID
+      summary: Get user by ID or username
       security:
         - bearerAuth: []
       operationId: getUserById
       parameters:
-        - name: id
+        - name: identifier
           in: path
           required: true
           schema:
