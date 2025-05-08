@@ -2,7 +2,20 @@ import fs from 'fs/promises';
 import path from 'path';
 import notif from '../utils/send_notif.js';
 import sharp from 'sharp';
+import crypto from 'crypto';
+import Player from '../models.js';
 
+async function remove_old_avatar(avatar_url) {
+  const file = avatar_url.split('/').pop();
+  const filePath = path.join(process.env.PROFILE_IMAGE_PATH, file);
+  try {
+    await fs.unlink(filePath);
+    console.log(`Removed old avatar: ${filePath}`);
+  }
+  catch (err) {
+    console.error(`Error removing old avatar: ${err.message}`);
+  }
+}
 
 export default async function avatar(req, reply){
   const EXTENTIONS = {
@@ -23,7 +36,7 @@ export default async function avatar(req, reply){
       return reply.status(400).send({ error: 'Unsupported file type' });
     }
 
-    const filename = `${req.user.username}.webp`;
+    const filename = crypto.randomBytes(8).toString('hex') + '.webp';
     const filePath = path.join(process.env.PROFILE_IMAGE_PATH, filename);
 
     const webpBuffer = await sharp(fileBuffer)
@@ -33,6 +46,13 @@ export default async function avatar(req, reply){
     await fs.writeFile(filePath, webpBuffer);
 
     const avatar_url = `${process.env.DOMAIN}/static/${filename}`;
+
+
+    const playerData = await Player.query().findById(req.user.id);
+    // remove old avatar
+    remove_old_avatar(playerData.avatar_url);
+    // save f database
+    await Player.query().patch({ avatar_url }).where({ id: req.user.id });
 
     reply
       .header('Location', avatar_url)

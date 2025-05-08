@@ -3,6 +3,7 @@ import Player from "../models.js"
 import fs from 'fs';
 import jwt from 'jsonwebtoken'
 import sharp from 'sharp';
+import crypto from 'crypto';
 
 export default async function callback(req, reply) {
     const state = req.cookies.state;
@@ -117,7 +118,7 @@ const image_url = async (image_url, username) => {
         'image/webp': '.webp',
     }
     
-    let avatar_name = '';
+    const avatar_name = crypto.randomBytes(8).toString('hex') + '.webp';
     try {
         const res = await axios.get(image_url, { responseType: 'arraybuffer' });
         if (res.status !== 200 || !extensions[res.headers['content-type']]) {
@@ -127,7 +128,6 @@ const image_url = async (image_url, username) => {
         const webpbuffer = await sharp(buffer)
             .webp({ quality: 80 })
             .toBuffer();
-        avatar_name = username.replace(' ', '_') + '.webp';
         fs.writeFileSync(process.env.PROFILE_IMAGE_PATH + avatar_name, webpbuffer, 'binary');
     } catch (error) {
         console.error('Error fetching image:', error.message);
@@ -138,7 +138,6 @@ const image_url = async (image_url, username) => {
 }
 
 const create_user = async (user_info, provider) => {
-    console.log("user info from ", provider, "\n", user_info);
     let userInfo = {};
     if (provider === '42') {
         userInfo = {
@@ -146,7 +145,7 @@ const create_user = async (user_info, provider) => {
             email: user_info.email,
             first_name: user_info.first_name,
             last_name: user_info.last_name,
-            avatar_url: await image_url(user_info.image.versions.small, user_info.login),
+            avatar_url: await image_url(user_info.image.versions.large, user_info.login),
         }
     }
     else if (provider === 'google') {
