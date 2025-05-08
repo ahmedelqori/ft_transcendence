@@ -29,8 +29,6 @@ const App = defineComponent<AppState>({
       this.updateState({ isLoggedIn: false });
     });
     authState.subscribe((state) => {
-      console.log(state.isAuthenticated, this.state.isLoggedIn);
-
       if (state.isAuthenticated && !this.state.isLoggedIn)
         this.updateState({ isLoggedIn: true });
       else if (!state.isAuthenticated && this.state.isLoggedIn) {

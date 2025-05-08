@@ -1,9 +1,10 @@
 import DashboardInterface from "@/components/DashboardInterface/DashboardInterface.js";
-import { createElement, defineComponent } from "@/uccello/Uccello.js";
+import { createElement, defineComponent, eventBus } from "@/uccello/Uccello.js";
 
 const Dashboard = defineComponent({
   onMounted() {
     document.title = "Dashboard";
+    eventBus.emit("navigate:bar", { data: "/dashboard" });
   },
   state() {},
   render() {
