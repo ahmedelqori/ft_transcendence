@@ -7,4 +7,15 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
     },
   },
+
+  server: {
+    port: 5500,
+    proxy: {
+      "/api": {
+        target: "https://64.23.191.17/api",
+        // secure: false,
+        // changeOrigin: true,
+      },
+    },
+  },
 });

@@ -1,9 +1,10 @@
 import GameInterface from "@/components/GameInterface/GameInterface.js";
-import { createElement, defineComponent } from "@/uccello/Uccello.js";
+import { createElement, defineComponent, eventBus } from "@/uccello/Uccello.js";
 
 const Game = defineComponent<void>({
   onMounted() {
     document.title = "Game";
+    eventBus.emit("navigate:bar", { data: "/game" });
   },
   state() {},
   render() {

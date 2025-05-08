@@ -71,6 +71,7 @@ const Searchbar = defineComponent<SearchBarState>({
       const totalResults = data.count || 0;
       const newOffset = offset + (data.result?.length || 0);
       const hasMoreResults = newOffset < totalResults;
+      console.log(suggestions);
       this.updateState({
         suggestions,
         offset: newOffset,
@@ -80,7 +81,6 @@ const Searchbar = defineComponent<SearchBarState>({
         isLoading: false,
       });
     } catch (err) {
-      console.error("Search error:", err);
       this.updateState({ isLoading: false });
     }
   },

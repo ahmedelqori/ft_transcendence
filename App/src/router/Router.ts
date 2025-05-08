@@ -11,6 +11,7 @@ import LeaderBoard from "../pages/LeaderBoard.js";
 import { eventBus, HashRouter } from "../uccello/Uccello.js";
 import AccessToken from "../pages/AccessToken.js";
 import enhancedFetch from "../Hooks/fetch.js";
+import { authState } from "@/Hooks/Auth.js";
 
 const routes: any[] = [
   {
@@ -91,14 +92,29 @@ const routes: any[] = [
 
 export async function isAuth() {
   try {
-    const response = await enhancedFetch.fetch(
-      "https://64.23.191.17/api/account/whoami/"
+    const isAuthenticated = authState.getState().isAuthenticated;
+    if (isAuthenticated) return true;
+    const checkIfUserLoggedIn = await fetch(
+      "https://64.23.191.17/api/account/whoami/",
+      {
+        mode: "cors",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      }
     );
-    if (!response.ok) {
-      eventBus.emit("auth:logout");
-      return false;
-    }
-    eventBus.emit("auth:login");
+    if (!checkIfUserLoggedIn.ok) throw new Error("User not authenticated");
+
+    const userData = await checkIfUserLoggedIn.json();
+    authState.setState({
+      isAuthenticated: true,
+      user: {
+        username: userData.username,
+        id: userData.id,
+        avatar: userData.avatar_url,
+      },
+    });
     return true;
   } catch (err) {
     eventBus.emit("auth:logout");

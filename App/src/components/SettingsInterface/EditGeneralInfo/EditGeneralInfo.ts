@@ -292,7 +292,9 @@ const EditGeneralInfo = defineComponent<EditGeneralInfoState>({
           }
         );
       }
-    } catch (err) {}
+    } catch (err) {
+      console.log(err);
+    }
     this.updateState({
       icon: "ph-nut",
       color: "white",

@@ -1,34 +1,60 @@
 import {
   createElement,
   defineComponent,
+  eventBus,
   type IComponent,
 } from "@/uccello/Uccello.js";
-import FriendInfoBar from "./FriendInfoBar/FriendInfoBar.js";
-import Messages from "./Messages/Messages.js";
-import SendMessage from "./SendMessage/SendMessage.js";
+import FriendInfoBar from "./FriendInfoBar.js";
+import Messages from "./Messages.js";
+import SendMessage from "./SendMessage.js";
+import enhancedFetch from "@/Hooks/fetch.js";
+import { authState } from "@/Hooks/Auth.js";
+
+export interface MessageInterface {
+  received: number;
+  content: any;
+}
 
 interface ConversationProps {
   username: string;
+  userId: number;
 }
 
 interface ConversationState {
-  messages: (string | null)[];
+  messages: MessageInterface[];
   socket: any;
   online: boolean;
   intervalId: any;
+  userId: number;
+  receiverId: number;
+  isLoading: boolean;
 }
 
 const Conversation = defineComponent<ConversationState, ConversationProps>({
-  onMounted(
+  async onMounted(
     this: IComponent<ConversationState, ConversationProps> & {
       setupWebSocket: () => void;
+      getMessages: () => Promise<void>;
     }
   ) {
     this.state.intervalId = null;
     this.setupWebSocket.call(this);
+    this.updateState({ userId: authState.getState().user?.id });
+
+    eventBus.on("get:messages", async () => {
+      await this.getMessages();
+    });
   },
   state() {
-    return { messages: [], socket: null, online: false, intervalId: null };
+    return {
+      messages: [],
+      socket: null,
+      online: false,
+      intervalId: null,
+      receiverId: -1,
+      userId: -1,
+      isLoading: true,
+    };
   },
   render(this: IComponent<ConversationState, ConversationProps>) {
     return createElement(
@@ -42,19 +68,27 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
           this.props.username != "" ? "justify-between" : "justify-center",
         ],
       },
-
       this.props.username != ""
         ? [
             createElement(FriendInfoBar, {
               username: this.props.username,
               online: this.state.online,
             }),
-            createElement(Messages, { messages: this.state.messages }),
+            !this.state.isLoading
+              ? createElement(Messages, { messages: this.state.messages })
+              : createElement("div", {}, ["is loading"]),
             createElement(SendMessage, {
               messages: this.state.messages,
+              id: this.props.userId,
               onSendMessage: (message: string) => {
                 this.updateState({
-                  messages: [...this.state.messages, message],
+                  messages: [
+                    ...this.state.messages,
+                    {
+                      received: this.props.userId,
+                      content: message,
+                    },
+                  ],
                 });
               },
               socket: this.state.socket,
@@ -104,17 +138,19 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
       setupWebSocket: () => void;
     }
   ) {
-    this.state.socket = new WebSocket("ws://localhost:3001");
+    this.state.socket = new WebSocket(
+      `ws://localhost:3000/ws?token=${localStorage.getItem("access_token")}`
+    );
 
     this.state.socket.addEventListener("message", ({ data }: { data: any }) => {
-      clearInterval(this.state.intervalId);
       data = JSON.parse(data);
       this.updateState({
         messages: [
           ...this.state.messages,
-          data.candidates[0].content.parts[0].text + "/[]1337",
+          { received: data.message.receiverId, content: data.message.content },
         ],
       });
+      eventBus.emit("scroll:height");
     });
 
     this.state.socket.addEventListener("open", () => {
@@ -123,12 +159,29 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
 
     this.state.socket.addEventListener("close", () => {
       this.updateState({ online: false });
-
-      this.state.intervalId = setInterval(() => {
-        clearInterval(this.state.intervalId);
-        this.setupWebSocket.call(this);
-      }, 1000);
     });
+  },
+  async getMessages(this: IComponent<ConversationState, ConversationProps>) {
+    try {
+      this.updateState({ isLoading: true });
+      const res = await enhancedFetch.fetch(
+        `http://localhost:3000/api/messages/${this.props.userId}`,
+        {
+          mode: "cors",
+          credentials: "include",
+        }
+      );
+      const data = await res.json();
+      this.updateState({
+        messages: data.map((msg: any) => {
+          return {
+            content: msg.content,
+            received: msg.receiverId,
+          };
+        }),
+        isLoading: false,
+      });
+    } catch (err) {}
   },
 });
 

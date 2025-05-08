@@ -1,12 +1,15 @@
 import SettingsInteface from "@/components/SettingsInterface/SettingsInterface.js";
-import { createElement, defineComponent } from "@/uccello/Uccello.js";
+import { authState } from "@/Hooks/Auth";
+import { createElement, defineComponent, eventBus } from "@/uccello/Uccello.js";
 
 const Settings = defineComponent<void>({
   onMounted() {
     document.title = "Settings";
+    eventBus.emit("navigate:bar", { data: "/settings" });
   },
   state() {},
   render() {
+    console.log(authState.getState());
     return createElement(
       "main",
       {

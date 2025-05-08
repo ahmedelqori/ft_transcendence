@@ -1,10 +1,11 @@
 import FriendsInterface from "@/components/FriendsInterface/FriendsInterface.js";
 import LeaderBoardInterface from "@/components/LeaderBoardInterface/LeaderBoardInterface.js";
-import { createElement, defineComponent } from "@/uccello/Uccello.js";
+import { createElement, defineComponent, eventBus } from "@/uccello/Uccello.js";
 
 const LeaderBoard = defineComponent<void>({
   onMounted() {
     document.title = "LeaderBoard";
+    eventBus.emit("navigate:bar", { data: "/leaderboard" });
   },
   state() {},
   render() {

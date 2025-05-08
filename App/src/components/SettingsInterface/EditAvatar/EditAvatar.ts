@@ -2,6 +2,7 @@ import enhancedFetch from "@/Hooks/fetch.js";
 import {
   createElement,
   defineComponent,
+  eventBus,
   type IComponent,
 } from "@/uccello/Uccello.js";
 
@@ -217,7 +218,14 @@ const EditAvatar = defineComponent<EditAvatarState>({
         method: "POST",
         body: formData,
       });
-      location.reload();
+      // location.reload();
+      // const res = await enhancedFetch.fetch(
+      //   "https://64.23.191.17/api/account/whoami/"
+      // );
+      // const data = await res.json();
+      eventBus.emit("load:avatar", {
+        avatar: this.state.avatarUrl,
+      });
     } catch (err) {
       console.error("Error updating avatar:", err);
     }
