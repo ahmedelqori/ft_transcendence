@@ -4,6 +4,7 @@ import {
   type IComponent,
 } from "@/uccello/Uccello.js";
 import { GameState, GameStates } from "@/services/socket-manager.js";
+import { CanvasManager } from "@/services/canvas-manager.js";
 
 export interface GameConfig {
   paddleWidth: number;
@@ -15,91 +16,15 @@ export interface GameConfig {
   [key: string]: any;
 }
 
-export class ResponsiveCanva {
-  private canvas: HTMLCanvasElement;
-  private gameConfig: GameConfig;
-  private canvasWidth: number = 0;
-  private canvasHeight: number = 0;
-  private maxWidth: number = 0;
-  private maxHeight: number = 0;
-
-  constructor(canvas: HTMLCanvasElement, gameConfig: GameConfig) {
-    this.canvas = canvas;
-    this.gameConfig = gameConfig;
-    this.calculateScaleFactor();
-  }
-
-  get canvasElement(): HTMLCanvasElement {
-    return this.canvas;
-  }
-
-  calculateScaleFactor(): void {
-    this.canvasWidth = this.canvas.width;
-    this.canvasHeight = this.canvas.height;
-  }
-
-  xToPixels(xPercent: number): number {
-    return (xPercent / 100) * this.canvasWidth;
-  }
-
-  yToPixels(yPercent: number): number {
-    return (yPercent / 100) * this.canvasHeight;
-  }
-
-  setup(): void {
-    const container = this.canvas.parentElement;
-    if (!container) return;
-
-    const containerRect = container.getBoundingClientRect();
-
-    this.maxWidth = containerRect.width;
-    this.maxHeight = containerRect.height;
-
-    let width, height;
-
-    const ratio = this.gameConfig?.ratio;
-
-    if (this.maxWidth / this.maxHeight > ratio) {
-      height = Math.min(this.maxHeight, 800);
-      width = height * ratio;
-    } else {
-      width = Math.min(this.maxWidth, 1200);
-      height = width / ratio;
-    }
-
-    width = Math.min(width, this.maxWidth);
-    height = Math.min(height, this.maxHeight);
-
-    if (this.canvas.width !== width || this.canvas.height !== height) {
-      console.log(
-        `[ResponsiveCanva] Setting canvas dimensions: ${width.toFixed(
-          0
-        )}x${height.toFixed(0)}`
-      );
-      this.canvas.width = width;
-      this.canvas.height = height;
-      this.calculateScaleFactor();
-    }
-  }
-
-  get dimensions(): { width: number; height: number } {
-    return {
-      width: this.canvasWidth,
-      height: this.canvasHeight,
-    };
-  }
-}
-
 interface GameRendererProps {
   gameState: GameState | null;
   gameConfig: GameConfig;
 }
 
 interface GameRendererState {
-  responsiveCanva: ResponsiveCanva | null;
   ballPositionHistory: Array<{ x: number; y: number; time: number }>;
   animationFrameId: number;
-  resizeHandler?: (e: UIEvent) => void;
+  canvasManager: CanvasManager | null;
 }
 
 interface GameRendererMethods {
@@ -108,33 +33,34 @@ interface GameRendererMethods {
   renderGame(): void;
   drawCenterLine(
     ctx: CanvasRenderingContext2D,
-    responsiveCanva: ResponsiveCanva
+    canvasManager: CanvasManager
   ): void;
   drawBall(
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
-    responsiveCanva: ResponsiveCanva
+    canvasManager: CanvasManager
   ): void;
   drawPaddle(
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
-    responsiveCanva: ResponsiveCanva,
+    canvasManager: CanvasManager,
     color?: string
   ): void;
   drawScore(
     ctx: CanvasRenderingContext2D,
     gameState: GameState,
-    responsiveCanva: ResponsiveCanva
+    canvasManager: CanvasManager
   ): void;
   drawBallTrajectory(
     ctx: CanvasRenderingContext2D,
     gameState: GameState,
-    responsiveCanva: ResponsiveCanva
+    canvasManager: CanvasManager
   ): void;
-  setupDrawing(ctx: CanvasRenderingContext2D, canvas: ResponsiveCanva): void;
-  initCanvas(): boolean;
+  setupDrawing(ctx: CanvasRenderingContext2D, canvasManager: CanvasManager): void;
+  init(): boolean;
+  cleanup(): void;
 }
 
 export const GameRenderer = defineComponent<
@@ -143,9 +69,9 @@ export const GameRenderer = defineComponent<
 >({
   state() {
     return {
-      responsiveCanva: null,
       ballPositionHistory: [],
       animationFrameId: 0,
+      canvasManager: null
     };
   },
 
@@ -154,62 +80,55 @@ export const GameRenderer = defineComponent<
   ) {
     if (this.props.gameConfig) {
       setTimeout(() => {
-        if (this.initCanvas()) {
-          console.log("[GameRenderer] Canvas initialized successfully");
-          this.handleResize();
-          this.startAnimationLoop();
-        }
+        this.init();
+        this.startAnimationLoop();
       }, 50);
-    } else {
-      console.log("[GameRenderer] Waiting for game configuration");
     }
-
-    let resizeTimeout: number | null = null;
-    const debouncedResize = () => {
-      if (resizeTimeout) {
-        clearTimeout(resizeTimeout);
-      }
-      resizeTimeout = window.setTimeout(() => {
-        this.handleResize();
-        resizeTimeout = null;
-      }, 100);
-    };
-
-    window.addEventListener("resize", debouncedResize);
-    this.updateState({ resizeHandler: debouncedResize });
   },
 
   onUnmounted(
     this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods
   ) {
+    console.log("[GameRenderer] Component unmounting");
     cancelAnimationFrame(this.state.animationFrameId);
-
-    if (this.state.resizeHandler) {
-      window.removeEventListener("resize", this.state.resizeHandler);
+    
+    this.cleanup();
+  },
+  
+  cleanup(
+    this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods
+  ) {
+    const { canvasManager } = this.state;
+    if (canvasManager) {
+      console.log("[GameRenderer] Destroying canvas manager");
+      canvasManager.destroy();
     }
   },
 
-  initCanvas(
+  init(
     this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods
   ): boolean {
     try {
       if (!this.props.gameConfig) {
-        console.log("[GameRenderer] Waiting for game configuration");
         return false;
       }
 
-      const canvas = this.getHtmlElement.querySelector("canvas");
-      if (!canvas) {
-        console.error("[GameRenderer] Canvas element not found");
+      // Get the container element
+      const containerElement = this.getHtmlElement;
+      if (!containerElement) {
         return false;
       }
 
-      const responsiveCanva = new ResponsiveCanva(
-        canvas,
-        this.props.gameConfig
-      );
-      responsiveCanva.setup();
-      this.updateState({ responsiveCanva });
+      // Get or create canvas manager
+      const canvasManager = CanvasManager.getInstance();
+      
+      // Initialize with container
+      canvasManager.init(containerElement);
+      
+      // Set game config to manager
+      canvasManager.setGameConfig(this.props.gameConfig);
+      
+      this.updateState({ canvasManager });
       return true;
     } catch (error) {
       console.error("[GameRenderer] Error initializing canvas:", error);
@@ -221,9 +140,6 @@ export const GameRenderer = defineComponent<
     this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods
   ) {
     if (!this.props.gameConfig) {
-      console.log(
-        "[GameRenderer] Not starting animation loop - waiting for game config"
-      );
       return;
     }
     const animate = () => {
@@ -240,38 +156,38 @@ export const GameRenderer = defineComponent<
     this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods
   ) {
     const { gameState } = this.props;
-    const { responsiveCanva } = this.state;
+    const { canvasManager } = this.state;
 
-    if (!responsiveCanva) {
-      if (!this.initCanvas()) {
+    if (!canvasManager) {
+      if (!this.init()) {
         return;
       }
     }
 
-    const canvas = responsiveCanva?.canvasElement;
+    const canvas = canvasManager?.getCanvas();
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    this.setupDrawing(ctx, responsiveCanva!);
+    this.setupDrawing(ctx, canvasManager!);
 
     if (!gameState) {
       return;
     }
 
     try {
-      this.drawCenterLine(ctx, responsiveCanva!);
+      this.drawCenterLine(ctx, canvasManager!);
 
       if (gameState.state === GameStates.IN_PLAY) {
-        this.drawBallTrajectory(ctx, gameState, responsiveCanva!);
+        this.drawBallTrajectory(ctx, gameState, canvasManager!);
       }
 
       this.drawPaddle(
         ctx,
         this.props.gameConfig.leftPaddleX,
         gameState.paddles.left,
-        responsiveCanva!,
+        canvasManager!,
         "#ddf247"
       );
 
@@ -279,7 +195,7 @@ export const GameRenderer = defineComponent<
         ctx,
         this.props.gameConfig.rightPaddleX - this.props.gameConfig.paddleWidth,
         gameState.paddles.right,
-        responsiveCanva!,
+        canvasManager!,
         "#FFFFFF"
       );
 
@@ -288,11 +204,11 @@ export const GameRenderer = defineComponent<
           ctx,
           gameState.ball.x,
           gameState.ball.y,
-          responsiveCanva!
+          canvasManager!
         );
       }
 
-      this.drawScore(ctx, gameState, responsiveCanva!);
+      this.drawScore(ctx, gameState, canvasManager!);
     } catch (error) {
       console.error("[GameRenderer] Error rendering game:", error);
     }
@@ -301,9 +217,8 @@ export const GameRenderer = defineComponent<
   handleResize(
     this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods
   ) {
-    if (this.state.responsiveCanva) {
-      console.log("[GameRenderer] Handling resize event");
-      this.state.responsiveCanva.setup();
+    if (this.state.canvasManager) {
+      this.state.canvasManager.resizeCanvas();
       this.renderGame();
     }
   },
@@ -345,7 +260,7 @@ export const GameRenderer = defineComponent<
       );
     }
 
-    const ratio = gameConfig.ratio;
+    // Just render a container div - the canvas will be created by the CanvasManager
     return createElement(
       "div",
       {
@@ -360,29 +275,10 @@ export const GameRenderer = defineComponent<
           "max-h-[800px]",
           "mx-auto",
         ],
-      },
-      [
-        createElement("canvas", {
-          class: [
-            "game-canvas",
-            "block",
-            "rounded-lg",
-            "shadow-lg",
-            "border-2",
-            "border-[#ddf247]",
-            "border-opacity-30",
-            "touch-none",
-            "backdrop-blur-sm",
-            "bg-opacity-10",
-            "bg-black",
-            "max-h-full",
-            "max-w-full",
-          ],
-          style: {
-            aspectRatio: `${ratio}`,
-          },
-        }),
-      ]
+        style: {
+          aspectRatio: `${gameConfig.ratio}`,
+        },
+      }
     );
   },
 
@@ -390,9 +286,9 @@ export const GameRenderer = defineComponent<
     this: IComponent<GameRendererState, GameRendererProps> &
       GameRendererMethods,
     ctx: CanvasRenderingContext2D,
-    responsiveCanva: ResponsiveCanva
+    canvasManager: CanvasManager
   ): void {
-    const dimensions = responsiveCanva.dimensions;
+    const dimensions = canvasManager.dimensions;
     ctx.clearRect(0, 0, dimensions.width, dimensions.height);
     ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
     ctx.fillRect(0, 0, dimensions.width, dimensions.height);
@@ -405,9 +301,9 @@ export const GameRenderer = defineComponent<
     this: IComponent<GameRendererState, GameRendererProps> &
       GameRendererMethods,
     ctx: CanvasRenderingContext2D,
-    responsiveCanva: ResponsiveCanva
+    canvasManager: CanvasManager
   ) {
-    const { width, height } = responsiveCanva.dimensions;
+    const { width, height } = canvasManager.dimensions;
     ctx.strokeStyle = "#444";
     ctx.setLineDash([5, 5]);
     ctx.lineWidth = 2;
@@ -424,16 +320,16 @@ export const GameRenderer = defineComponent<
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
-    responsiveCanva: ResponsiveCanva
+    canvasManager: CanvasManager
   ) {
     const ballSizePixels = Math.min(
-      responsiveCanva.xToPixels(this.props.gameConfig.ballSize),
-      responsiveCanva.yToPixels(this.props.gameConfig.ballSize)
+      canvasManager.xToPixels(this.props.gameConfig.ballSize),
+      canvasManager.yToPixels(this.props.gameConfig.ballSize)
     );
 
     const radius = ballSizePixels / 2;
-    const centerX = responsiveCanva.xToPixels(x);
-    const centerY = responsiveCanva.yToPixels(y);
+    const centerX = canvasManager.xToPixels(x);
+    const centerY = canvasManager.yToPixels(y);
 
     ctx.shadowColor = "#ff4242";
     ctx.shadowBlur = 15;
@@ -458,7 +354,7 @@ export const GameRenderer = defineComponent<
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
-    responsiveCanva: ResponsiveCanva,
+    canvasManager: CanvasManager,
     color: string = "#FFFFFF"
   ) {
     ctx.fillStyle = color;
@@ -467,14 +363,14 @@ export const GameRenderer = defineComponent<
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
 
-    const paddleWidth = responsiveCanva.xToPixels(
+    const paddleWidth = canvasManager.xToPixels(
       this.props.gameConfig.paddleWidth
     );
-    const paddleHeight = responsiveCanva.yToPixels(
+    const paddleHeight = canvasManager.yToPixels(
       this.props.gameConfig.paddleHeight
     );
-    const xPos = responsiveCanva.xToPixels(x);
-    const yPos = responsiveCanva.yToPixels(y) - paddleHeight / 2;
+    const xPos = canvasManager.xToPixels(x);
+    const yPos = canvasManager.yToPixels(y) - paddleHeight / 2;
 
     const radius = 4;
     ctx.beginPath();
@@ -514,11 +410,11 @@ export const GameRenderer = defineComponent<
       GameRendererMethods,
     ctx: CanvasRenderingContext2D,
     gameState: GameState,
-    responsiveCanva: ResponsiveCanva
+    canvasManager: CanvasManager
   ) {
     if (!gameState || !gameState.score) return;
 
-    const { width } = responsiveCanva.dimensions;
+    const { width } = canvasManager.dimensions;
     const topOffset = 50;
     const fontSize = 32;
 
@@ -538,7 +434,7 @@ export const GameRenderer = defineComponent<
       GameRendererMethods,
     ctx: CanvasRenderingContext2D,
     gameState: GameState,
-    responsiveCanva: ResponsiveCanva
+    canvasManager: CanvasManager
   ) {
     if (gameState.state !== GameStates.IN_PLAY || !gameState.ball) return;
 
@@ -567,13 +463,13 @@ export const GameRenderer = defineComponent<
         const opacity = 1 - age / maxTrailAge;
         const size =
           Math.min(
-            responsiveCanva.xToPixels(this.props.gameConfig.ballSize),
-            responsiveCanva.yToPixels(this.props.gameConfig.ballSize)
+            canvasManager.xToPixels(this.props.gameConfig.ballSize),
+            canvasManager.yToPixels(this.props.gameConfig.ballSize)
           ) *
           (0.7 + 0.3 * (1 - opacity));
 
-        const centerX = responsiveCanva.xToPixels(position.x);
-        const centerY = responsiveCanva.yToPixels(position.y);
+        const centerX = canvasManager.xToPixels(position.x);
+        const centerY = canvasManager.yToPixels(position.y);
 
         ctx.beginPath();
         ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2);

@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Status {
+  PENDING
+  ACCEPTED
+  IN_PROGRESS
+  FINISHED
+  CANCELED
+}
+
+model User {
+  id        Int @id    
+  score    Int @default(0)
+}
+
+model Game {
+  id                 Int   @id @default(autoincrement())
+  playerOneId        Int
+  playerTwoId        Int @default(0)
+  playerOneScore     Int @default(0)
+  playerTwoScore     Int @default(0)
+  winnerId           Int @default(-1)     
+  startedAt          DateTime @default(now())
+  endedAt            DateTime?
+  status             Status @default(PENDING)
+  tournementId         Int @default(0)
+}
+
+
+// winnerId == -1 if the game was canceled | 0 if the AI is the winner
+
+// WHO CANCELS LOSE THE GAME
