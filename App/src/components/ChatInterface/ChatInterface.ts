@@ -4,8 +4,8 @@ import {
   eventBus,
   type IComponent,
 } from "@/uccello/Uccello.js";
-import Conversation from "./Conversation/Conversation.js";
-import Friends from "./Friends/Friends.js";
+import Conversation from "./Conversation.js";
+import Friends from "./Friends.js";
 import enhancedFetch from "@/Hooks/fetch.js";
 
 interface ChatInterfaceState {

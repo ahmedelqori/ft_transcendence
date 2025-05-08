@@ -19,41 +19,41 @@ const Notifications = defineComponent<NotificationsState>({
       handleClickOutSide: (e: MouseEvent) => void;
     }
   ) {
-    const socket = new WebSocket("ws://localhost:3002");
+    // const socket = new WebSocket("ws://localhost:3002");
     this.handleClickOutSide = this.handleClickOutSide.bind(this);
     document.addEventListener("mousedown", this.handleClickOutSide);
-    socket.addEventListener("message", ({ data }) => {
-      if (this.state.showNotification) {
-        this.updateState({
-          notifications: [
-            {
-              avatar: "assets/afanidi.png",
-              username: data,
-              sendRequest: true,
-            },
-            ...this.state.notifications,
-          ],
-          newNotification: null,
-        });
-      } else {
-        this.updateState({ newNotification: data });
-        this.updateState({ showNotification: true }),
-          setTimeout(() => {
-            this.updateState({
-              notifications: [
-                {
-                  avatar: "assets/afanidi.png",
-                  username: data,
-                  sendRequest: true,
-                },
-                ...this.state.notifications,
-              ],
-              newNotification: null,
-              showNotification: false,
-            });
-          }, 3000);
-      }
-    });
+    // socket.addEventListener("message", ({ data }) => {
+    //   if (this.state.showNotification) {
+    //     this.updateState({
+    //       notifications: [
+    //         {
+    //           avatar: "assets/afanidi.png",
+    //           username: data,
+    //           sendRequest: true,
+    //         },
+    //         ...this.state.notifications,
+    //       ],
+    //       newNotification: null,
+    //     });
+    //   } else {
+    //     this.updateState({ newNotification: data });
+    //     this.updateState({ showNotification: true }),
+    //       setTimeout(() => {
+    //         this.updateState({
+    //           notifications: [
+    //             {
+    //               avatar: "assets/afanidi.png",
+    //               username: data,
+    //               sendRequest: true,
+    //             },
+    //             ...this.state.notifications,
+    //           ],
+    //           newNotification: null,
+    //           showNotification: false,
+    //         });
+    //       }, 3000);
+    //   }
+    // });
   },
 
   onUnmounted(

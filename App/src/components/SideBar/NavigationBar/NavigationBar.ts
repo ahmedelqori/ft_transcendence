@@ -1,3 +1,4 @@
+import { authState } from "@/Hooks/Auth";
 import { router } from "@/router/Router.js";
 import {
   createElement,
@@ -11,7 +12,7 @@ import {
 interface NavigationBarState {
   routes: string[];
   icons: string[];
-  current: string;
+  current: string | null;
 }
 interface NavigationItem {
   path: string;
@@ -37,8 +38,9 @@ const NavigationItem = defineComponent<void, NavigationItem>({
             "flex-row",
             "justify-between",
             "gap-3",
-            "text-[var(--light-grey)]",
-            "hover:text-[var(--light-yellow)]",
+            this.props.current === this.props.path
+              ? "text-[var(--light-yellow)]"
+              : "text-[var(--light-grey)]",
             "transition-all",
             "duration-300",
             "hover:shadow-lg",
@@ -65,6 +67,11 @@ const NavigationItem = defineComponent<void, NavigationItem>({
 });
 
 const NavigationBar = defineComponent<NavigationBarState>({
+  async onMounted(this: IComponent<NavigationBarState>) {
+    eventBus.on("navigate:bar", (data: any) => {
+      this.updateState({ current: data.data });
+    });
+  },
   state(): NavigationBarState {
     return {
       routes: [
@@ -83,7 +90,7 @@ const NavigationBar = defineComponent<NavigationBarState>({
         "ph-ranking",
         "ph-gear",
       ],
-      current: router.getMatchedRoute?.path || "/",
+      current: null,
     };
   },
   render(
@@ -132,8 +139,8 @@ const NavigationBar = defineComponent<NavigationBarState>({
                       "=;expires=" + new Date().toUTCString() + ";path=/"
                     );
                 });
+                authState.setState({ isAuthenticated: false, user: null });
                 await router.navigateTo("/");
-                eventBus.emit("auth:logout");
               },
             },
           },

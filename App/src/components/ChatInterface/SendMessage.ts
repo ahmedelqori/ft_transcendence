@@ -2,6 +2,7 @@ import enhancedFetch from "@/Hooks/fetch";
 import {
   createElement,
   defineComponent,
+  eventBus,
   type IComponent,
 } from "@/uccello/Uccello.js";
 
@@ -17,10 +18,7 @@ interface SendProps {
 }
 
 const SendMessage = defineComponent<SendState, SendProps>({
-  onMounted(this: IComponent<SendState, SendProps>) {
-    // const socket = new WebSocket("ws://localhost:3001");
-    // this.updateState({ socket: socket });
-  },
+  onMounted(this: IComponent<SendState, SendProps>) {},
   state() {
     return { inputValue: "", socket: null };
   },
@@ -97,27 +95,21 @@ const SendMessage = defineComponent<SendState, SendProps>({
     this: IComponent<SendState, SendProps> & { sendMessage: () => void }
   ) {
     if (this.state.inputValue && this.state.inputValue.trim().length) {
-      this.props.onSendMessage(this.state.inputValue);
-      // if (this.props.socket.readyState === WebSocket.OPEN) {
-      //   this.props.socket.send(
-      //     this.state.inputValue + " answer me in one sentence"
-      //   );
-      // }
+      const valueOfInput = this.state.inputValue;
+      this.updateState({ inputValue: "" });
+      this.props.onSendMessage(valueOfInput);
+      eventBus.emit("scroll:height");
       try {
-        console.log(JSON.stringify({ message: this.state.inputValue }));
-        const res = await enhancedFetch.fetch(
+        await enhancedFetch.fetch(
           `http://localhost:3000/api/messages/send/${this.props.id}`,
           {
             method: "POST",
-            body: JSON.stringify({ message: this.state.inputValue }),
+            body: JSON.stringify({ message: valueOfInput }),
           }
         );
-        const data = await res.json();
-        // console.log(data);
       } catch (err) {
         console.log(err);
       }
-      this.updateState({ inputValue: "" });
     } else this.updateState({ inputValue: "" });
   },
 });

@@ -2641,7 +2641,9 @@ export const RouterOutlet = defineComponent<RouterOutletState>({
     ]);
   },
 });
-
+/**
+ * A simple event bus for subscribing to and emitting events.
+ */
 class EventBus {
   private events: any;
 
@@ -2649,6 +2651,12 @@ class EventBus {
     this.events = {};
   }
 
+  /**
+   * Subscribes to an event with a callback.
+   * @param {any} event - The name of the event to subscribe to.
+   * @param {any} callback - The callback to invoke when the event is emitted.
+   * @returns {Function} A function to unsubscribe the callback.
+   */
   on(event: any, callback: any) {
     if (!this.events[event]) {
       this.events[event] = [];
@@ -2662,6 +2670,11 @@ class EventBus {
     };
   }
 
+  /**
+   * Emits an event with optional data.
+   * @param {any} [event] - The name of the event to emit.
+   * @param {any} [data] - Optional data to pass to the event listeners.
+   */
   emit(event?: any, data?: any) {
     if (this.events[event]) {
       this.events[event].forEach((callback: any) => callback(data));
@@ -2671,21 +2684,52 @@ class EventBus {
 
 export const eventBus = new EventBus();
 
+/**
+ * A function that intercepts and modifies a fetch request.
+ * @callback RequestInterceptor
+ * @param {RequestInit} request - The original request options.
+ * @returns {RequestInit} The modified request options.
+ */
+
+/**
+ * A function that intercepts and modifies a fetch response.
+ * @callback ResponseInterceptor
+ * @param {Response} response - The original response.
+ * @returns {Promise<Response>} A promise of the modified response.
+ */
+
 type RequestInterceptor = (request: RequestInit) => RequestInit;
 type ResponseInterceptor = (response: Response) => Promise<Response>;
 
+/**
+ * Enhanced fetch class with support for request and response interceptors.
+ */
 export class EnhancedFetch {
   private requestInterceptors: RequestInterceptor[] = [];
   private responseInterceptors: ResponseInterceptor[] = [];
 
+  /**
+   * Adds a request interceptor.
+   * @param {RequestInterceptor} interceptor - The request interceptor function.
+   */
   addRequestInterceptor(interceptor: RequestInterceptor): void {
     this.requestInterceptors.push(interceptor);
   }
 
+  /**
+   * Adds a response interceptor.
+   * @param {ResponseInterceptor} interceptor - The response interceptor function.
+   */
   addResponseInterceptor(interceptor: ResponseInterceptor): void {
     this.responseInterceptors.push(interceptor);
   }
 
+  /**
+   * Performs a fetch request with all interceptors applied.
+   * @param {string} url - The URL to fetch.
+   * @param {RequestInit} [options={}] - The request options.
+   * @returns {Promise<Response>} The final response.
+   */
   async fetch(url: string, options: RequestInit = {}): Promise<Response> {
     let modifiedOptions = { ...options };
     for (const interceptor of this.requestInterceptors) {
@@ -2701,3 +2745,62 @@ export class EnhancedFetch {
     return response;
   }
 }
+
+/**
+ * Base authentication state interface.
+ * @template TUser - Type of the user object.
+ */
+export interface BaseAuthState<TUser = unknown> {
+  isAuthenticated: boolean;
+  user: TUser | null;
+}
+
+type Listener<TUser> = (state: BaseAuthState<TUser>) => void;
+
+/**
+ * Creates and manages authentication state.
+ * @template TUser - Type of the user object.
+ * @returns {{
+ *   getState: () => BaseAuthState<TUser>,
+ *   setState: (newState: Partial<BaseAuthState<TUser>>) => void,
+ *   subscribe: (listener: Listener<TUser>) => () => void
+ * }} Auth state manager object.
+ */
+export const createAuthState = <TUser = unknown>() => {
+  let state: BaseAuthState<TUser> = {
+    isAuthenticated: false,
+    user: null,
+  };
+
+  const listeners = new Set<Listener<TUser>>();
+
+  return {
+    /**
+     * Gets the current authentication state.
+     * @returns {BaseAuthState<TUser>} The current state.
+     */
+    getState(): BaseAuthState<TUser> {
+      return state;
+    },
+
+    /**
+     * Updates the authentication state and notifies listeners.
+     * @param {Partial<BaseAuthState<TUser>>} newState - Partial state to update.
+     */
+    setState(newState: Partial<BaseAuthState<TUser>>): void {
+      state = { ...state, ...newState };
+      listeners.forEach((listener) => listener(state));
+    },
+
+    /**
+     * Subscribes to state changes.
+     * @param {Listener<TUser>} listener - Function to call on state change.
+     * @returns {() => void} Function to unsubscribe.
+     */
+    subscribe(listener: Listener<TUser>): () => void {
+      listeners.add(listener);
+      listener(state);
+      return () => listeners.delete(listener);
+    },
+  };
+};

@@ -2,15 +2,16 @@ import Footer from "@/components/Footer/Footer";
 import Header from "@/components/Header/Header";
 import SideBar from "@/components/SideBar/SideBar";
 import { router } from "@/router/Router";
-
 import {
   createApp,
+  createAuthState,
   createElement,
   defineComponent,
   eventBus,
   type IComponent,
   RouterOutlet,
-} from "./uccello/Uccello.js";
+} from "@/uccello/Uccello.js";
+import { authState } from "@/Hooks/Auth";
 
 const ROOT = document.getElementById("root");
 
@@ -24,15 +25,15 @@ const App = defineComponent<AppState>({
       checkIfUserIsLoggedIn: (any: void) => boolean;
     }
   ) {
-    eventBus.on("auth:login", () => {
-      this.updateState({ isLoggedIn: true });
-    });
-
     eventBus.on("auth:logout", () => {
       this.updateState({ isLoggedIn: false });
     });
-    eventBus.on("auth:loading", () => {
-      this.updateState({ isLoggedIn: null });
+    authState.subscribe((state) => {
+      if (state.isAuthenticated && !this.state.isLoggedIn)
+        this.updateState({ isLoggedIn: true });
+      else if (!state.isAuthenticated && this.state.isLoggedIn) {
+        this.updateState({ isLoggedIn: false });
+      }
     });
   },
   state() {

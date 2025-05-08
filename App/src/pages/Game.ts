@@ -1,15 +1,15 @@
 import GameInterface from "@/components/GameInterface/GameInterface.js";
-import { createElement, defineComponent, type IComponent } from "@/uccello/Uccello.js";
+import { createElement, defineComponent, type IComponent, eventBus } from "@/uccello/Uccello.js";
 
 interface GameState {
   isLoading: boolean;
 }
-
 const Game = defineComponent<void>({
   state(): void {},
   onMounted(this: IComponent<void>) {
     console.log("[Game] Component mounted");
     document.title = "Game";
+    eventBus.emit("navigate:bar", { data: "/game" });
   },
 
   render(this: IComponent<void>) {
