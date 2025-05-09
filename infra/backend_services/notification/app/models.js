@@ -12,11 +12,11 @@ export default class notif extends Model {
     static get schema () {
         return {
             type: 'object',
-            required: ['level', 'message', 'to'],
+            required: ['type', 'payload', 'to'],
             properties: {
                 id: {type: 'integer'},
-                level: {type: 'string'},
-                message: {type: 'string'},
+                type: {type: 'string'},
+                payload: {type: 'string'},
                 to: {type: 'integer'}
             }
         }

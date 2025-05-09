@@ -590,6 +590,17 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
+
+
+
+
+
+
+
+
+
+
+                    
   /api/notif/:
     get:
       tags:
@@ -613,13 +624,21 @@ paths:
                       properties:
                         id:
                           type: integer
-                          example: 1
-                        level:
+                          example: 28
+                        type:
                           type: string
-                          example: info
-                        message:
-                          type: string
-                          example: one two three viva la algerie
+                          example: friendRequest
+                        payload:
+                          type: object
+                          oneOf:
+                            - properties:
+                                senderId:
+                                  type: integer
+                                  example: 22
+                                  properties:
+                                    senderId:
+                                      type: integer
+                                      example: 22
         '401':
           description: Unauthorized
           content:

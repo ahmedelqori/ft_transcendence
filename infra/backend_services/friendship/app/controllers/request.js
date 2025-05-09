@@ -1,5 +1,6 @@
 import fs from "../models.js";
 import get_user from "../utils/whothisguy.js";
+import notif from '../utils/send_notif.js';
 
 
 
@@ -57,6 +58,9 @@ export default async function request(req, res) {
         received_id: user_id,
     })
     .then(() => {
+        notif(req, user_id, "friendRequest", {
+            senderId: req.user.id,
+        });
         res.send({success: "Request Sent Successfully to " + user.username});
     }).catch((err) => {
         res.status(500).send({error: err});

@@ -1,6 +1,5 @@
 import fs from 'fs/promises';
 import path from 'path';
-import notif from '../utils/send_notif.js';
 import sharp from 'sharp';
 import crypto from 'crypto';
 import Player from '../models.js';
@@ -32,7 +31,6 @@ export default async function avatar(req, reply){
     const fileBuffer = await req.fileData.toBuffer();
     const extension = EXTENTIONS[req.fileData.mimetype];
     if (!extension) {
-      notif(req, 'error', 'Unsupported file type');
       return reply.status(400).send({ error: 'Unsupported file type' });
     }
 

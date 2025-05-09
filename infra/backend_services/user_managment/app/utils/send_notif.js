@@ -1,11 +1,7 @@
 import axios from 'axios';
 
-export default async (req, level, message) => {
-  const levels = ['info', 'warning', 'error'];
 
-  if (!levels.includes(level)) {
-    throw new Error(`Invalid level, choose one of ${levels}`);
-  }
+export default async (req, to, type, payload) => {
 
   const token = req.headers.authorization;
   if (!token) {
@@ -13,9 +9,10 @@ export default async (req, level, message) => {
   }
 
   try {
-    const res = await axios.post(process.env.NOTIFICATION_URL, {
-      level,
-      message
+    await axios.post(process.env.NOTIFICATION_URL, {
+        to,
+        type,
+        payload
     }, {
       headers: {
         Authorization: token

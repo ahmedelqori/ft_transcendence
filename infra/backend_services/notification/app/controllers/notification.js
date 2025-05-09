@@ -1,12 +1,17 @@
-import ev from './event.js';
+import { connections} from './config.js';
 
 export default async function notification(connection, req) {
-    console.log('Client connected to WebSocket');
 
-    ev.on('new_notif', (notif) => {
-        const n = {level: notif.level, message: notif.message};
-        connection.send(JSON.stringify(n));
+    console.log('New connection:');
+    connections.set(req.user.id, connection);
+
+    connection.on('close', () => {
+        console.log('Connection closed');
+        connections.delete(req.user.id);
+    });
+
+    connection.on('error', (error) => {
+        console.error('Connection error:', error);
+        connections.delete(req.user.id);
     });
 };
-
-

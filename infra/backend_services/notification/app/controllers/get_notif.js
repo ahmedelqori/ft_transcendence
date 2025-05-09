@@ -6,7 +6,10 @@ export default async function get_notif(req, res) {
     try{
         const records = await notif.query()
             .where({to: req.user.id})
-            .select('id', 'level', 'message');
+            .select('id', 'type', 'payload');
+        for (let i = 0; i < records.length; i++) {
+            records[i].payload = JSON.parse(records[i].payload);
+        }
         res.status(200).send({result: records});
     }catch (err){
         console.log.err(err);
