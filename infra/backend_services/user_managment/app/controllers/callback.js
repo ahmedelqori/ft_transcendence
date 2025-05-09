@@ -138,37 +138,38 @@ const image_url = async (image_url, username) => {
 }
 
 const create_user = async (user_info, provider) => {
-    let userInfo = {};
-    if (provider === '42') {
-        userInfo = {
-            username: user_info.login.replace(' ', '_'),
-            email: user_info.email,
-            first_name: user_info.first_name,
-            last_name: user_info.last_name,
-            avatar_url: await image_url(user_info.image.versions.large, user_info.login),
-        }
-    }
-    else if (provider === 'google') {
-        userInfo = {
-            username: user_info.name.replace(' ', '_'),
-            email: user_info.email,
-            first_name: user_info.given_name,
-            last_name: user_info.family_name,
-            avatar_url: await image_url(user_info.picture, user_info.name),
-        };
-    }
-    else {
-        return undefined;
-    }
-
-
     try {
-        const existingPlayer = await Player.query().findOne({ email: userInfo.email });
+        const existingPlayer = await Player.query().findOne({ email: user_info.email });
 
         if (existingPlayer) {
             console.log('Player already exists:');
             return existingPlayer;
         }
+
+
+        let userInfo = {};
+        if (provider === '42') {
+            userInfo = {
+                username: user_info.login.replace(' ', '_'),
+                email: user_info.email,
+                first_name: user_info.first_name,
+                last_name: user_info.last_name,
+                avatar_url: await image_url(user_info.image.versions.large, user_info.login),
+            }
+        }
+        else if (provider === 'google') {
+            userInfo = {
+                username: user_info.name.replace(' ', '_'),
+                email: user_info.email,
+                first_name: user_info.given_name,
+                last_name: user_info.family_name,
+                avatar_url: await image_url(user_info.picture, user_info.name),
+            };
+        }
+        else {
+            return undefined;
+        }
+
 
         const newPlayer = await Player.query().insert(userInfo);
         console.log('New player created:', newPlayer);
