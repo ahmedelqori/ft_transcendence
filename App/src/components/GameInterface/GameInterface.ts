@@ -69,9 +69,7 @@ interface GameInterfaceMethods {
   setupLocalGame(socketManager: SocketManager): void;
 }
 
-/**
- * Extract numeric ID from a string (like a URL parameter)
- */
+
 function extractNumericId(value: string | undefined): string | undefined {
   if (!value) return undefined;
   const matches = value.match(/\d+/);
@@ -105,10 +103,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     };
   },
 
-  /**
-   * Lifecycle: Component mounted
-   * Initialize connection based on whether it's a local or online game
-   */
   async onMounted(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods
@@ -122,9 +116,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     }
   },
 
-  /**
-   * Set up a local game with provided socket manager
-   */
   setupLocalGame(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods,
@@ -161,9 +152,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       });
   },
 
-  /**
-   * Set up an online game with connection to the server
-   */
   async setupOnlineGame(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods,
@@ -226,10 +214,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     this.connectToGame();
   },
 
-  /**
-   * Lifecycle: Component unmounted
-   * Clean up resources and event listeners
-   */
   onUnmounted(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods
@@ -254,9 +238,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     }
   },
 
-  /**
-   * Set up all socket event listeners
-   */
   setupSocketListeners(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods
@@ -456,9 +437,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     }, 500);
   },
 
-  /**
-   * Remove all socket event listeners
-   */
   removeSocketListeners(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods
@@ -476,9 +454,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     });
   },
 
-  /**
-   * Connect to the game server
-   */
   connectToGame(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods
@@ -505,9 +480,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       });
   },
 
-  /**
-   * Disconnect from the game server
-   */
   disconnectFromGame(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods
@@ -521,9 +493,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     socketManager.disconnect();
   },
 
-  /**
-   * Toggle game pause/resume state
-   */
   togglePauseResume(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods
@@ -550,9 +519,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     }
   },
 
-  /**
-   * Cancel the current game
-   */
   cancelGame(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods
@@ -564,9 +530,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     }
   },
 
-  /**
-   * Handle play again action after game over
-   */
   handlePlayAgain(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods
@@ -585,9 +548,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     }
   },
 
-  /**
-   * Start countdown timer before game start
-   */
   startCountdown(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods,
@@ -623,9 +583,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     this.updateState({ countdownTimerId: timerId });
   },
 
-  /**
-   * Render the game interface
-   */
   render(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods
@@ -640,7 +597,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       showDisconnectedOverlay,
       showWaitingConfigOverlay,
       showWaitingOpponentOverlay,
-      readyToStart,
       showCountdownOverlay,
       countdownValue,
       playerPosition,
