@@ -17,7 +17,7 @@ const AccessToken = defineComponent({
           Authorization: `Bearer ${(router.getParams as any).accessToken!}`,
         },
       });
-
+      
       const data = await res.json();
       localStorage.setItem("access_token", data.access_token);
       const response = await enhancedFetch.fetch(

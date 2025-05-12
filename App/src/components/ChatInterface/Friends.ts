@@ -30,7 +30,7 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
   async onMounted(this: IComponent<FriendsState, FriendsProps>) {
     try {
       const response = await enhancedFetch.fetch(
-        "https://64.23.191.17/api/account/users/?n=10&sort=newest"
+        "https://64.23.191.17/api/friends/"
       );
       const data = await response.json();
 

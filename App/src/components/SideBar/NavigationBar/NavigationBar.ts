@@ -125,7 +125,7 @@ const NavigationBar = defineComponent<NavigationBarState>({
               "gap-3",
               "cursor-pointer",
               "text-[var(--light-grey)]",
-              "hover:text-[var(--light-yellow)]",
+              "hover:text-[var(--red-color)]",
               "max-sm:hidden",
             ],
             on: {
@@ -140,6 +140,7 @@ const NavigationBar = defineComponent<NavigationBarState>({
                     );
                 });
                 authState.setState({ isAuthenticated: false, user: null });
+                console.log(localStorage.getItem("access_token"));
                 await router.navigateTo("/");
               },
             },
