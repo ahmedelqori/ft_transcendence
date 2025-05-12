@@ -33,14 +33,14 @@ export default async function create_tournament(req, res) {
             round: players_number,
             nickname
         });
+        res
+            .status(201)
+            .send(newTournament);
     } catch (err) {
         console.error(err.message);
         res.status(500).send({ message: 'Internal Server Error' });
         return;
     }
 
-    res
-        .status(201)
-        .send({message: 'Tournament created successfully'});
 }
 

@@ -41,7 +41,10 @@ response:
 
 201
 {
-    "message": "Tournament created successfully"
+    "owner_id": 22,
+    "tournament_name": "t1212",
+    "players_number": 16,
+    "id": 6
 }
 
 400

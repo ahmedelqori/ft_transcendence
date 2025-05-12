@@ -39,6 +39,7 @@ export default async function start_tournament(req, res) {
         try {
             await tournament_games.query().insert({
                 tournament_id: id,
+                round: t.players_number,
                 game_id: r.data.id,
             });
             console.log("Game created: ", r.data.id);

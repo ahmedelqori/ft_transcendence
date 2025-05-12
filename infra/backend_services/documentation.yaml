@@ -727,12 +727,28 @@ paths:
       tags:
         - notifications
       summary: WebSocket for notifications
+      description: |
+        Connect to the WebSocket endpoint at `wss://64.23.191.17/api/notif/ws?authorization=access_token` to receive real-time notifications.
+
+        Upon connection, you will receive messages in the following format:
+        ```
+        {
+          "type": "<type>",
+          "payload": {}
+        }
+        ```
+        Possible values for `type`:
+          - `friendRequest` (friendship service)
+          - `directMessage` (chat service)
+          - `inviteToMatch` (game service)
+          - `tournamentInvite` (tournament service)
+          - `info` (other services)
       security:
         - bearerAuth: []
       operationId: notificationsWebSocket
       responses:
         '101':
-          description: Switching protocols
+          description: Switching protocols (WebSocket connection established)
         '401':
           description: Unauthorized
           content:

@@ -44,6 +44,7 @@ exports.up = function(knex) {
     .createTable('tournament_games', (table) => {
       table.increments('id').primary();
       table.integer('game_id').unsigned();
+      table.integer('round').unsigned();
       table.integer('tournament_id').unsigned()
         .references('id')
         .inTable('tournament')

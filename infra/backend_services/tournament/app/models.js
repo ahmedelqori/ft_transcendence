@@ -73,11 +73,12 @@ export class tournament_games extends Model {
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['tournament_id', 'game_id'],
+      required: ['tournament_id', 'game_id', 'round'],
 
       properties: {
         id: { type: 'integer' },
         game_id: { type: 'integer' },
+        round: {type : 'integer'},
         tournament_id: { type: 'integer' },
       }
     };
