@@ -133,7 +133,7 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
   async handleAcceptRequest(this: IComponent<void, FriendRequestProps>) {
     try {
       await enhancedFetch.fetch(
-        `https://64.23.191.17/api/friends/${this.props.id}/request/accept`,
+        `https://www.meedivo.me/api/friends/${this.props.id}/request/accept`,
         { method: "POST" }
       );
     } catch (err) {
@@ -144,7 +144,7 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
     console.log(this.props);
     try {
       await enhancedFetch.fetch(
-        `https://64.23.191.17/api/friends/${this.props.id}/request/reject`,
+        `https://www.meedivo.me/api/friends/${this.props.id}/request/reject`,
         { method: "POST" }
       );
     } catch (err) {

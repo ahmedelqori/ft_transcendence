@@ -56,7 +56,7 @@ class NotifSystem {
   }
   private async getUserData(id: number) {
     const response = await enhancedFetch.fetch(
-      `https://64.23.191.17/api/account/${id}`
+      `https://www.meedivo.me/api/account/${id}`
     );
     return await response.json();
   }

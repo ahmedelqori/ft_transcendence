@@ -7,7 +7,12 @@ import {
 const Login = defineComponent<void>({
   state() {},
 
-  render(this: IComponent<void> & { loginWithFortyTwo: () => void }) {
+  render(
+    this: IComponent<void> & {
+      loginWithFortyTwo: () => void;
+      loginWithGoogle: () => void;
+    }
+  ) {
     return createElement(
       "main",
       { class: ["m-auto", "flex", "flex-col", "gap-8", "items-center"] },
@@ -104,6 +109,9 @@ const Login = defineComponent<void>({
                   "justify-between",
                   "gap-2",
                 ],
+                on: {
+                  click: () => this.loginWithGoogle(),
+                },
               },
               [
                 "Google",
@@ -123,7 +131,11 @@ const Login = defineComponent<void>({
   },
 
   async loginWithFortyTwo() {
-    window.location.href = "https://64.23.191.17/api/account/login/42/";
+    window.location.href = "https://www.meedivo.me/api/account/login/42/";
+  },
+  //
+  async loginWithGoogle() {
+    window.location.href = "https://www.meedivo.me/api/account/login/google/";
   },
 });
 

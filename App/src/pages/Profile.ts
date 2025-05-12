@@ -18,7 +18,7 @@ const Profile = defineComponent<ProfileState>({
     document.title = "Profile";
     try {
       const res = await enhancedFetch.fetch(
-        "https://64.23.191.17/api/account/whoami/"
+        "https://www.meedivo.me/api/account/whoami/"
       );
       const data = await res.json();
       const username = (router.getParams as any).username;

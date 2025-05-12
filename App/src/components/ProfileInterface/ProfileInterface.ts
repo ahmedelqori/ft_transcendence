@@ -28,7 +28,7 @@ const ProfileInterface = defineComponent<
     try {
       document.title = this.props.username;
       const res = await enhancedFetch.fetch(
-        `https://64.23.191.17/api/account/${this.props.username}`
+        `https://www.meedivo.me/api/account/${this.props.username}`
       );
       if (!res.ok) {
         throw res;

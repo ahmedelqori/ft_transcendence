@@ -42,7 +42,7 @@ const DashboardInterface = defineComponent<IDashboardInterface>({
   },
 
   async sendInvite() {
-    await enhancedFetch.fetch(`https://64.23.191.17/api/friends/26/request`, {
+    await enhancedFetch.fetch(`https://www.meedivo.me/api/friends/26/request`, {
       method: "POST",
     });
   },
