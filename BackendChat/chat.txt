@@ -1,0 +1,44 @@
+install and create forder prisma schema and database sqlite :  npx prisma init --datasource-provider sqlite
+
+Initializing Prisma with SQLite is done via the Prisma CLI. After that, creating a migration to apply the schema to the database.
+
+npx prisma migrate dev --name init
+
+
+prisma generate creates your Prisma Client - a type-safe database client tailored to your schema
+
+npx prisma generate
+
+
+
+npm install @fastify/undici
+example : 
+async function protectRoute(request, reply) {
+  const res = await request.server.request('http://localhost:4000/api/auth/verify', {
+    method: 'GET',
+    headers: {
+      Authorization: request.headers.authorization
+    }
+  });
+
+  if (res.statusCode !== 200) {
+    return reply.code(401).send({ error: 'Unauthorized' });
+  }
+
+  const data = await res.body.json();
+  request.user = data.user;
+}
+
+
+--- socket ---
+hen using Fastify + @fastify/websocket, you’re working with native WebSocket connections (the browser’s standard WebSocket API)
+which does not include an ID system:
+Native WebSockets are low-level—they don’t track connections or assign IDs.
+
+
+
+
+
+
+max msg 10
+ssl https of api !!
