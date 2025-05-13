@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { getReceiverSocket } from "../socket/socket.js";
+
 const MAX_MESSAGE_BATCH_SIZE = 1;
 export async function handleSendMessage(
   data,
@@ -11,7 +12,6 @@ export async function handleSendMessage(
   const prisma = app.prisma;
   const { content, receiverId } = data;
   console.log("handleSendMessage:", receiverId, content);
-
   // 1) Récupération de la conversation (id)
   let conversation = await prisma.conversation.findFirst({
     where: {
