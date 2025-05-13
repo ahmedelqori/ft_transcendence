@@ -112,22 +112,14 @@ export const GameRenderer = defineComponent<
       if (!this.props.gameConfig) {
         return false;
       }
-
-      // Get the container element
       const containerElement = this.getHtmlElement;
       if (!containerElement) {
         return false;
       }
 
-      // Get or create canvas manager
-      const canvasManager = CanvasManager.getInstance();
-      
-      // Initialize with container
-      canvasManager.init(containerElement);
-      
-      // Set game config to manager
+      const canvasManager = CanvasManager.getInstance();      
+      canvasManager.init(containerElement);      
       canvasManager.setGameConfig(this.props.gameConfig);
-      
       this.updateState({ canvasManager });
       return true;
     } catch (error) {
@@ -260,7 +252,6 @@ export const GameRenderer = defineComponent<
       );
     }
 
-    // Just render a container div - the canvas will be created by the CanvasManager
     return createElement(
       "div",
       {

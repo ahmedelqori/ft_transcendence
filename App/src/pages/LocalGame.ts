@@ -140,7 +140,7 @@ const LocalGame = defineComponent<LocalGameState>({
         localSocketManager: socketManager,
       });
     }
-
+    
     return createElement(
       "main",
       {

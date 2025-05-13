@@ -45,9 +45,6 @@ interface GameCanvasMethods {
 }
 
 export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
-  /**
-   * Initialize component state
-   */
   state() {
     return {
       keysPressed: {},
@@ -61,13 +58,8 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     };
   },
 
-  /**
-   * Lifecycle: Component mounted - set up event listeners
-   */
   onMounted(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods) {
-    console.log("[GameCanvas] Component mounted");
-    
-    // Bind all handlers to preserve context
+    console.log("[GameCanvas] Component mounted");    
     const keyDownHandler = this.handleKeyDown.bind(this);
     const keyUpHandler = this.handleKeyUp.bind(this);
     const mouseMoveHandler = this.handleMouseMove.bind(this);
@@ -80,24 +72,15 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
         mouseMove: mouseMoveHandler,
         contextMenu: contextMenuHandler
       }
-    });
-    
-    // Attach keyboard handlers globally
+    });    
     window.addEventListener("keydown", keyDownHandler);
-    window.addEventListener("keyup", keyUpHandler);
-    
-    // Start the input processing loop
-    this.startKeyboardControlLoop();
-    
-    // Set up canvas event listeners after a delay to ensure canvas is created
+    window.addEventListener("keyup", keyUpHandler);    
+    this.startKeyboardControlLoop();    
     setTimeout(() => {
       this.setupCanvasEventListeners();
     }, 300);
   },
 
-  /**
-   * Setup canvas-specific event listeners
-   */
   setupCanvasEventListeners(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods) {
     const { boundHandlers } = this.state;
     const canvas = this.findCanvasElement();
@@ -114,9 +97,6 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     }
   },
 
-  /**
-   * Lifecycle: Component unmounted - clean up event listeners
-   */
   onUnmounted(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods) {
     console.log("[GameCanvas] Component unmounting");
     this.cleanupEventListeners();
@@ -127,9 +107,6 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     }
   },
 
-  /**
-   * Clean up all event listeners
-   */
   cleanupEventListeners(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods) {
     console.log("[GameCanvas] Cleaning up event listeners");
     const { boundHandlers } = this.state;
@@ -154,77 +131,47 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     }
   },
 
-  /**
-   * Find the canvas element using the CanvasManager
-   */
   findCanvasElement(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods): HTMLCanvasElement | null {
-    // Use the canvas manager to get the canvas element
     return CanvasManager.getInstance().getCanvas();
   },
 
-  /**
-   * Handle context menu events (prevent right-click menu)
-   */
   handleContextMenu(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods, e: Event) {
     e.preventDefault();
   },
 
-  /**
-   * Handle mouse movement for paddle control (online games only)
-   */
   handleMouseMove(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods, e: MouseEvent) {
     const { socketManager, gameState } = this.props;
     
-    // Skip mouse movement handling entirely for local games
-    if (socketManager?.isLocalGame()) {
-      return;
-    }
-    
-    // Regular online game handling
+    if (socketManager?.isLocalGame()) return;
     if (!socketManager || 
         !gameState || 
         gameState.state !== GameStates.IN_PLAY) {
       return;
     }
-
     const canvas = e.target as HTMLCanvasElement;
     if (!canvas) return;
-    
     const rect = canvas.getBoundingClientRect();
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
     const paddlePos = Math.max(0, Math.min(100, y));
     console.log(`[GameCanvas] Mouse move: paddle position ${paddlePos.toFixed(1)}`);
     socketManager.sendPaddleMove(paddlePos);
   },
 
-  /**
-   * Handle key down events for paddle control
-   */
   handleKeyDown(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods, e: KeyboardEvent) {
     const { socketManager } = this.props;
     const { keysPressed } = this.state;
-    
     if (!socketManager?.getIsConnected() || !socketManager.getGameState()) return;
-
-    // Update pressed keys state
     this.updateState({
       keysPressed: { ...keysPressed, [e.key]: true }
     });
-
-    // Process input immediately for a more responsive feel
     const gamePlayingState = socketManager.getGameState()?.state === GameStates.IN_PLAY;
     const isControlKey = e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "w" || e.key === "s";
-    
     if (gamePlayingState && isControlKey) {
       e.preventDefault();
       this.processKeyboardInput();
     }
   },
 
-  /**
-   * Handle key up events
-   */
   handleKeyUp(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods, e: KeyboardEvent) {
     const { keysPressed } = this.state;
     const updatedKeys = { ...keysPressed };
@@ -233,9 +180,6 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     this.updateState({ keysPressed: updatedKeys });
   },
 
-  /**
-   * Start the keyboard control processing loop
-   */
   startKeyboardControlLoop(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods) {
     console.log("[GameCanvas] Starting keyboard control loop");
     
@@ -257,9 +201,6 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     this.updateState({ keyboardIntervalId: intervalId });
   },
 
-  /**
-   * Process keyboard input for local game (both paddles)
-   */
   processLocalGameInput(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods) {
     const { socketManager } = this.props;
     const { keysPressed, keyboardMoveSpeed } = this.state;
@@ -269,11 +210,9 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     const gameState = socketManager.getGameState();
     if (!gameState) return;
     
-    // Process left paddle (W/S keys)
     let leftPaddlePos = gameState.paddles.left || 50;
     let leftMoved = false;
     let leftNewPos = leftPaddlePos;
-    
     if (keysPressed["w"]) {
       leftNewPos = Math.max(0, leftPaddlePos - keyboardMoveSpeed);
       leftMoved = true;
@@ -287,7 +226,6 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
       socketManager.sendOfflinePaddleMove(leftNewPos, 'left');
     }
     
-    // Process right paddle (Arrow keys)
     let rightPaddlePos = gameState.paddles.right || 50;
     let rightMoved = false;
     let rightNewPos = rightPaddlePos;
@@ -306,9 +244,6 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     }
   },
 
-  /**
-   * Process keyboard input for online game (player's paddle only)
-   */
   processOnlineGameInput(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods) {
     const { socketManager } = this.props;
     const { keysPressed, keyboardMoveSpeed } = this.state;
@@ -321,7 +256,6 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     const playerPosition = socketManager.getPlayerPosition();
     if (!playerPosition) return;
     
-    // Get current paddle position based on player side
     let paddlePos = 50;
     if (playerPosition === "left") {
       paddlePos = gameState.paddles.left || 50;
@@ -331,7 +265,6 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
       return;
     }
 
-    // Calculate new position based on key presses
     let newPos = paddlePos;
     let moved = false;
 
@@ -348,9 +281,6 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     }
   },
 
-  /**
-   * Process keyboard input based on game type (local or online)
-   */
   processKeyboardInput(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods) {
     const { socketManager } = this.props;
     if (!socketManager) return;
@@ -358,7 +288,6 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     const gameState = socketManager.getGameState();
     if (!gameState || gameState.state !== GameStates.IN_PLAY) return;
     
-    // Handle input differently based on game type
     if (socketManager.isLocalGame()) {
       this.processLocalGameInput();
     } else {
@@ -366,13 +295,9 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     }
   },
 
-  /**
-   * Render the game canvas
-   */
   render(this: IComponent<GameCanvasState, GameCanvasProps>) {
     const { gameState, gameConfig } = this.props;
     
-    // If no config yet, show placeholder
     if (!gameConfig) {
       return createElement(
         "div", {
@@ -403,7 +328,6 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
       );
     }
     
-    // Render game container with renderer
     return createElement(
       "div", {
         class: [
