@@ -35,6 +35,7 @@ export async function authenticate(req, reply) {
     }
     
     req.user = response.data;
+    req.token = token
     fastify.log.info(`Successfully authenticated user with ID: ${req.user.id}`);
     
   } catch (err) {

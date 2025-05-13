@@ -1,5 +1,5 @@
 import { fastify } from "../server.js";
-import {handleTournamentGame, handleRegularGame, handleLocalGame, notifyGameStatus} from "./createGame.utils.js";
+import {handleTournamentGame, handleRegularGame, handleLocalGame} from "./createGame.utils.js";
 
 export const getAllGames = async function(req, reply) {
   fastify.log.info("Fetching all games");
@@ -37,11 +37,12 @@ export const getGameById = async function(req, reply) {
 
 export const createGame = async function(req, reply) {
   const { playerOneId, playerTwoId = 0, tournementId = 0 } = req.body;
-  const adminId = req.user?.id;
+  // const adminId = req.user?.id;
+  // const token = req.token
   
   try {
     if (tournementId != 0)
-      return await handleTournamentGame(req, reply, playerOneId, playerTwoId, tournementId, adminId);
+      return await handleTournamentGame(req, reply, playerOneId, playerTwoId, tournementId);
     
     if (userId !== playerOneId) {
       fastify.log.warn(`User ${userId} cannot create local game as ${playerOneId}`);
@@ -260,18 +261,18 @@ export const acceptGameInvitation = async function(req, reply) {
       }
     });
     
-    try {
-      await notifyGameStatus(
-        game.id,
-        game.playerOneId,
-        userId,
-        true
-      );
+    // try {
+    //   await notifyGameStatus(
+    //     game.id,
+    //     game.playerOneId,
+    //     userId,
+    //     true
+    //   );
       
-      fastify.log.info(`Game ${game.id} accepted by player ${userId}, notified player ${game.playerOneId}`);
-    } catch (notifError) {
-      fastify.log.error(`Failed to send game acceptance notification: ${notifError.message}`);
-    }
+    //   fastify.log.info(`Game ${game.id} accepted by player ${userId}, notified player ${game.playerOneId}`);
+    // } catch (notifError) {
+    //   fastify.log.error(`Failed to send game acceptance notification: ${notifError.message}`);
+    // }
     
     return reply.code(200).send({
       ...updatedGame,
@@ -313,18 +314,18 @@ export const declineGameInvitation = async function(req, reply) {
       where: { id: game.id }
     });
     
-    try {
-      await notifyGameStatus(
-        game.id,
-        game.playerOneId,
-        userId,
-        false
-      );
+    // try {
+    //   await notifyGameStatus(
+    //     game.id,
+    //     game.playerOneId,
+    //     userId,
+    //     false
+    //   );
       
-      fastify.log.info(`Game ${game.id} declined by player ${userId}, notified player ${game.playerOneId}`);
-    } catch (notifError) {
-      fastify.log.error(`Failed to send game decline notification: ${notifError.message}`);
-    }
+    //   fastify.log.info(`Game ${game.id} declined by player ${userId}, notified player ${game.playerOneId}`);
+    // } catch (notifError) {
+    //   fastify.log.error(`Failed to send game decline notification: ${notifError.message}`);
+    // }
     return reply.code(200).send({
       message: "Game invitation declined successfully"
     });
