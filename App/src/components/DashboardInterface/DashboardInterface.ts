@@ -27,24 +27,17 @@ const DashboardInterface = defineComponent<IDashboardInterface>({
           "justify-start",
         ],
       },
-      [
-        createElement(
-          "button",
-          {
-            on: {
-              click: this.sendInvite,
-            },
-          },
-          ["Send Invite"]
-        ),
-      ]
+      []
     );
   },
 
-  async sendInvite() {
-    await enhancedFetch.fetch(`https://www.meedivo.me/api/friends/26/request`, {
-      method: "POST",
-    });
+  async sendInvite(this: IComponent<IDashboardInterface>) {
+    // await enhancedFetch.fetch(
+    //   `https://www.meedivo.me/api/friends/${this.state.value}/request`,
+    //   {
+    //     method: "POST",
+    //   }
+    // );
   },
 });
 

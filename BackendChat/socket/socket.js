@@ -5,6 +5,7 @@ import auth from "../middleware/middleware.js";
 import wsAuth from "../middleware/ws-auth-middleware.js";
 import { handleGetHistory } from "../utils/handleGetHistory.js";
 import { handleSendMessage } from "../utils/handleSendMessage.js";
+import { type } from "os";
 const userSocketMap = new Map(); // userId vs socket
 const messageBatches = new Map(); // conversation id  vs messages
 
@@ -48,6 +49,7 @@ export async function buildApp() {
       { websocket: true, preValidation: wsAuth },
       (connection, request) => {
         const userId = parseInt(request.user.id, 10);
+        // let receiverId = -1;
         console.log("*******************   Authenticated user:", userId);
         // const userId = 1 //request.user;
         // console.log('2 Authenticated user:', request.user);
@@ -69,7 +71,8 @@ export async function buildApp() {
       connection.on("message", async (message) => {
         try {
           const data = JSON.parse(message);
-          console.log("Received message:", data);
+          // receiverId = data.receiverId;
+          console.log("-----------------> data from frontend : ",data);
           switch (data.type) {
             case "sendMessage":
               await handleSendMessage(
@@ -94,9 +97,21 @@ export async function buildApp() {
       });
 
 
-        connection.on("close", () => {
+        connection.on("close", async () => {
           console.log("User disconnected:", userId);
           userSocketMap.delete(userId);
+          // const data = {
+          //   content: null,
+          //   receiverId: receiverId,
+          // };
+          
+          // await handleSendMessage(
+          //   data,
+          //   userId,
+          //   connection,
+          //   app,
+          //   messageBatches
+          // );
         });
       }
     );

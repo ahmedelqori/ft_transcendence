@@ -87,7 +87,7 @@ const App = defineComponent<AppState>({
           ]
         ),
         this.state.isLoggedIn === false ? createElement(Footer) : null,
-        this.state.isLoggedIn ? createElement(Toast) : null,
+        authState.getState().isAuthenticated ? createElement(Toast) : null,
       ]
     );
   },

@@ -6,26 +6,29 @@ class NotifSystem {
 
   constructor(port: string) {
     this.socket = new WebSocket(
-      `wss://64.23.191.17/api/notif/ws?authorization=${localStorage.getItem(
+      `wss://www.meedivo.me/api/notif/ws?authorization=${localStorage.getItem(
         "access_token"
       )}`
     );
-    this.socket.addEventListener("message", (event) => {
-      const data: any = JSON.parse(event.data);
-      console.log(data);
-      switch (data.type) {
-        case "friendRequest":
-          this.handleFriendRequest(data.payload.senderId);
-          break;
-        case "MessageRequest":
-          this.handleMessageRequest(data.payload.senderId);
-          break;
-        case "AcceptGame":
-          this.handleMessageRequest(data.payload.senderId);
-          break;
-        default:
-          break;
-      }
+    this.socket.addEventListener("open", () => {
+      console.log("Socket is Open");
+      this.socket.addEventListener("message", (event) => {
+        const data: any = JSON.parse(event.data);
+        console.log(data);
+        switch (data.type) {
+          case "friendRequest":
+            this.handleFriendRequest(data.payload.senderId);
+            break;
+          case "MessageRequest":
+            this.handleMessageRequest(data.payload.senderId);
+            break;
+          case "AcceptGame":
+            this.handleMessageRequest(data.payload.senderId);
+            break;
+          default:
+            break;
+        }
+      });
     });
   }
   private async handleFriendRequest(id: number) {

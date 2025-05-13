@@ -11,6 +11,7 @@ interface User {
   avatar_url: string;
   first_name: string;
   last_name: string;
+  id: number;
 }
 
 interface SearchBarState {
@@ -71,7 +72,6 @@ const Searchbar = defineComponent<SearchBarState>({
       const totalResults = data.count || 0;
       const newOffset = offset + (data.result?.length || 0);
       const hasMoreResults = newOffset < totalResults;
-      console.log(suggestions);
       this.updateState({
         suggestions,
         offset: newOffset,
@@ -180,31 +180,80 @@ const Searchbar = defineComponent<SearchBarState>({
                         "flex",
                         "gap-5",
                         "items-center",
+                        "flex",
                       ],
                       on: {
                         click: () => {
                           this.updateState({
-                            inputValue: "",
                             suggestions: [],
                             showSuggestions: false,
+                            offset: 0,
+                            hasMoreResults: false,
+                            totalResults: 0,
+                            inputValue: "",
                           });
-                          router.navigateTo(`/profile/${user.username}`);
                         },
                       },
                     },
                     [
-                      createElement("img", {
-                        src: user.avatar_url,
-                        class: ["w-12", "h-12", "rounded-full"],
-                      }),
-                      createElement("div", { class: ["items-start"] }, [
-                        createElement("div", {}, [user.username]),
-                        createElement(
-                          "div",
-                          { class: ["text-[var(--light-grey)]", "text-md"] },
-                          [user.first_name + " " + user.last_name]
-                        ),
-                      ]),
+                      createElement(
+                        "div",
+                        {
+                          class: [
+                            "flex-row",
+                            "gap-5",
+                            "flex-1",
+                            "justify-start",
+                          ],
+                          on: {
+                            click: () => {
+                              this.updateState({
+                                inputValue: "",
+                                suggestions: [],
+                                showSuggestions: false,
+                              });
+                              router.navigateTo(`/profile/${user.username}`);
+                            },
+                          },
+                        },
+                        [
+                          createElement("img", {
+                            src: user.avatar_url,
+                            class: ["w-12", "h-12", "rounded-full"],
+                          }),
+                          createElement("div", { class: ["items-start"] }, [
+                            createElement("div", {}, [user.username]),
+                            createElement(
+                              "div",
+                              {
+                                class: ["text-[var(--light-grey)]", "text-md"],
+                              },
+                              [user.first_name + " " + user.last_name]
+                            ),
+                          ]),
+                        ]
+                      ),
+                      createElement(
+                        "div",
+                        {
+                          class: ["ml-auto"],
+                          on: {
+                            click: async () => {
+                              await enhancedFetch.fetch(
+                                `https://www.meedivo.me/api/friends/${user.id}/request`,
+                                {
+                                  method: "POST",
+                                }
+                              );
+                            },
+                          },
+                        },
+                        [
+                          createElement("i", {
+                            class: ["ph", "text-2xl", "ph-user-circle-plus"],
+                          }),
+                        ]
+                      ),
                     ]
                   )
                 ),
