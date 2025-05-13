@@ -14,10 +14,12 @@ import {
 import { authState } from "@/Hooks/Auth";
 import Toast from "@/components/Toast/Toast";
 import notifSystem from "@/Hooks/Notif";
+import handleErrors from "./Hooks/Errors";
 
 const ROOT = document.getElementById("root");
 
 notifSystem;
+handleErrors;
 
 interface AppState {
   isLoggedIn: boolean | null;

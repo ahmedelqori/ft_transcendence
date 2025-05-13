@@ -25,6 +25,14 @@ const ChatInterface = defineComponent<ChatInterfaceState>({
         this.updateState({ isMobile: true, showConversation: false });
       else this.updateState({ isMobile: false, showConversation: true });
     });
+    eventBus.on("remove:friend", () => {
+      this.updateState({
+        showSelectedUser: "",
+        showConversation: true,
+        isMobile: false,
+        userId: -1,
+      });
+    });
   },
   state(): ChatInterfaceState {
     return {
