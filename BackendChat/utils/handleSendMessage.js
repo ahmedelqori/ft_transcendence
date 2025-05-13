@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { getReceiverSocket } from "../socket/socket.js";
-const MAX_MESSAGE_BATCH_SIZE = 3;
+const MAX_MESSAGE_BATCH_SIZE = 1;
 export async function handleSendMessage(
   data,
   userId,
@@ -23,7 +23,7 @@ export async function handleSendMessage(
     select: { id: true },
   });
 
-  if (!conversation) {
+  if (!conversation && receiverId && userId) {
     conversation = await prisma.conversation.create({
       data: {
         participants: {
@@ -32,23 +32,19 @@ export async function handleSendMessage(
       },
     });
   }
-
   // 2)  messageBatches its map key is conversationid with value is an array of messages
   // need to set conversationId as key and message as value
   if (!messageBatches[conversation.id]) messageBatches[conversation.id] = [];
-
-  messageBatches[conversation.id].push({
-    id: uuidv4(),
-    content,
-    senderId: userId,
-    receiverId,
-    conversationId: conversation.id,
-  });
+    messageBatches[conversation.id].push({
+      id: uuidv4(),
+      content,
+      senderId: userId,
+      receiverId,
+      conversationId: conversation.id,
+    });
 
   // 3) check length of messageBatches[conversation.id] if its greater than 10 than store in db
-  if (
-    messageBatches[conversation.id].length >= MAX_MESSAGE_BATCH_SIZE ||
-    connection.readyState == connection.CLOSE) {
+  if (messageBatches[conversation.id].length >= MAX_MESSAGE_BATCH_SIZE) {
     // need to get messages from 0 to MAX_MESSAGE_BATCH_SIZE from messageBatches[conversation.id]
     const messagesToStore = messageBatches[conversation.id].slice(
       0,
