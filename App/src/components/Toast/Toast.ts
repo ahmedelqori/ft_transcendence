@@ -29,7 +29,7 @@ const Toast = defineComponent<ToastState>({
       });
       setTimeout(() => {
         this.updateState({ NotifComponent: null });
-      }, 2000);
+      }, 6000);
     });
   },
   state() {
