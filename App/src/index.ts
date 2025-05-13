@@ -12,8 +12,12 @@ import {
   RouterOutlet,
 } from "@/uccello/Uccello.js";
 import { authState } from "@/Hooks/Auth";
+import Toast from "@/components/Toast/Toast";
+import notifSystem from "@/Hooks/Notif";
 
 const ROOT = document.getElementById("root");
+
+notifSystem;
 
 interface AppState {
   isLoggedIn: boolean | null;
@@ -46,6 +50,7 @@ const App = defineComponent<AppState>({
       "div",
       {
         class: [
+          "relative",
           "h-screen",
           "m-auto",
           "w-[95%]",
@@ -82,6 +87,7 @@ const App = defineComponent<AppState>({
           ]
         ),
         this.state.isLoggedIn === false ? createElement(Footer) : null,
+        this.state.isLoggedIn ? createElement(Toast) : null,
       ]
     );
   },

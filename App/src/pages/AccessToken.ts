@@ -10,7 +10,7 @@ import { authState } from "@/Hooks/Auth.js";
 const AccessToken = defineComponent({
   async onMounted() {
     try {
-      const res = await fetch("https://64.23.191.17/api/account/set-cookie", {
+      const res = await fetch("https://www.meedivo.me/api/account/set-cookie", {
         mode: "cors",
         credentials: "include",
         headers: {
@@ -21,7 +21,7 @@ const AccessToken = defineComponent({
       const data = await res.json();
       localStorage.setItem("access_token", data.access_token);
       const response = await enhancedFetch.fetch(
-        "https://64.23.191.17/api/account/whoami/"
+        "https://www.meedivo.me/api/account/whoami/"
       );
       let userdata = await response.json();
       authState.setState({

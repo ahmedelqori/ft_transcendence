@@ -183,7 +183,7 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     let userId;
     try {
       const response = await enhancedFetch.fetch(
-        "https://64.23.191.17/api/account/whoami/"
+        "https://www.meedivo.me/api/account/whoami/"
       );
 
       if (!response.ok) {
@@ -307,7 +307,9 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       });
 
       if (data.state === "readyToStart") {
-        console.log("[GameInterface] Game ready to start, initiating countdown");
+        console.log(
+          "[GameInterface] Game ready to start, initiating countdown"
+        );
         this.startCountdown(5);
       }
     };
@@ -373,10 +375,13 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       const playerPosition = socketManager.getPlayerPosition();
       const userWon = gameState?.winner === playerPosition;
 
-      console.log(`[GameInterface] Game finished. Winner: ${gameState?.winner}`, {
-        userPosition: playerPosition,
-        didWin: userWon,
-      });
+      console.log(
+        `[GameInterface] Game finished. Winner: ${gameState?.winner}`,
+        {
+          userPosition: playerPosition,
+          didWin: userWon,
+        }
+      );
 
       this.updateState({
         gameState: data.gameState,
@@ -390,7 +395,9 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
         const playerPosition = socketManager.getPlayerPosition();
         const isPaused = data.gameState.state === GameStates.PAUSED;
 
-        console.log(`[GameInterface] Fully reconnected as ${playerPosition} player`);
+        console.log(
+          `[GameInterface] Fully reconnected as ${playerPosition} player`
+        );
         this.updateState({
           gameState: data.gameState,
           playerPosition: playerPosition,
@@ -399,7 +406,9 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
           showPausedOverlay: isPaused,
         });
       } else {
-        console.log(`[GameInterface] Player reconnected (position: ${data.position})`);
+        console.log(
+          `[GameInterface] Player reconnected (position: ${data.position})`
+        );
 
         const isOpponentReconnect =
           data.position !== socketManager.getPlayerPosition();

@@ -38,7 +38,7 @@ const LocalGame = defineComponent<LocalGameState>({
       this.updateState({ isLoading: true, error: null });
 
       const response = await enhancedFetch.fetch(
-        "https://64.23.191.17/api/account/whoami/"
+        "https://www.meedivo.me/api/account/whoami/"
       );
 
       if (!response.ok) {

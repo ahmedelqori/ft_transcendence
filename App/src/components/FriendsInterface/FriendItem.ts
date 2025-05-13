@@ -13,7 +13,6 @@ interface FriendItemState {
 
 const FriendItem = defineComponent<FriendItemState, FriendItemProps>({
   onMounted(this: IComponent<FriendItemState, FriendItemProps>) {
-    // Reduced loading time for better UX
     setTimeout(() => {
       this.updateState({ isLoading: false });
     }, 1500);

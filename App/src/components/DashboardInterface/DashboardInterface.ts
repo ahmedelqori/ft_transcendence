@@ -1,3 +1,4 @@
+import enhancedFetch from "@/Hooks/fetch";
 import {
   createElement,
   defineComponent,
@@ -11,7 +12,9 @@ const DashboardInterface = defineComponent<IDashboardInterface>({
     return {};
   },
 
-  render() {
+  render(
+    this: IComponent<IDashboardInterface> & { sendInvite: () => Promise<void> }
+  ) {
     return createElement(
       "section",
       {
@@ -24,8 +27,24 @@ const DashboardInterface = defineComponent<IDashboardInterface>({
           "justify-start",
         ],
       },
-      ["Dashboard"]
+      [
+        createElement(
+          "button",
+          {
+            on: {
+              click: this.sendInvite,
+            },
+          },
+          ["Send Invite"]
+        ),
+      ]
     );
+  },
+
+  async sendInvite() {
+    await enhancedFetch.fetch(`https://www.meedivo.me/api/friends/26/request`, {
+      method: "POST",
+    });
   },
 });
 

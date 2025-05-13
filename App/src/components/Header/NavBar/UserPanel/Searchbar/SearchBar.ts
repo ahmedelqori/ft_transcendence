@@ -59,7 +59,7 @@ const Searchbar = defineComponent<SearchBarState>({
     this.updateState({ isLoading: true });
 
     try {
-      const url = `https://64.23.191.17/api/account/search/?q=${encodeURIComponent(
+      const url = `https://www.meedivo.me/api/account/search/?q=${encodeURIComponent(
         query
       )}&limit=${USERS_PER_PAGE}&offset=${offset}`;
       const res = await enhancedFetch.fetch(url);

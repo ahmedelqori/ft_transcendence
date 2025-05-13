@@ -12,7 +12,7 @@ export default defineConfig({
     port: 5500,
     proxy: {
       "/api": {
-        target: "https://64.23.191.17/api",
+        target: "https://www.meedivo.me/api",
         // secure: false,
         // changeOrigin: true,
       },

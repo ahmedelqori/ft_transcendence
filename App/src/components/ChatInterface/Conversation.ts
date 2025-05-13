@@ -38,12 +38,30 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
     }
   ) {
     this.state.intervalId = null;
+    console.log(authState.getState().user?.id);
     this.setupWebSocket.call(this);
     this.updateState({ userId: authState.getState().user?.id });
 
     eventBus.on("get:messages", async () => {
-      await this.getMessages();
+      if (this.state.socket.readyState === WebSocket.OPEN) {
+        this.updateState({
+          isLoading: true,
+          online: false,
+        });
+
+        this.state.socket.send(
+          JSON.stringify({
+            type: "getHistory",
+            receiverId: this.props.userId,
+            page: 1,
+          })
+        );
+      }
     });
+  },
+  onUnmounted(this: IComponent<ConversationState, ConversationProps>) {
+    console.log("Closed");
+    this.state.socket.close();
   },
   state() {
     return {
@@ -73,6 +91,7 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
             createElement(FriendInfoBar, {
               username: this.props.username,
               online: this.state.online,
+              isLoading: this.state.isLoading,
             }),
             !this.state.isLoading
               ? createElement(Messages, { messages: this.state.messages })
@@ -138,27 +157,41 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
       setupWebSocket: () => void;
     }
   ) {
-    this.state.socket = new WebSocket(
-      `ws://localhost:3000/ws?token=${localStorage.getItem("access_token")}`
-    );
+    this.updateState({
+      socket: new WebSocket(
+        `ws://localhost:3000/ws?token=${localStorage.getItem("access_token")}`
+      ),
+      isLoading: true,
+    });
+    this.state.socket.addEventListener("open", () => {});
 
     this.state.socket.addEventListener("message", ({ data }: { data: any }) => {
       data = JSON.parse(data);
+      if (data.type === "messageHistory") {
+        console.log(data);
+        this.updateState({
+          messages: data.messages.map((e: any) => {
+            return { received: e.receiverId, content: e.content };
+          }),
+        });
+      }
+      if (data.type === "newMessage")
+        this.updateState({
+          messages: [
+            ...this.state.messages,
+            {
+              received: data.message.receiverId,
+              content: data.message.content,
+            },
+          ],
+        });
+
       this.updateState({
-        messages: [
-          ...this.state.messages,
-          { received: data.message.receiverId, content: data.message.content },
-        ],
+        isLoading: false,
+        online: true,
       });
+
       eventBus.emit("scroll:height");
-    });
-
-    this.state.socket.addEventListener("open", () => {
-      this.updateState({ online: true });
-    });
-
-    this.state.socket.addEventListener("close", () => {
-      this.updateState({ online: false });
     });
   },
   async getMessages(this: IComponent<ConversationState, ConversationProps>) {

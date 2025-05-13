@@ -65,7 +65,7 @@ const ChatInterface = defineComponent<ChatInterfaceState>({
               },
               setUserId: (id: number) => {
                 this.updateState({ userId: id });
-                eventBus.emit("get:messages");
+                // eventBus.emit("get:messages");
               },
             }),
         this.state.isMobile && this.state.showConversation
