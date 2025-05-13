@@ -20,6 +20,7 @@ interface RequestReceivedParams {
 const Toast = defineComponent<ToastState>({
   onMounted(this: IComponent<ToastState>) {
     eventBus.on("notif:requestReceived", (data: RequestReceivedParams) => {
+      console.log(data);
       this.updateState({
         NotifComponent: createElement(FriendRequest, {
           avatar: data.avatar,
@@ -29,7 +30,7 @@ const Toast = defineComponent<ToastState>({
       });
       setTimeout(() => {
         this.updateState({ NotifComponent: null });
-      }, 2000);
+      }, 6000);
     });
   },
   state() {
