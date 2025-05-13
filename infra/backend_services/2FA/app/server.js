@@ -25,9 +25,10 @@ const fastify = Fastify({
 });
 
 fastify.register(cors, {
+  credentials: true,
   origin: ["http://localhost:5500"],
   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   exposedHeaders: ['Authorization']
 });
 

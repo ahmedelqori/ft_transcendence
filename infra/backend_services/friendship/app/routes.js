@@ -12,6 +12,9 @@ import paginition_validation from './middlewares/paginetion_validition.js';
 import search from './controllers/search.js';
 
 
+import notif from './utils/send_notif.js';
+
+
 export default async function routes(fastify) {
     fastify.post('/:user_id/request', {preHandler: auth}, request);
     fastify.post('/:user_id/request/accept', {preHandler: auth}, accept);
@@ -23,6 +26,14 @@ export default async function routes(fastify) {
     fastify.get('/:user_id', {preHandler: auth, preValidation: paginition_validation}, relation_with_user);
     fastify.get('/', {preHandler: auth, preValidation: paginition_validation},friends);
     fastify.get('/search', {preHandler: auth, preValidation: paginition_validation}, search);
+    fastify.get('/:user_id/test', {preHandler: auth}, (req, res) => {
+        const { user_id } = req.params;
+        notif(req, user_id, "friendRequest", {
+            senderId: req.user.id,
+        });
+        res.send(`Notification sent to user ${user_id}`);
+    });
+
 };
 
 

@@ -129,8 +129,7 @@ const image_url = async (image_url, username) => {
             .webp({ quality: 80 })
             .toBuffer();
         fs.writeFileSync(process.env.PROFILE_IMAGE_PATH + avatar_name, webpbuffer, 'binary');
-    } catch (error) {
-        console.error('Error fetching image:', error.message);
+    } catch (error) {create_userrror fetching image:', error.message);
         avatar_name = process.env.PROFILE_IMAGE_PATH + process.env.DEFAULT_IMAGE;
     }
     

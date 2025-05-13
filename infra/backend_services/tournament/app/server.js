@@ -21,6 +21,15 @@ const fastify = Fastify({
   },
 });
 
+// fastify.register(cors, {
+//   credentials: true,
+//   origin: ["http://localhost:5500"],
+//   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+//   exposedHeaders: ['Authorization']
+// });
+
+
 fastify.register(routes, { prefix: '/api/tournament/' });
 
 fastify.listen({ port: 3001, host: '0.0.0.0' }, function (err, address) {
