@@ -8,6 +8,7 @@ import {
 
 interface FriendProps {
   id: number;
+  avatar: any;
   username: string;
   setOption: (str: string) => void;
   setUser: (str: string) => void;
@@ -83,7 +84,7 @@ const Friend = defineComponent<FriendState, FriendProps>({
           },
           [
             createElement("img", {
-              src: "assets/afanidi.png",
+              src: this.props.avatar,
               class: [
                 "w-[60px]",
                 "h-[60px]",

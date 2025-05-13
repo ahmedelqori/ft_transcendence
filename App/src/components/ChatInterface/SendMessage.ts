@@ -99,14 +99,21 @@ const SendMessage = defineComponent<SendState, SendProps>({
       this.updateState({ inputValue: "" });
       this.props.onSendMessage(valueOfInput);
       eventBus.emit("scroll:height");
+      this.props.socket.send(
+        JSON.stringify({
+          type: "sendMessage",
+          receiverId: this.props.id,
+          content: valueOfInput,
+        })
+      );
       try {
-        await enhancedFetch.fetch(
-          `http://localhost:3000/api/messages/send/${this.props.id}`,
-          {
-            method: "POST",
-            body: JSON.stringify({ message: valueOfInput }),
-          }
-        );
+        // await enhancedFetch.fetch(
+        //   `http://localhost:3000/api/messages/send/${this.props.id}`,
+        //   {
+        //     method: "POST",
+        //     body: JSON.stringify({ message: valueOfInput }),
+        //   }
+        // );
       } catch (err) {
         console.log(err);
       }

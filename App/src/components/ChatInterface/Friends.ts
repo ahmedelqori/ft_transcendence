@@ -24,6 +24,7 @@ interface FriendsState {
 interface FriendsProps {
   setShowSelectedUser: (user: string) => void;
   setUserId: (id: number) => void;
+  receiverId: number;
 }
 
 const Friends = defineComponent<FriendsState, FriendsProps>({
@@ -140,6 +141,7 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
                 if (e.username.includes(this.state.searchValue?.trim()!))
                   return createElement(Friend, {
                     username: e.username,
+                    avatar: e.avatar,
                     id: e.id,
                     setOption: (input: string) => {
                       this.updateState({ option: input });
@@ -160,6 +162,7 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
                 createElement(Friend, {
                   username: e.username,
                   id: e.id,
+                  avatar: e.avatar,
                   setOption: (input: string) => {
                     this.updateState({ option: input });
                   },
