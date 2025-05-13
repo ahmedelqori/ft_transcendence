@@ -1,6 +1,7 @@
 import {
   createElement,
   defineComponent,
+  eventBus,
   type IComponent,
 } from "@/uccello/Uccello.js";
 import Friend from "./Friend.js";
@@ -28,23 +29,16 @@ interface FriendsProps {
 }
 
 const Friends = defineComponent<FriendsState, FriendsProps>({
-  async onMounted(this: IComponent<FriendsState, FriendsProps>) {
+  async onMounted(
+    this: IComponent<FriendsState, FriendsProps> & {
+      handleGetAllFriends: () => Promise<void>;
+    }
+  ) {
     try {
-      const response = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/friends/"
-      );
-      const data = await response.json();
-
-      let users: UserInterface[] = data.map((user: any) => {
-        return {
-          username: user.username,
-          id: user.id,
-          avatar: user.avatar_url,
-        };
+      this.handleGetAllFriends();
+      eventBus.on("update:friends", () => {
+        this.handleGetAllFriends();
       });
-      const currentUser = authState.getState().user?.username;
-      users = users.filter((e) => e.username !== currentUser);
-      this.updateState({ friends: users });
     } catch (err) {}
   },
   state() {
@@ -180,6 +174,27 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
         ),
       ]
     );
+  },
+  async handleGetAllFriends(this: IComponent<FriendsState, FriendsProps>) {
+    try {
+      const response = await enhancedFetch.fetch(
+        "https://www.meedivo.me/api/friends/"
+      );
+      const data = await response.json();
+
+      let users: UserInterface[] = data.map((user: any) => {
+        return {
+          username: user.username,
+          id: user.id,
+          avatar: user.avatar_url,
+        };
+      });
+      const currentUser = authState.getState().user?.username;
+      users = users.filter((e) => e.username !== currentUser);
+      this.updateState({ friends: users });
+    } catch (err) {
+      console.log(err);
+    }
   },
 });
 

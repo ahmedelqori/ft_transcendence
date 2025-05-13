@@ -1,7 +1,9 @@
+import enhancedFetch from "@/Hooks/fetch";
 import { router } from "@/router/Router.js";
 import {
   createElement,
   defineComponent,
+  eventBus,
   type IComponent,
 } from "@/uccello/Uccello.js";
 
@@ -9,6 +11,7 @@ interface FriendInfoBarProps {
   username: string;
   online: boolean;
   isLoading: boolean;
+  friendId: number;
 }
 
 interface FriendInfoBarState {
@@ -28,7 +31,11 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
   state() {
     return { showOptions: false, isOnline: true };
   },
-  render(this: IComponent<FriendInfoBarState, FriendInfoBarProps>) {
+  render(
+    this: IComponent<FriendInfoBarState, FriendInfoBarProps> & {
+      handleUnfriendButton: () => Promise<void>;
+    }
+  ) {
     return createElement(
       "div",
       { class: ["flex-row", "w-full", "justify-between"] },
@@ -163,6 +170,9 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
                     "gap-4",
                     "hover:text-[var(--light-yellow)]",
                   ],
+                  on: {
+                    click: () => this.handleUnfriendButton(),
+                  },
                 },
 
                 [
@@ -209,6 +219,20 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
         });
       }
     }
+  },
+  async handleUnfriendButton(
+    this: IComponent<FriendInfoBarState, FriendInfoBarProps>
+  ) {
+    try {
+      await enhancedFetch.fetch(
+        `https://www.meedivo.me/api/friends/${this.props.friendId}/friend`,
+        {
+          method: "DELETE",
+        }
+      );
+      eventBus.emit("update:friends");
+      eventBus.emit("remove:friend");
+    } catch (err) {}
   },
 });
 

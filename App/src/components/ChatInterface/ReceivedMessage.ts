@@ -22,8 +22,9 @@ const ReceivedMessage = defineComponent<void, { message: string }>({
           "text-[14px]",
           "min-h-[auto]",
           "rounded-br-xl",
-          "text-[#ffffff]",
-          "bg-[#111111]",
+          "bg-[#ffffff]",
+          "text-[#111111]",
+
           "max-lg:text-xs",
         ],
       },

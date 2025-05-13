@@ -38,7 +38,6 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
     }
   ) {
     this.state.intervalId = null;
-    console.log(authState.getState().user?.id);
     this.setupWebSocket.call(this);
     this.updateState({ userId: authState.getState().user?.id });
 
@@ -60,7 +59,6 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
     });
   },
   onUnmounted(this: IComponent<ConversationState, ConversationProps>) {
-    console.log("Closed");
     this.state.socket.close();
   },
   state() {
@@ -92,6 +90,7 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
               username: this.props.username,
               online: this.state.online,
               isLoading: this.state.isLoading,
+              friendId: this.props.userId,
             }),
             !this.state.isLoading
               ? createElement(Messages, { messages: this.state.messages })
@@ -168,7 +167,6 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
     this.state.socket.addEventListener("message", ({ data }: { data: any }) => {
       data = JSON.parse(data);
       if (data.type === "messageHistory") {
-        console.log(data);
         this.updateState({
           messages: data.messages.map((e: any) => {
             return { received: e.receiverId, content: e.content };

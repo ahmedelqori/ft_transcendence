@@ -11,15 +11,13 @@ class NotifSystem {
       )}`
     );
     this.socket.addEventListener("open", () => {
-      console.log("Socket is Open");
       this.socket.addEventListener("message", (event) => {
         const data: any = JSON.parse(event.data);
-        console.log(data);
         switch (data.type) {
           case "friendRequest":
             this.handleFriendRequest(data.payload.senderId);
             break;
-          case "MessageRequest":
+          case "directMessage":
             this.handleMessageRequest(data.payload.senderId);
             break;
           case "AcceptGame":
@@ -47,7 +45,7 @@ class NotifSystem {
   private async handleMessageRequest(id: number) {
     try {
       const data = await this.getUserData(id);
-      eventBus.emit("notif:requestReceived", {
+      eventBus.emit("notif:directMessage", {
         username: data.username,
         avatar: data.avatar_url,
         id: id,

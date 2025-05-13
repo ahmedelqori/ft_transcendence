@@ -65,7 +65,6 @@ const Searchbar = defineComponent<SearchBarState>({
       )}&limit=${USERS_PER_PAGE}&offset=${offset}`;
       const res = await enhancedFetch.fetch(url);
       const data = await res.json();
-
       const suggestions = resetResults
         ? data.result || []
         : [...this.state.suggestions, ...(data.result || [])];
