@@ -31,7 +31,7 @@ export async function handleGetHistory(data, userId, connection, app) {
 
   const rawMessages = await prisma.message.findMany({
     where: { conversationId: conversation.id },
-    orderBy: { createdAt: "desc" }, // on prend d’abord les plus récents
+    orderBy: { createdAt: "desc" },
     skip,
     take: limit,
     select: {
@@ -52,8 +52,4 @@ export async function handleGetHistory(data, userId, connection, app) {
       })
     );
   }
-}
-
-export async function handleSendMessage(data, userId, connection, app) {
-  console.log("handleSendMessage");
 }
