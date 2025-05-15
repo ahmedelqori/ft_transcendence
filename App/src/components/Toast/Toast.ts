@@ -1,4 +1,5 @@
 import enhancedFetch from "@/Hooks/fetch";
+import { router } from "@/router/Router";
 import {
   createElement,
   createFragment,
@@ -34,11 +35,14 @@ const Toast = defineComponent<ToastState>({
         }),
       });
       setTimeout(() => {
+        eventBus.emit("add:notif", { type: "friendRequest", data });
         this.updateState({ NotifComponent: null });
       }, 6000);
     });
+    eventBus.on("reset:notif", () => {
+      this.updateState({ NotifComponent: null });
+    });
     eventBus.emit("notif:directMessage", (data: DirectMessageParams) => {
-      console.log(data);
       this.updateState({
         NotifComponent: createElement(DirectMessage, {
           avatar: data.avatar,
@@ -126,6 +130,12 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
         height: "40px",
         src: this.props.avatar || "/assets/default.webp",
         class: ["w-[40px]", "h-[40px]", "rounded-full"],
+        on: {
+          click: () => {
+            router.navigateTo(`/profile/${this.props.username}`);
+            eventBus.emit("reset:notif");
+          },
+        },
       }),
       createElement("div", { class: ["mr-auto", "items-start"] }, [
         createElement("p", { class: ["text-xs"] }, [
@@ -186,6 +196,7 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
         { method: "POST" }
       );
       eventBus.emit("update:friends");
+      eventBus.emit("reset:notif");
     } catch (err) {
       console.log(err);
     }
@@ -197,6 +208,7 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
         `https://www.meedivo.me/api/friends/${this.props.id}/request/reject`,
         { method: "POST" }
       );
+      eventBus.emit("reset:notif");
     } catch (err) {
       console.log(err);
     }

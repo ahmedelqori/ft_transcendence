@@ -34,6 +34,7 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
   render(
     this: IComponent<FriendInfoBarState, FriendInfoBarProps> & {
       handleUnfriendButton: () => Promise<void>;
+      handleBlockButton: () => Promise<void>;
     }
   ) {
     return createElement(
@@ -192,6 +193,9 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
                     "gap-4",
                     "text-[var(--red-color)]",
                   ],
+                  on: {
+                    click: () => this.handleBlockButton(),
+                  },
                 },
                 [
                   createElement("i", {
@@ -228,6 +232,20 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
         `https://www.meedivo.me/api/friends/${this.props.friendId}/friend`,
         {
           method: "DELETE",
+        }
+      );
+      eventBus.emit("update:friends");
+      eventBus.emit("remove:friend");
+    } catch (err) {}
+  },
+  async handleBlockButton(
+    this: IComponent<FriendInfoBarState, FriendInfoBarProps>
+  ) {
+    try {
+      await enhancedFetch.fetch(
+        `https://www.meedivo.me/api/friends/${this.props.friendId}/block`,
+        {
+          method: "POST",
         }
       );
       eventBus.emit("update:friends");
