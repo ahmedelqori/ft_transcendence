@@ -28,7 +28,8 @@ clean:
 	$(CMD) down --rmi all
 
 fclean: down
-	$(CMD) down --rmi all -v --remove-orphans
+	$(CMD) down --rmi all
+	# -v --remove-orphans
 	docker system prune -af
 	docker volume prune -f
 

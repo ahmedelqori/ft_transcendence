@@ -83,6 +83,20 @@ services:
       - notification_database:/app/database
     depends_on:
       - user_managment
+  # chatlive:
+    # chatlive:
+    # build:
+    #   context: ./backend_services/chatlive
+    #   dockerfile: Dockerfile
+    # container_name: chatlive
+    # env_file:
+    #   - ./backend_services/chatlive/.env
+    # networks:
+    #   - appNet
+    # volumes:
+    #   - chatlive_database:/app/database
+    # depends_on:
+    #   - user_managment
 
 
 volumes:
@@ -116,6 +130,13 @@ volumes:
       type: none
       device: ./infra/volumes/notification_database
       o: bind
+    # chatlive_database:
+    # driver: local
+    # driver_opts:
+    #   type: none
+    #   device: ./infra/volumes/chatlive_database
+    #   o: bind
+
   # VolumeVault:
  
 networks:
