@@ -5,11 +5,14 @@ import TournamentBracketState from "./TournamentBracketState";
 
 interface TournamentInterfaceState {
   state: string;
+  number: number;
+  nickName: string;
+  title: string;
 }
 
 const TournamentInterface = defineComponent<TournamentInterfaceState>({
   state() {
-    return { state: "start" };
+    return { state: "bracket", number: 4, nickName: "", title: "" };
   },
   render(this: IComponent<TournamentInterfaceState>) {
     return this.state.state === "start"
@@ -23,9 +26,21 @@ const TournamentInterface = defineComponent<TournamentInterfaceState>({
           setState: (state: string) => {
             this.updateState({ state });
           },
+          setData: (
+            state: string,
+            number: number,
+            nickName: string,
+            title: string
+          ) => {
+            this.updateState({ number, nickName, title, state });
+          },
         })
       : this.state.state === "bracket"
-      ? createElement(TournamentBracketState)
+      ? createElement(TournamentBracketState, {
+          number: this.state.number,
+          nickName: this.state.nickName,
+          title: this.state.title,
+        })
       : createElement("div", {}, ["None"]);
   },
 });

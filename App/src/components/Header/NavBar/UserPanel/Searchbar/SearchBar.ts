@@ -5,6 +5,7 @@ import {
   defineComponent,
   type IComponent,
 } from "@/uccello/Uccello.js";
+import { authState } from "@/Hooks/Auth";
 
 interface User {
   username: string;
@@ -168,8 +169,9 @@ const Searchbar = defineComponent<SearchBarState>({
                 ],
               },
               [
-                ...this.state.suggestions.map((user: User) =>
-                  createElement(
+                ...this.state.suggestions.map((user: User) => {
+                  if (user.id == authState.getState().user?.id) return null;
+                  return createElement(
                     "li",
                     {
                       class: [
@@ -254,8 +256,8 @@ const Searchbar = defineComponent<SearchBarState>({
                         ]
                       ),
                     ]
-                  )
-                ),
+                  );
+                }),
                 this.state.hasMoreResults
                   ? createElement(
                       "li",
