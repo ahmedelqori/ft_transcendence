@@ -62,7 +62,6 @@ export async function handleSendMessage(
   // 4) Envoi du message au destinataire
   // need to broadcast msg also foer sendID
   const receiverSocket = getReceiverSocket(receiverId);
-  console.log("--------> Receiver socket state:", receiverId);
   const uid = uuidv4();
   if (receiverSocket) {
     receiverSocket.send(
@@ -78,7 +77,5 @@ export async function handleSendMessage(
       })
     );
 
-  } else {
-    console.log("Receiver is not online");
   }
 }
