@@ -14,9 +14,7 @@ export async function handleGetHistory(data, userId, connection, app) {
     },
     select: { id: true },
   });
-
-  console.log("handleGetHistory :", receiverId, page, conversation);
-
+  
   if (!conversation) {
     if (connection.readyState === connection.OPEN) {
       connection.send(

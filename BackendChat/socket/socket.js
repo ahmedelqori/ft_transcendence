@@ -23,9 +23,9 @@ export async function buildApp() {
     },
   });
 
-  app.addHook("onRequest", async (request, reply) => {
-    app.log.info("-------------------- New Request --------------------");
-  });
+  // app.addHook("onRequest", async (request, reply) => {
+  //   app.log.info("-------------------- New Request --------------------");
+  // });
   // Register plugins
   await app.register(fastifyWebsocket, {
     maxPayload: 1048576,
