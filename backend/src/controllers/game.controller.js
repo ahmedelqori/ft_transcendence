@@ -34,6 +34,29 @@ export const getGameById = async function(req, reply) {
   }
 };
 
+export const getUserGames = async function(req, reply) {
+  const { userId } = req.params;
+  const id = parseInt(userId);
+  if (isNaN(id)) {
+    return reply.code(400).send({ error: "Invalid user ID" });
+  }
+  try {
+    const games = await req.server.prisma.game.findMany({
+      where: {
+        tournementId: 0,
+        OR: [
+          { playerOneId: id },
+          { playerTwoId: id }
+        ]
+      },
+      orderBy: { startedAt: 'desc' }
+    });
+    return reply.code(200).send(games);
+  } catch (error) {
+    fastify.log.error(`Error fetching games for user ${id}: ${error.message}`);
+    return reply.code(500).send({ error: "Failed to fetch user games" });
+  }
+};
 
 export const createGame = async function(req, reply) {
   const { playerOneId, playerTwoId = 0, tournementId = 0 } = req.body;
@@ -43,13 +66,6 @@ export const createGame = async function(req, reply) {
   try {
     if (tournementId != 0)
       return await handleTournamentGame(req, reply, playerOneId, playerTwoId, tournementId);
-    
-    if (userId !== playerOneId) {
-      fastify.log.warn(`User ${userId} cannot create local game as ${playerOneId}`);
-      return reply.code(403).send({ 
-        error: "You can only create local games as yourself"
-      });
-    }
     if (playerTwoId == 0)
       return await handleLocalGame(req, reply, playerOneId);
     else {  

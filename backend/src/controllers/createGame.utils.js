@@ -80,20 +80,20 @@ export async function handleTournamentGame(req, reply, playerOneId, playerTwoId,
 export async function handleRegularGame(req, reply, playerOneId, playerTwoId) {
   fastify.log.info(`Creating regular game between players ${playerOneId} and ${playerTwoId}`);
   
-  try {
-    const areFriends = await checkFriendship(playerOneId, playerTwoId);
-    if (!areFriends) {
-      fastify.log.warn(`Players ${playerOneId} and ${playerTwoId} are not friends`);
-      return reply.code(403).send({ 
-        error: "You can only invite friends to play non-tournament games" 
-      });
-    }
-  } catch (error) {
-    fastify.log.error(`Error checking friendship: ${error.message}`);
-    return reply.code(500).send({ 
-      error: "Failed to validate friendship status" 
-    });
-  }
+  // try {
+  //   const areFriends = await checkFriendship(playerOneId, playerTwoId);
+  //   if (!areFriends) {
+  //     fastify.log.warn(`Players ${playerOneId} and ${playerTwoId} are not friends`);
+  //     return reply.code(403).send({ 
+  //       error: "You can only invite friends to play non-tournament games" 
+  //     });
+  //   }
+  // } catch (error) {
+  //   fastify.log.error(`Error checking friendship: ${error.message}`);
+  //   return reply.code(500).send({ 
+  //     error: "Failed to validate friendship status" 
+  //   });
+  // }
 
   try {
     const game = await req.server.prisma.game.create({

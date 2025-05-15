@@ -6,7 +6,8 @@ import {
   cancelGame,
   acceptGameInvitation,
   deleteGame,
-  declineGameInvitation
+  declineGameInvitation,
+  getUserGames
 } from "../controllers/game.controller.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 
@@ -106,6 +107,29 @@ export const gameRoutes = function(fastify, options, done) {
     }
   }, getGameById);
   
+  fastify.get('/user/:userId', {
+    schema: {
+      tags: ['games'],
+      summary: 'Get all non-tournament games for a user',
+      description: 'Returns all games where the user is playerOne or playerTwo and not part of a tournament',
+      params: {
+        type: 'object',
+        required: ['userId'],
+        properties: {
+          userId: { type: 'string', pattern: '^[0-9]+$' }
+        }
+      },
+      response: {
+        200: {
+          type: 'array',
+          items: responseGameSchema
+        },
+        400: errorSchema,
+        500: errorSchema
+      }
+    }
+  }, getUserGames);
+
   fastify.post('/', {
     schema: {
       tags: ['games'],
