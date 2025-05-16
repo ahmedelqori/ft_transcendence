@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { getReceiverSocket } from "../socket/socket.js";
-const MAX_MESSAGE_BATCH_SIZE = 5;
+const MAX_MESSAGE_BATCH_SIZE = 10;
 export async function handleSendMessage(
   data,
   userId,
