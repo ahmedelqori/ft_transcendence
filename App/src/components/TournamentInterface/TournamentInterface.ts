@@ -12,7 +12,7 @@ interface TournamentInterfaceState {
 
 const TournamentInterface = defineComponent<TournamentInterfaceState>({
   state() {
-    return { state: "bracket", number: 4, nickName: "", title: "" };
+    return { state: "start", number: 4, nickName: "", title: "" };
   },
   render(this: IComponent<TournamentInterfaceState>) {
     return this.state.state === "start"

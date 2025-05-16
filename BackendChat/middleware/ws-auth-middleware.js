@@ -1,4 +1,3 @@
-// ws-auth-middleware.js
 import axios from 'axios';
 import { Agent } from 'https';
 
