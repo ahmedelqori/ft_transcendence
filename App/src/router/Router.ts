@@ -14,6 +14,7 @@ import enhancedFetch from "../Hooks/fetch.js";
 import LocalGame from "@/pages/LocalGame.js";
 import GameSetup from "@/pages/GameSetup.js";
 import { authState } from "@/Hooks/Auth.js";
+import TwoFA from "@/pages/TwoFA.js";
 
 const routes: any[] = [
   {
@@ -96,6 +97,10 @@ const routes: any[] = [
   {
     path: "/login/:accessToken",
     component: AccessToken,
+  },
+  {
+    path: "/verify/:accessToken",
+    component: TwoFA,
   },
   {
     path: "*",

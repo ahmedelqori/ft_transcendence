@@ -14,13 +14,14 @@ interface NotificationItemsState {
 
 const NotificationItems = defineComponent<NotificationItemsState>({
   async onMounted(this: IComponent<NotificationItemsState>) {
-    // try {
-    //   const res = await enhancedFetch.fetch(
-    //     "https://www.meedivo.me/api/notif/"
-    //   );
-    //   const data = await res.json();
-    //   console.log(data);
-    // } catch (err) {}
+    try {
+      // const res = await enhancedFetch.fetch(
+      //   "https://www.meedivo.me/api/notif/"
+      // );
+      // const data = await res.json();
+      // this.updateState({ Notifications: data.result });
+      // console.log(data);
+    } catch (err) {}
     eventBus.on("add:notif", (data: any) => {
       console.log(this.state.Notifications);
       this.updateState({
@@ -60,6 +61,7 @@ const NotificationItems = defineComponent<NotificationItemsState>({
             ]),
           ]
         : this.state.Notifications.map((e: any) => {
+            console.log(e);
             const info = e.data;
             switch (info.type) {
               case "friendRequest":
