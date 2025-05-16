@@ -6,7 +6,6 @@ export async function saveMessageBatches(messageBatches,prisma)
             for (const [conversationId, messages] of messageBatches.entries())
             {
                 if (messages.length === 0) continue;
-                 console.log(`Saving ${messages.length} messages for conversation ${conversationId}`);
                 await tx.message.createMany({
                 data: messages.map(msg => ({
                     id: msg.id,
@@ -22,7 +21,6 @@ export async function saveMessageBatches(messageBatches,prisma)
                 where: { id: conversationId },
                 data: { updatedAt: new Date() }
                 });
-                console.log(`Successfully saved ${messageBatches.size} conversation batches`);
             }
         });
 

@@ -23,9 +23,9 @@ export async function buildApp() {
     },
   });
 
-  app.addHook("onRequest", async (request, reply) => {
-    app.log.info("-------------------- New Request --------------------");
-  });
+  // app.addHook("onRequest", async (request, reply) => {
+  //   app.log.info("-------------------- New Request --------------------");
+  // });
   // Register plugins
   await app.register(fastifyWebsocket, {
     maxPayload: 1048576,
@@ -40,32 +40,18 @@ export async function buildApp() {
     exposedHeaders: ["Authorization"],
   });
 
-  // WebSocket endpoint
   app.register(async (fastify) => {
     fastify.get(
       "/ws",
       { websocket: true, preValidation: wsAuth },
       (connection, request) => {
         const userId = parseInt(request.user.id, 10);
-        // let receiverId = -1;
-        console.log("*******************   Authenticated user:", userId);
-        // const userId = 1 //request.user;
-        // console.log('2 Authenticated user:', request.user);
-        // console.log('User connected:', userId);
-        
         if (userId === undefined || userId === null) {
           connection.close(1008, "Unauthorized: Missing user identification"); // Changed from connection.socket.close()
           console.log("Closed connection - no user ID provided");
           return;
         }
-
-        //ADD CONNECTION TO MAP
-
-        console.log("Before adding:", userSocketMap.size);
         userSocketMap.set(userId, connection);
-        console.log("After adding:", userSocketMap.size);
-
-
       connection.on("message", async (message) => {
         try {
           const data = JSON.parse(message);
@@ -98,7 +84,6 @@ export async function buildApp() {
 
 
         connection.on("close", async () => {
-          console.log("--------------------------------- User disconnected:", userId, messageBatches.size);
           userSocketMap.delete(userId);
           if (messageBatches.size > 0)
             await saveMessageBatches(messageBatches,app.prisma);
