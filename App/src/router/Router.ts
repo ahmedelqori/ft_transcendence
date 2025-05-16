@@ -88,7 +88,7 @@ const routes: any[] = [
     },
   },
   {
-    path: "/:gameId",
+    path: "/game/:gameId",
     component: Game,
     beforeEnter: async () => {
       if (!(await isAuth())) return "/login";
