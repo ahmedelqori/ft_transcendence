@@ -12,22 +12,16 @@ export default async function verify(req, res) {
         return;
     }
 
-    if (typeof code !== 'string' || code.length !== 6)
-        res.status(400).send({ message: 'code must be like:', code: '123456' });
-
-    code = parseInt(code);
-    if (isNaN(code)) {
-        res.status(400).send({ message: 'code must be a number' });
+    if (typeof code !== 'string' || code.length !== 6 || !/^\d{6}$/.test(code)) {
+        res.status(400).send({ message: 'code must be a 6-digit string like:', code: '123456' });
         return;
     }
-    
 
     const secret = await db.query().findOne({ user_id: req.user.id }).select('secret');
     if (!secret && !req.user.two_FA) {
         res.status(400).send({ message: '2FA is not enabled' });
         return;
     }
-
 
     const verified = speakeazy.totp.verify({
         secret: secret.secret,

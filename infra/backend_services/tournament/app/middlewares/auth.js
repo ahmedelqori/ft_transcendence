@@ -23,11 +23,12 @@ export default async function auth(req, res) {
             httpsAgent: httpsAgent, // just temporarily to accept self-signed certificates
         });
         if (response.status !== 200) {
+            console.log("Error: ", response.status);
             res.code(401).send({ message: 'Unauthorized' });
             return;
         }
     } catch (err) {
-        console.log(err.message);
+        console.log("Error:", err.message, process.env.WHOAMI_URL);
         res.code(401).send({ message: 'Unauthorized' });
         return;
     }

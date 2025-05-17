@@ -83,6 +83,20 @@ services:
       - notification_database:/app/database
     depends_on:
       - user_managment
+  tournament:
+    build:
+      context: ./backend_services/tournament
+      dockerfile: Dockerfile
+    container_name: tournament
+    env_file:
+      - ./backend_services/tournament/.env
+    networks:
+      - appNet
+    volumes:
+      - tournament_database:/app/database
+    depends_on:
+      - user_managment
+      
   # chatlive:
     # chatlive:
     # build:
@@ -104,31 +118,37 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: ./infra/volumes/profile_images
+      device: .//volumes/profile_images
       o: bind
   user_managment_database:
     driver: local
     driver_opts:
       type: none
-      device: ./infra/volumes/user_managment_database
+      device: .//volumes/user_managment_database
       o: bind
   friendship_database:
     driver: local
     driver_opts:
       type: none
-      device: ./infra/volumes/friendship_database
+      device: .//volumes/friendship_database
       o: bind
   2fa_database:
     driver: local
     driver_opts:
       type: none
-      device: ./infra/volumes/2fa_database
+      device: .//volumes/2fa_database
       o: bind
   notification_database:
     driver: local
     driver_opts:
       type: none
-      device: ./infra/volumes/notification_database
+      device: .//volumes/notification_database
+      o: bind
+  tournament_database:
+    driver: local
+    driver_opts:
+      type: none
+      device: .//volumes/tournament_database
       o: bind
     # chatlive_database:
     # driver: local

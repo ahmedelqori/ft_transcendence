@@ -4,8 +4,12 @@ import Player from "../models.js";
 
 export default async function twoFA(req, res) {
     
+    console.log('req.headers.origin', req.headers.origin);
+    console.log('process.env.ORIGIN', process.env.ORIGIN);
+
     if (req.headers.origin !== process.env.ORIGIN) {
         res.status(401).send({ message: 'unauthorized' });
+        return ;
     };
 
     const { status } = req.body || {};
@@ -19,8 +23,11 @@ export default async function twoFA(req, res) {
             res.status(400).send({ message: '2FA is already enabled' });
             return;
         }
+    }).then(() => {
+        res.status(200).send({ message: '2FA status updated' });
     }).catch((err) => {
         console.error('Database insertion error:', err);
+        res.status(500).send({ message: 'Internal server error' });
     });
 }
 

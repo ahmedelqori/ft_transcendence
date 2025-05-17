@@ -18,14 +18,15 @@ export default async function new_notif(req, res) {
     };
 
     try{
-        await notif.query().insert({
+        notif.query().insert({
             to,
             type,
             payload: JSON.stringify(payload),
-        })
-        .then((notif) => {
+        }).then((notif) => {
+            notif.user = req.user;
             ev.emit('new_notif', notif);
         });
+
     }catch (err){
         console.log(err.message);
         res

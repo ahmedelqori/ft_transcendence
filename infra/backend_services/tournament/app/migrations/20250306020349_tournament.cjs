@@ -2,6 +2,7 @@ const STATUS = [
     'CREATED',
     'READY',
     'STARTED',
+    // 'FINISHED',
     'COMPLETE',
 ];
 

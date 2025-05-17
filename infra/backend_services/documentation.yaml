@@ -201,6 +201,9 @@ paths:
                   two_FA:
                     type: integer
                     example: 0
+                  wons:
+                    type: integer
+                    example: 3
                   created_at:
                     type: string
                     format: date-time
@@ -728,7 +731,7 @@ paths:
         - notifications
       summary: WebSocket for notifications
       description: |
-        Connect to the WebSocket endpoint at `wss://64.23.191.17/api/notif/ws?authorization=access_token` to receive real-time notifications.
+        Connect to the WebSocket endpoint at `wss://pimgpong.ma/api/notif/ws?authorization=access_token` to receive real-time notifications.
 
         Upon connection, you will receive messages in the following format:
         ```
@@ -1586,3 +1589,514 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  /api/tournament/:
+    post:
+      tags:
+        - tournaments
+      summary: Create a new tournament
+      description: |
+        Creates a new tournament with the specified name, nickname, and number of players. The number of players must be one of the allowed values (4, 8, or 16).
+      operationId: createTournament
+      requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tournament_name:
+                    type: string
+                    description: Name of the tournament.
+                    example: tournament_1
+                  nickname:
+                    type: string
+                    description: Nickname of the tournament owner.
+                    example: 7h3
+                  players_number:
+                    type: integer
+                    description: Number of players in the tournament (must be 4, 8, or 16).
+                    example: 16
+                required:
+                  - tournament_name
+                  - nickname
+                  - players_number
+      responses:
+          '201':
+            description: Tournament created successfully.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    owner_id:
+                      type: integer
+                      description: ID of the tournament owner.
+                      example: 22
+                    tournament_name:
+                      type: string
+                      description: Name of the tournament.
+                      example: tournament_1
+                    players_number:
+                      type: integer
+                      description: Number of players in the tournament.
+                      example: 16
+                    id:
+                      type: integer
+                      description: ID of the created tournament.
+                      example: 6
+          '400':
+            description: Invalid number of players.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: You can only create a tournament with 4, 8, or 16 players.
+  /api/tournament/{tournament_id}:
+    delete:
+      tags:
+        - tournaments
+      summary: Delete a tournament
+      description: Deletes a tournament by its ID.
+      operationId: deleteTournament
+      parameters:
+        - name: tournament_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Tournament deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Tournament deleted successfully
+        '404':
+          description: Tournament not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Tournament not found
+        '400':
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid id
+
+
+
+    get:
+      tags:
+        - tournaments
+      summary: Get tournament by ID
+      description: |
+        Returns tournament details by ID.
+        The `settings` and `invite_link` fields are only visible to the tournament owner.
+      operationId: getTournamentById
+      parameters:
+        - name: tournament_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Tournament details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 2
+                  name:
+                    type: string
+                    example: tour
+                  owner:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 23
+                      username:
+                        type: string
+                        example: 7h3_Yosef
+                      first_name:
+                        type: string
+                        example: 7h3
+                      last_name:
+                        type: string
+                        example: Yosef
+                      bio:
+                        type: string
+                        example: ""
+                      avatar_url:
+                        type: string
+                        example: https://localhost/static/0eff9deb89ff9399.webp
+                      status:
+                        type: string
+                        example: ON
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: 2025-05-08T07:35:25.732Z
+                  settings:
+                    type: object
+                    description: Only present if you are the owner
+                    properties:
+                      code:
+                        type: integer
+                        example: 8204
+                  invite_link:
+                    type: string
+                    description: Only present if you are the owner
+                    example: http://localhost:3001/api/tournament/2/join?code=8204
+                  total_places:
+                    type: integer
+                    example: 4
+                  total_players:
+                    type: integer
+                    example: 4
+                  status:
+                    type: string
+                    example: COMPLETE
+                  created_at:
+                    type: string
+                    example: 2025-05-13 09:06:27
+        '404':
+          description: Tournament not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: tournament not found
+        '400':
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid id
+
+
+
+  /api/tournament/list:
+    get:
+      tags:
+        - tournaments
+      summary: List all tournaments
+      description: Returns a list of all tournaments with their details.
+      operationId: listTournaments
+      responses:
+        '200':
+          description: List of tournaments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 12
+                    name:
+                      type: string
+                      example: t1212
+                    owner:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        username:
+                          type: string
+                          example: ybouchma
+                        first_name:
+                          type: string
+                          example: Youssef
+                        last_name:
+                          type: string
+                          example: Bouchmama
+                        bio:
+                          type: string
+                          example: ""
+                        avatar_url:
+                          type: string
+                          example: https://pingpong.ma/profile_images/ybouchma.jpg
+                        status:
+                          type: string
+                          example: ON
+                        created_at:
+                          type: string
+                          format: date-time
+                          example: 2025-03-18T21:34:29.780Z
+                    total_places:
+                      type: integer
+                      example: 4
+                    total_players:
+                      type: integer
+                      example: 1
+                    status:
+                      type: string
+                      example: CREATED
+                    created_at:
+                      type: string
+                      example: 2025-03-24 15:36:09
+  /api/tournament/{tournament_id}/join:
+    post:
+      tags:
+        - tournaments
+      summary: Join a tournament
+      description: Join a tournament by ID and code.
+      operationId: joinTournament
+      parameters:
+        - name: tournament_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "1234"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nickname:
+                  type: string
+                  example: 7h3
+      responses:
+        '200':
+          description: Successfully joined the tournament
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: joined
+        '400':
+          description: Wrong code
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: wrong code
+        '404':
+          description: Tournament not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: tournament not found
+  /api/tournament/{tournament_id}/leave:
+    post:
+      tags:
+        - tournaments
+      summary: Leave a tournament
+      description: Leave a tournament by its ID.
+      operationId: leaveTournament
+      parameters:
+        - name: tournament_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully left the tournament
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: left
+        '400':
+          description: Not joined
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: not joined
+  /api/tournament/{tournament_id}/results:
+    get:
+      tags:
+        - tournaments
+      summary: Get tournament results
+      description: Retrieve the results of a tournament by its ID.
+      operationId: getTournamentResults
+      parameters:
+        - name: tournament_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Tournament results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: tour
+                  first_round:
+                    type: integer
+                    example: 4
+                  players:
+                    type: array
+                    items:
+                      type: integer
+                    example: [23, 3, 8, 26]
+                  status:
+                    type: string
+                    example: FINISHED
+                  rounds:
+                    type: object
+                    properties:
+                      round16:
+                        type: array
+                        items:
+                          type: object
+                        example: []
+                      round8:
+                        type: array
+                        items:
+                          type: object
+                        example: []
+                      round4:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            playerOne:
+                              type: integer
+                              example: 23
+                            playerTwo:
+                              type: integer
+                              example: 3
+                        example:
+                          - playerOne: 23
+                            playerTwo: 3
+                          - playerOne: 8
+                            playerTwo: 26
+                      round2:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            playerOne:
+                              type: integer
+                              example: 3
+                            playerTwo:
+                              type: integer
+                              example: 26
+                        example:
+                          - playerOne: 3
+                            playerTwo: 26
+                      winner:
+                        type: integer
+                        example: 3
+        '404':
+          description: Tournament not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Tournament ID is not exist
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Tournament ID is required
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

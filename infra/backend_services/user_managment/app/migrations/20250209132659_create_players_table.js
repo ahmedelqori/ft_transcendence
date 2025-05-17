@@ -11,7 +11,7 @@ export const up = function(knex) {
     table.string('last_name', 30);
     table.string('bio', 500);
     table.string('avatar_url');
-    table.enum('status', ['ON', 'OF', 'IG']).defaultTo('ON');
+    table.enum('status', ['ON', 'OF', 'IG']).defaultTo('OF');
     table.boolean('two_FA').defaultTo(false);
     table.dateTime('created_at');
   });

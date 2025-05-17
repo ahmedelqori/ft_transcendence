@@ -140,3 +140,122 @@ POST /api/tournament/12/leave
     "error": "not joined"
 }
 
+
+GET /api/tournament/2
+
+200
+{
+    "id": 2,
+    "name": "tour",
+    "owner": {
+        "id": 23,
+        "username": "7h3_Yosef",
+        "first_name": "7h3",
+        "last_name": "Yosef",
+        "bio": "",
+        "avatar_url": "https://localhost/static/0eff9deb89ff9399.webp",
+        "status": "ON",
+        "created_at": "2025-05-08T07:35:25.732Z"
+    },
+    "settings": {
+        "code": 8204
+    },
+    "invite_link": "http://localhost:3001/api/tournament/2/join?code=8204",
+    "total_places": 4,
+    "total_players": 4,
+    "status": "COMPLETE",
+    "created_at": "2025-05-13 09:06:27"
+}
+
+404
+{
+    "error": "tournament not found"
+}
+
+400
+{
+    "message": "Invalid id"
+}
+
+
+
+GET /api/tournament/2/results
+
+200
+{
+    "name": "tour",
+    "first_round": 4,
+    "players": [
+        23,
+        3,
+        8,
+        26
+    ],
+    "rounds": {
+        "round16": [],
+        "round8": [],
+        "round4": [
+            {
+                "playerOne": 23,
+                "playerTwo": 3
+            },
+            {
+                "playerOne": 8,
+                "playerTwo": 26
+            }
+        ],
+        "round2": [
+            {
+                "playerOne": 3,
+                "playerTwo": 26
+            }
+        ],
+        "winner": 23
+    }
+}
+
+404
+{
+    "error": "Tournament ID is not exist"
+}
+
+400
+{
+    "error": "Tournament ID is required"
+}
+
+
+
+
+{
+    "name": "tour",
+    "first_round": 4,
+    "players": [
+        23,
+        3,
+        8,
+        26
+    ],
+    "status": "STARTED",
+    "rounds": {
+        "round16": [],
+        "round8": [],
+        "round4": [
+            {
+                "playerOne": 23,
+                "playerTwo": 3
+            },
+            {
+                "playerOne": 8,
+                "playerTwo": 26
+            }
+        ],
+        "round2": [
+            {
+                "playerOne": 3,
+                "playerTwo": 26
+            }
+        ],
+        "winner": 23
+    }
+}

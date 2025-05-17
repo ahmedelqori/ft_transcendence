@@ -29,7 +29,8 @@ export default async function start_tournament(req, res) {
         const r = await axios.post(process.env.GAME_URL, {
             playerOneId: players[i].player_id,
             playerTwoId: players[i + 1].player_id,
-            tournamentId: id
+            // tournamentId: id
+            tournementId: id
             }, {
             headers: {
                 Authorization: req.headers.authorization

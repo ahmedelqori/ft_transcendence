@@ -1,10 +1,76 @@
 import { tournament, tournament_games, tournament_players } from "../models.js";
+import axios from "axios";
 
 
+export default async function start_next_round(req, res) {
+    
+    const { tournementId, winnerId } = req.body;
+    if (!tournementId || !winnerId) {
+        res.status(400).send("Missing required fields");
+        return;
+    }
+    // update winner round of the game
+    const r = await tournament_players.query().where({
+        tournament_id: tournementId,
+        player_id: winnerId
+    }).first();
 
-export default function start_next_round(req, res) {
-    const id = Number(req.params.id);
-    console.log(id);
+    if (!r || r.round / 2 == r.round) {
+        res.status(500).send({error: "Player not found or lose or already win the tournament"});
+        return;
+    }
+    if (r.round < 2){
+        res.send({message: "Tournament are finished"});
+        return;
+    }
+    await tournament_players.query().where({
+        tournament_id: tournementId,
+        player_id: winnerId
+    }).first().patch({round: r.round / 2});
+
+    if (r.round / 2 == 1) {
+        await tournament.query().patchAndFetchById(tournementId, {
+            status: 'COMPLETE'
+            // status: 'FINISHED'
+        });
+        res.status(200);
+        return;
+    }
+
+    // check if all games are finished start createing the next round
+    const players = await tournament_players.query().where({
+        tournament_id: tournementId,
+        round: r.round / 2
+    });
+
+    if (r.round / 2 == players.length && players.length > 1) {
+        console.log("should create new round");
+        for (let i = 0; i < players.length; i+=2) {
+            console.log("Create game: ", players[i].player_id, "Vs", players[i+ 1].player_id);
+            const response = await axios.post(process.env.GAME_URL, {
+                playerOneId: players[i].player_id,
+                playerTwoId: players[i + 1].player_id,
+                // tournamentId: tournementId
+                tournementId: tournementId
+                }, {
+                headers: {
+                    Authorization: req.headers.authorization
+                }
+                }
+            );
+            try {
+                await tournament_games.query().insert({
+                    tournament_id: tournementId,
+                    round: r.round / 2,
+                    game_id: response.data.id,
+                });
+                console.log("Game created: ", response.data.id);
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    }
+
     res.send("DONE");
 }
 

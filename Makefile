@@ -41,6 +41,6 @@ shell:
 restart:
 	docker container stop $(c)
 	docker container rm $(c)
-	docker rmi app_$(c) -f
+	docker rmi app-$(c) -f
 	$(CMD) up -d
 # docker container ls | grep $(c) | awk '{print $$1}' | xargs docker container stop

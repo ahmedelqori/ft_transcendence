@@ -5,7 +5,8 @@ export const connections = new Map();
 export const ev = new EventEmitter();
 
 ev.on('new_notif', (notif) => {
-    const n = {type: notif.type, payload: JSON.parse(notif.payload)};
+    // 
+    const n = {Sender: notif.user, type: notif.type, payload: JSON.parse(notif.payload)};
     console.log('New notification:', n);
     
     if (connections.has(notif.to)){
