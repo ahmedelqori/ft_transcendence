@@ -28,8 +28,7 @@ clean:
 	$(CMD) down --rmi all
 
 fclean: down
-	$(CMD) down --rmi all
-	# -v --remove-orphans
+	$(CMD) down --rmi all -v --remove-orphans
 	docker system prune -af
 	docker volume prune -f
 
@@ -41,6 +40,6 @@ shell:
 restart:
 	docker container stop $(c)
 	docker container rm $(c)
-	docker rmi app-$(c) -f
+	docker rmi app_$(c) -f
 	$(CMD) up -d
 # docker container ls | grep $(c) | awk '{print $$1}' | xargs docker container stop

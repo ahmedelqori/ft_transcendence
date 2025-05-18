@@ -13,22 +13,22 @@ services:
   #   depends_on:
   #     - vault
 
-  # vault:
-  #   image: "vault:app"
-  #   container_name: vault
-  #   build: ./vault/.
-  #   hostname: vault 
-  #   env_file:
-  #     - .env
-  #   networks:
-  #     - appNet
-  #   volumes:
-  #     - VolumeVault:/vault/data
-  #   # ports:
-  #   #   - "8200:8200"
-  #   cap_add:
-  #     - IPC_LOCK
-  #   restart: always
+  vault:
+    image: "vault:app"
+    container_name: vault
+    build: ./vault/.
+    hostname: vault 
+    env_file:
+      - ./vault/.env
+    networks:
+      - appNet
+    volumes:
+      - VolumeVault:/vault/
+    ports:
+      - "8200:8200"
+    cap_add:
+      - IPC_LOCK
+    restart: always
 
   user_managment:
     build:
@@ -98,64 +98,70 @@ services:
       - user_managment
       
   # chatlive:
-    # chatlive:
-    # build:
-    #   context: ./backend_services/chatlive
-    #   dockerfile: Dockerfile
-    # container_name: chatlive
-    # env_file:
-    #   - ./backend_services/chatlive/.env
-    # networks:
-    #   - appNet
-    # volumes:
-    #   - chatlive_database:/app/database
-    # depends_on:
-    #   - user_managment
+  # chatlive:
+  #   build:
+  #     context: ./backend_services/chatlive
+  #     dockerfile: Dockerfile
+  #   container_name: chatlive
+  #   env_file:
+  #     - ./backend_services/chatlive/.env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - chatlive_database:/app/database
+  #   depends_on:
+  #     - user_managment
 
 
 volumes:
+  VolumeVault:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./infra/volumes/VolumeVault
+      o: bind
   profile_images:
     driver: local
     driver_opts:
       type: none
-      device: .//volumes/profile_images
+      device: ./infra/volumes/profile_images
       o: bind
   user_managment_database:
     driver: local
     driver_opts:
       type: none
-      device: .//volumes/user_managment_database
+      device: ./infra/volumes/user_managment_database
       o: bind
   friendship_database:
     driver: local
     driver_opts:
       type: none
-      device: .//volumes/friendship_database
+      device: ./infra/volumes/friendship_database
       o: bind
   2fa_database:
     driver: local
     driver_opts:
       type: none
-      device: .//volumes/2fa_database
+      device: ./infra/volumes/2fa_database
       o: bind
   notification_database:
     driver: local
     driver_opts:
       type: none
-      device: .//volumes/notification_database
+      device: ./infra/volumes/notification_database
       o: bind
   tournament_database:
     driver: local
     driver_opts:
       type: none
-      device: .//volumes/tournament_database
+      device: ./infra/volumes/tournament_database
       o: bind
-    # chatlive_database:
-    # driver: local
-    # driver_opts:
-    #   type: none
-    #   device: ./infra/volumes/chatlive_database
-    #   o: bind
+  # chatlive_database:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     device: ./infra/volumes/chatlive_database
+  #     o: bind
 
   # VolumeVault:
  

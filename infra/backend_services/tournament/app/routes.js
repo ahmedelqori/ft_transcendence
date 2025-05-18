@@ -28,19 +28,6 @@ export default function routes(fastify) {
 }
 
 
-// user can create a tournament
-// user can delete a tournament
-// user can list all tournaments
-// user can join a tournament
-// user can leave a tournament
-
-// user can get a tournament (5sek tkon already in the tournament)
-// user can invite a player to a tournament (means send (message or notifaication) to the player to join the tournament)
-// user can start a tournament
-
-
-
-
 
 
 

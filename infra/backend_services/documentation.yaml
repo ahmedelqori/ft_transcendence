@@ -628,6 +628,21 @@ paths:
                         id:
                           type: integer
                           example: 28
+                        Sender:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 22
+                            username:
+                              type: string
+                              example: 7h3_Yosef
+                            first_name:
+                              type: string
+                              example: 7h3
+                            last_name:
+                              type: string
+                              example: Yosef
                         type:
                           type: string
                           example: friendRequest

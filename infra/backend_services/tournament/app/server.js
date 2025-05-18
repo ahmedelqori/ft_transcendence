@@ -3,7 +3,8 @@ import pinoPretty from 'pino-pretty'; // to make debug messages more readable an
 import routes from './routes.js'; // import routes
 import Knex from 'knex'; // query builder (translate js queries to sql queries)
 import knexConfig from './knexfile.cjs'; // knex config
-import { Model } from 'objection'; // ORM build on top of Knex 
+import { Model } from 'objection'; // ORM build on top of Knex
+import cors from '@fastify/cors'; // to handle CORS
 
 const knex = Knex(knexConfig);
 
@@ -21,13 +22,13 @@ const fastify = Fastify({
   },
 });
 
-// fastify.register(cors, {
-//   credentials: true,
-//   origin: ["http://localhost:5500"],
-//   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-//   exposedHeaders: ['Authorization']
-// });
+fastify.register(cors, {
+  credentials: true,
+  origin: ["http://localhost:5500"],
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Authorization']
+});
 
 
 fastify.register(routes, { prefix: '/api/tournament/' });
