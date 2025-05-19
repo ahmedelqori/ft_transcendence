@@ -27,40 +27,62 @@ if [ -f /vault/data/init.txt ]; then
     # Extracing keys 
     UNSEAL_KEYS=$(grep "Unseal Key" /vault/data/init.txt | awk '{print $4}' | head -n 3)
     for KEY in $UNSEAL_KEYS; do
-        vault operator unseal "$KEY"
+        vault operator unseal "$KEY" >/dev/null
     done
     #login for create policy and role
     ROOT_TOKEN=$(grep "Initial Root Token" /vault/data/init.txt |  awk '{print $4}')
     vault login $ROOT_TOKEN
 
-    if ! vault auth list | grep -q "approle/"; then
+     if ! vault auth list | grep -q "approle/"; then
         echo "__________________Enabling AppRole auth method...__________________"
-        vault auth enable approle
+        vault auth enable approle >/dev/null
     else
         echo "__________________AppRole auth method is already enabled.__________________"
     fi
 
-    # if ! vault secrets list | grep -q "secret/sqlite"; then
-    #     echo "__________________Enabling secrets engine for sqlite...__________________"
-    #     vault secrets enable -path=secret/sqlite kv
-    # else
-    #     echo "__________________Secrets engine for sqlite is already enabled.__________________"
-    # fi
+    for path in "secret/data/oauth" "secret/data/jwt"; do
+        if ! vault secrets list | grep -q "$path"; then
+            vault secrets enable -path="$path" kv >/dev/null
+        fi
+    done
+
+    #write a new policy
+    vault policy write policy /vault/config/policy.hcl
+    #create role for this policy (with bound_cidr_list)
+    vault write auth/approle/role/backend token_policies="policy" token_ttl=1h token_max_ttl=4h secret_id_ttl="10m" secret_id_num_uses=1 # Short-lived SecretID
 
     #store kv
-    # vault kv put secret/sqlite/webapp db-name="test" username="test" password="test"
+    vault kv put secret/data/oauth/google SOCIAL_AUTH_GOOGLE_OAUTH2_KEY='499739725290-got362gnd4n9n7t6ook75kdve4stabu5.apps.googleusercontent.com' SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET='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'
+	vault kv put secret/data/oauth/42 SOCIAL_AUTH_42_OAUTH2_KEY='u-s4t2ud-781bcdee833b67dcbf0e446f5aa49447e19d1d252fdbb50fe06b618d4da10198' SOCIAL_AUTH_42_OAUTH2_SECRET='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'
+    vault kv put secret/data/oauth/S2S  ORIGIN='f4371N6916c83e817f5cA4681e84820Z95c'
 
-    # #write a new policy
-    # vault policy write database-access /vault/config/database-access.hcl
+    # generaten jwt pulic and private key
+    openssl genrsa -out /tmp/private.pem 4096 && openssl rsa -in /tmp/private.pem -pubout -out /tmp/public.pem
 
-    # #create role for this policy (need to add  bound_cidr_list)
-    # vault write auth/approle/role/backend token_policies="database-access" token_ttl=1h token_max_ttl=4h secret_id_ttl="10m"  # Short-lived SecretID
+    vault kv put secret/data/jwt/private jwt_private_key=@/tmp/private.pem
+    vault kv put secret/data/jwt/public jwt_public_key=@/tmp/public.pem
+
+    # delete the keys 
+    shred -u /tmp/private.pem /tmp/public.pem 
     
-    # # #create a secret id and wrap it in a temporary token 
-    # vault write -f -wrap-ttl=2m auth/approle/role/backend/secret-id
+    # create a secret id and wrap it in a temporary token
+    # add wrap token in the env
+    WRAPPED_TOKEN=$(vault write -f -wrap-ttl=59m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
+    ROLE_ID=$(vault read -format=json auth/approle/role/backend/role-id | grep -o '"role_id": *"[^"]*"' | awk -F'"' '{print $4}')
+    # Verify token was extracted
+    if [ -z "$WRAPPED_TOKEN" ]; then
+    echo "ERROR: Failed to get wrapped token"
+    exit 1
+    fi
 
+    printf "\n\nVAULT_WRAPPED_TOKEN=\"%s\"\n" "$WRAPPED_TOKEN" >> /.global.env
+    printf "\nROLE_ID=\"%s\"\n" "$ROLE_ID" >> /.global.env
 
-    #NEED TO CHECK IF ITS SAVED IN ENV VARTIABLE OR NOT !!!
+    echo "__________________Wrapped token created and stored in .global.env__________________"
+    #cleanup
+    vault token revoke "$ROOT_TOKEN"
+    unset ROOT_TOKEN
+    unset WRAPPED_TOKEN
 else
     echo "__________________Error: init.txt not found.__________________"
     exit 1
