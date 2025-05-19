@@ -1,6 +1,6 @@
 import db from '../models.js';
 import axios from 'axios';
-
+import { origin as acceptedOrigin } from '../server.js';
 
 export default async function disable(req, res) {
     if (!req.user.two_FA) {
@@ -19,7 +19,7 @@ export default async function disable(req, res) {
         const r = await axios.post(process.env.TWOFA_URL,{status: false}, {
             headers: {
                 Authorization: req.headers.authorization,
-                origin: process.env.ACCEPTED_ORIGIN,
+                origin: acceptedOrigin,
             },
         });
         if (r.status !== 200) {

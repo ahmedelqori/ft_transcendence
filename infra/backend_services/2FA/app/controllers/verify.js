@@ -3,7 +3,7 @@ import speakeazy from 'speakeasy';
 import axios from 'axios';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
-
+import { origin as acceptedOrigin } from '../server.js';
 
 export default async function verify(req, res) {
     let { code } = req.body || {};
@@ -39,7 +39,7 @@ export default async function verify(req, res) {
             const r = await axios.post(process.env.TWOFA_URL,{status: true}, {
                 headers: {
                     Authorization: req.headers.authorization,
-                    origin: process.env.ACCEPTED_ORIGIN,
+                    origin: acceptedOrigin,
                 },
             });
             if (r.status !== 200) {

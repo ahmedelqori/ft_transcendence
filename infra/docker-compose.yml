@@ -10,12 +10,13 @@ services:
       - appNet
     volumes:
       - vault_database:/vault/
-      - ./.global.env:/.global.env
+      - ./.temp.env:/.temp.env
     ports:
       - "8200:8200"
     cap_add:
       - IPC_LOCK
     restart: always
+    
   # nginx-modsecurity:
   #   image: "nginx-modsecurity:app"
   #   container_name: nginx-modsecurity
@@ -59,19 +60,19 @@ services:
 #       - friendship_database:/app/database
 #     depends_on:
 #       - user_managment
-#   2fa:
-#     build:
-#       context: ./backend_services/2FA
-#       dockerfile: Dockerfile
-#     container_name: 2fa
-#     env_file:
-#       - ./.global.env
-#     networks:
-#       - appNet
-#     volumes:
-#       - 2fa_database:/app/database
-#     depends_on:
-#       - user_managment
+  2fa:
+    build:
+      context: ./backend_services/2FA
+      dockerfile: Dockerfile
+    container_name: 2fa
+    env_file:
+      - ./.global.env
+    networks:
+      - appNet
+    volumes:
+      - 2fa_database:/app/database
+      - ./.temp.env:/.temp.env
+      # - user_managment
 #   notification:
 #     build:
 #       context: ./backend_services/notification
@@ -143,12 +144,12 @@ volumes:
 #       type: none
 #       device: ./infra/volumes/friendship_database
 #       o: bind
-#   2fa_database:
-#     driver: local
-#     driver_opts:
-#       type: none
-#       device: ./infra/volumes/2fa_database
-#       o: bind
+  2fa_database:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./infra/volumes/2fa_database
+      o: bind
 #   notification_database:
 #     driver: local
 #     driver_opts:

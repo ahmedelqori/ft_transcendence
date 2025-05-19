@@ -32,7 +32,6 @@ fclean: down
 	docker system prune -af
 	docker volume prune -f
 
-#!!!!!!!!!!!!!!!!! rules for devlopment !!!!!!!!!!!!!!!!!!#
 
 shell:
 	$(CMD) exec $(c) bash

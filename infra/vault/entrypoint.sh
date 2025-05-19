@@ -67,20 +67,19 @@ if [ -f /vault/data/init.txt ]; then
     
     # create a secret id and wrap it in a temporary token
     # add wrap token in the env
-    WRAPPED_TOKEN=$(vault write -f -wrap-ttl=59m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
+    WRAPPED_TOKEN=$(vault write -f -wrap-ttl=2m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
     ROLE_ID=$(vault read -format=json auth/approle/role/backend/role-id | grep -o '"role_id": *"[^"]*"' | awk -F'"' '{print $4}')
     # Verify token was extracted
     if [ -z "$WRAPPED_TOKEN" ]; then
     echo "ERROR: Failed to get wrapped token"
     exit 1
     fi
-
-    printf "\n\nVAULT_WRAPPED_TOKEN=\"%s\"\n" "$WRAPPED_TOKEN" >> /.global.env
-    printf "\nROLE_ID=\"%s\"\n" "$ROLE_ID" >> /.global.env
+    printf "VAULT_WRAPPED_TOKEN=\"%s\"\n" "$WRAPPED_TOKEN" > /.temp.env
+    printf "\nROLE_ID=\"%s\"\n" "$ROLE_ID" >> /.temp.env
 
     echo "__________________Wrapped token created and stored in .global.env__________________"
     #cleanup
-    vault token revoke "$ROOT_TOKEN"
+    # vault token revoke "$ROOT_TOKEN"
     unset ROOT_TOKEN
     unset WRAPPED_TOKEN
 else

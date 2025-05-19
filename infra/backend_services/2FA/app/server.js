@@ -7,9 +7,11 @@ import knexConfig from './knexfile.cjs'; // knex config
 import { Model } from 'objection'; // ORM build on top of Knex 
 import multipart from '@fastify/multipart'; // to handle file uploads
 import cors from '@fastify/cors'; // to handle CORS
+import { getOrigin } from './utils/vault-service.js'; 
+export let origin = null;
 
+origin = await getOrigin();
 const knex = Knex(knexConfig);
-
 Model.knex(knex);
 
 const prettyStream = pinoPretty({
@@ -23,6 +25,7 @@ const fastify = Fastify({
     stream: prettyStream,
   },
 });
+
 
 fastify.register(cors, {
   credentials: true,
@@ -42,5 +45,7 @@ fastify.listen({ port: 3000, host: '0.0.0.0' }, function (err, address) {
     fastify.log.error(err);
     process.exit(1);
   }
-  fastify.log.info(`Server listening at ${address}`);
+  fastify.log.info(`Server listening at ${address} --- Origin: ${origin}`);
+
+  
 });
