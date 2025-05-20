@@ -97,7 +97,7 @@ export async function loadSecrets()
     ];
     try {
         const secretId = await vault.unwrapToken(config.wrapToken);
-        console.log('Unwrapped secretId:', secretId);
+        console.log('Unwrapped secretId done !');
         const token = await vault.login(config.roleId, secretId);
         for (const { key, path, field } of secretPaths)
         {

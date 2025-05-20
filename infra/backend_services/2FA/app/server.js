@@ -11,13 +11,6 @@ import { loadSecrets } from './utils/vault-service.js';
 
 export const secrets = await loadSecrets();
 
-// import { getOrigin } from './utils/vault-service.js'; 
-// export let origin = null;
-
-// origin = await getOrigin();
-
-
-
 const knex = Knex(knexConfig);
 Model.knex(knex);
 
@@ -52,7 +45,7 @@ fastify.listen({ port: 3000, host: '0.0.0.0' }, function (err, address) {
     fastify.log.error(err);
     process.exit(1);
   }
-  fastify.log.info(`Server listening at ${address} --- Origin: ${secrets.ORIGIN_S2S}`);
+  fastify.log.info(`Server listening at ${address}`);
   
   
 });

@@ -3,7 +3,7 @@ import { Agent } from 'https';
 
 export default async function wsAuth(req, reply) {
   const token = req.query.token;
-  const DOMAIN = process.env.DOMAIN || 'https://localhost';
+  const DOMAIN = process.env.DOMAIN ;
   if (!token) {
     return reply.code(401).send({ message: 'Token missing in URL' });
   }

@@ -1,6 +1,6 @@
 import { tournament, tournament_games, tournament_players } from "../models.js";
 import jwt from 'jsonwebtoken';
-import {secrets} from '../server.js';
+import {secret} from '../server.js';
 
 
 const is_authenticated = async (req) => {
@@ -11,7 +11,7 @@ const is_authenticated = async (req) => {
     if (!token) {
         return undefined;
     }
-    const publicKey = secrets.JWT_PUBLIC;
+    const publicKey = secret;
     try {
         const decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] });
         if (decoded) {

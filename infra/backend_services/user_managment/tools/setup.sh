@@ -5,6 +5,8 @@ while ! grep -q "WRAPPED_TOKEN_USER_MANAGEMENT=" /.temp.env; do
   sleep 1
 done
 
+mkdir /app/database 2>/dev/null
+
 npx knex migrate:latest  --knexfile knexfile.cjs
 
 exec nodejs server

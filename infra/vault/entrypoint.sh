@@ -69,10 +69,12 @@ if [ -f /vault/data/init.txt ]; then
     # add wrap token in the env
     WRAPPED_TOKEN_2FA=$(vault write -f -wrap-ttl=2m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
     WRAPPED_TOKEN_USER_MANAGEMENT=$(vault write -f -wrap-ttl=2m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
+    WRAPPED_TOKEN_TOURNAMENT=$(vault write -f -wrap-ttl=2m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
     ROLE_ID=$(vault read -format=json auth/approle/role/backend/role-id | grep -o '"role_id": *"[^"]*"' | awk -F'"' '{print $4}')
 
     printf "WRAPPED_TOKEN_2FA=\"%s\"\n" "$WRAPPED_TOKEN_2FA" > /.temp.env
     printf "WRAPPED_TOKEN_USER_MANAGEMENT=\"%s\"\n" "$WRAPPED_TOKEN_USER_MANAGEMENT" >> /.temp.env
+    printf "WRAPPED_TOKEN_TOURNAMENT=\"%s\"\n" "$WRAPPED_TOKEN_TOURNAMENT" >> /.temp.env
     printf "\nROLE_ID=\"%s\"\n" "$ROLE_ID" >> /.temp.env
 
     echo "__________________Wrapped token created and stored in .global.env__________________"
@@ -81,6 +83,7 @@ if [ -f /vault/data/init.txt ]; then
     unset ROOT_TOKEN
     unset WRAPPED_TOKEN_2FA
     unset WRAPPED_TOKEN_USER_MANAGEMENT
+    unset WRAPPED_TOKEN_TOURNAMENT
 else
     echo "__________________Error: init.txt not found.__________________"
     exit 1

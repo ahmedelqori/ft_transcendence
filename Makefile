@@ -34,7 +34,7 @@ fclean: down
 
 
 shell:
-	$(CMD) exec $(c) bash
+	$(CMD) exec $(c) sh
 
 restart:
 	docker container stop $(c)

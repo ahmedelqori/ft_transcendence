@@ -2,7 +2,7 @@ import { Agent } from 'https';
 import axios from 'axios';
 export async function checkFriendship(friendId, authToken) {
     try {
-        const DOMAIN = process.env.DOMAIN || 'https://localhost';
+        const DOMAIN = process.env.DOMAIN ;
         const response = await axios.get(`${DOMAIN}/api/friends/${friendId}`, {
         headers: {
             'Authorization': `Bearer ${authToken}`

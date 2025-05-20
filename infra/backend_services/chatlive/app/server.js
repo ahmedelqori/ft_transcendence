@@ -12,8 +12,8 @@ app.register(dbPlugin);
 
 const start = async () => {
   try {
-    await app.listen({ port: 3000, host: "127.0.0.1" });
-    app.log.info(`WebSocket server available at ws://127.0.0.1:3000/ws`);
+    await app.listen({ port: 3000, host: "0.0.0.0" });
+    app.log.info(`WebSocket server available at ws://0.0.0.0:3000/ws`);
   } catch (err) {
     app.log.error(err);
     process.exit(1);
