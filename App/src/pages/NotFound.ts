@@ -6,7 +6,14 @@ const NotFound = defineComponent<void>({
   },
   state() {},
   render() {
-    return createElement("div", {}, ["NotFound Page"]);
+    return createElement("div", { class: ["my-auto"] }, [
+      createElement(
+        "div",
+        { class: ["text-9xl", "text-[var(--light-grey)]"] },
+        ["404"]
+      ),
+      createElement("div", {}, ["Go To Home "]),
+    ]);
   },
 });
 
