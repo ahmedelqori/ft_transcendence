@@ -67,21 +67,20 @@ if [ -f /vault/data/init.txt ]; then
     
     # create a secret id and wrap it in a temporary token
     # add wrap token in the env
-    WRAPPED_TOKEN=$(vault write -f -wrap-ttl=2m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
+    WRAPPED_TOKEN_2FA=$(vault write -f -wrap-ttl=2m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
+    WRAPPED_TOKEN_USER_MANAGEMENT=$(vault write -f -wrap-ttl=2m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
     ROLE_ID=$(vault read -format=json auth/approle/role/backend/role-id | grep -o '"role_id": *"[^"]*"' | awk -F'"' '{print $4}')
-    # Verify token was extracted
-    if [ -z "$WRAPPED_TOKEN" ]; then
-    echo "ERROR: Failed to get wrapped token"
-    exit 1
-    fi
-    printf "VAULT_WRAPPED_TOKEN=\"%s\"\n" "$WRAPPED_TOKEN" > /.temp.env
+
+    printf "WRAPPED_TOKEN_2FA=\"%s\"\n" "$WRAPPED_TOKEN_2FA" > /.temp.env
+    printf "WRAPPED_TOKEN_USER_MANAGEMENT=\"%s\"\n" "$WRAPPED_TOKEN_USER_MANAGEMENT" >> /.temp.env
     printf "\nROLE_ID=\"%s\"\n" "$ROLE_ID" >> /.temp.env
 
     echo "__________________Wrapped token created and stored in .global.env__________________"
     #cleanup
     # vault token revoke "$ROOT_TOKEN"
     unset ROOT_TOKEN
-    unset WRAPPED_TOKEN
+    unset WRAPPED_TOKEN_2FA
+    unset WRAPPED_TOKEN_USER_MANAGEMENT
 else
     echo "__________________Error: init.txt not found.__________________"
     exit 1

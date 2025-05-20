@@ -1,4 +1,4 @@
-import fs from 'fs';
+import {secrets} from '../server.js';
 import jwt from 'jsonwebtoken';
 
 export default async function first_refresh_token(req, res) {
@@ -11,7 +11,7 @@ export default async function first_refresh_token(req, res) {
         return ;
     }
 
-    const privateKey = fs.readFileSync('./private.pem', 'utf8');
+    const privateKey = secrets.JWT_PRIVATE;
     const payload = { user_id: req.user.id };
 
     const jwt_access_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '1h' });

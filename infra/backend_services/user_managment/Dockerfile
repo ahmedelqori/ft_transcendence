@@ -1,15 +1,19 @@
-FROM debian:latest
+FROM node:lts-alpine3.21
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y nodejs npm
+RUN npm install -g npm@latest
 
 COPY ./app/package*.json ./
+
 RUN npm install
 
 COPY ./app ./
 
-COPY ./tools/setup.sh /
+COPY tools/setup.sh /
+
 RUN chmod +x /setup.sh
 
-ENTRYPOINT [ "/setup.sh" ]
+ENTRYPOINT [ "sh","/setup.sh" ]
+
+

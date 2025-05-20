@@ -7,7 +7,7 @@ dotenv.config({ path: '/.temp.env' });
 const config = {
     // process.env.VAULT_ADDR || 
   vaultAddr: process.env.VAULT_ADDR || "https://localhost:8200/",
-  wrapToken: process.env.WRAPPED_TOKEN_2FA  || '',
+  wrapToken: process.env.WRAPPED_TOKEN_USER_MANAGEMENT  || '',
   roleId: process.env.ROLE_ID  || '',
   port: 3000
 };
@@ -92,6 +92,8 @@ export async function loadSecrets()
 
     const secretPaths = [
         { key: 'ORIGIN_S2S', path: 'secret/data/oauth/S2S',field: 'ORIGIN' },
+        { key: 'ORIGIN_GOOGLE', path: 'secret/data/oauth/google', field: 'SOCIAL_AUTH_GOOGLE_OAUTH2_KEY' },
+        { key: 'ORIGIN_42', path: 'secret/data/oauth/42',   field: 'SOCIAL_AUTH_42_OAUTH2_KEY' },
         { key: 'JWT_PRIVATE', path: 'secret/data/jwt/private', field: 'jwt_private_key' },
         { key: 'JWT_PUBLIC', path: 'secret/data/jwt/public', field: 'jwt_public_key' },
     ];
@@ -103,6 +105,7 @@ export async function loadSecrets()
         {
             const secret = await getData(vault,path,field,token);
             secrets[key] = secret;
+            console.log(`Secret ${key} loaded:`, secrets[key]);
         }
     }catch (error) {
         console.error('Error:', error.message);

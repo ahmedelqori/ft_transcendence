@@ -7,6 +7,9 @@ import knexConfig from './knexfile.cjs'; // knex config
 import { Model } from 'objection'; // ORM build on top of Knex 
 import multipart from '@fastify/multipart'; // to handle file uploads
 import cors from '@fastify/cors'; // to handle CORS
+import { loadSecrets } from './utils/vault-service.js'; 
+
+export const secrets = await loadSecrets();
 
 const knex = Knex(knexConfig);
 
@@ -50,5 +53,5 @@ fastify.listen({ port: 3000, host: '0.0.0.0' }, function (err, address) {
     fastify.log.error(err);
     process.exit(1);
   }
-  fastify.log.info(`Server listening at ${address}`);
+    fastify.log.info(`Server listening at ${address} --- google: ${secrets.ORIGIN_GOOGLE}`);
 });

@@ -32,21 +32,37 @@ services:
   #     - vault
 
 
-#   user_managment:
-#     build:
-#       context: ./backend_services/user_managment
-#       dockerfile: Dockerfile
-#     container_name: user_managment
-#     env_file:
-#       - ./.global.env
-#     networks:
-#       - appNet
-#     volumes:
-#       - profile_images:/app/profile_images
-#       - user_managment_database:/app/database
-#     depends_on:
-#       - vault_init
+  user_managment:
+    build:
+      context: ./backend_services/user_managment
+      dockerfile: Dockerfile
+    container_name: user_managment
+    env_file:
+      - ./.global.env
+    networks:
+      - appNet
+    volumes:
+      - profile_images:/app/profile_images
+      - user_managment_database:/app/database
+      - ./.temp.env:/.temp.env
+    depends_on:
+      - vault
 
+  2fa:
+    build:
+      context: ./backend_services/2FA
+      dockerfile: Dockerfile
+    container_name: 2fa
+    env_file:
+      - ./.global.env
+    networks:
+      - appNet
+    volumes:
+      - 2fa_database:/app/database
+      - ./.temp.env:/.temp.env
+    depends_on:
+      - vault
+      - user_managment
 #   friendship:
 #     build:
 #       context: ./backend_services/friendship
@@ -60,19 +76,7 @@ services:
 #       - friendship_database:/app/database
 #     depends_on:
 #       - user_managment
-  2fa:
-    build:
-      context: ./backend_services/2FA
-      dockerfile: Dockerfile
-    container_name: 2fa
-    env_file:
-      - ./.global.env
-    networks:
-      - appNet
-    volumes:
-      - 2fa_database:/app/database
-      - ./.temp.env:/.temp.env
-      # - user_managment
+
 #   notification:
 #     build:
 #       context: ./backend_services/notification
@@ -99,19 +103,19 @@ services:
 #       - tournament_database:/app/database
 #     depends_on:
 #       - user_managment
-#   chatlive:
-#     build:
-#       context: ./backend_services/chatlive
-#       dockerfile: Dockerfile
-#     container_name: chatlive
-#     env_file:
-#       - ./.global.env
-#     networks:
-#       - appNet
-#     volumes:
-#       - chatlive_database:/app/database
-#     depends_on:
-#       - user_managment
+  # chatlive:
+  #   build:
+  #     context: ./backend_services/chatlive
+  #     dockerfile: Dockerfile
+  #   container_name: chatlive
+  #   env_file:
+  #     - ./.global.env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - chatlive_database:/app/database
+  #   depends_on:
+  #     - user_managment
 
 
 volumes:
@@ -126,18 +130,18 @@ volumes:
 #       type: none
 #       device: ./infra/volumes/VolumeVault
 #       o: bind
-#   profile_images:
-#     driver: local
-#     driver_opts:
-#       type: none
-#       device: ./infra/volumes/profile_images
-#       o: bind
-#   user_managment_database:
-#     driver: local
-#     driver_opts:
-#       type: none
-#       device: ./infra/volumes/user_managment_database
-#       o: bind
+  profile_images:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./infra/volumes/profile_images
+      o: bind
+  user_managment_database:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./infra/volumes/user_managment_database
+      o: bind
 #   friendship_database:
 #     driver: local
 #     driver_opts:
