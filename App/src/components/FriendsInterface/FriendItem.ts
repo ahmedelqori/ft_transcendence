@@ -6,6 +6,8 @@ import {
 
 interface FriendItemProps {
   username: string;
+  avatar: string;
+  id: number;
 }
 interface FriendItemState {
   isLoading: boolean;
@@ -100,12 +102,12 @@ const FriendItem = defineComponent<FriendItemState, FriendItemProps>({
               },
               [
                 createElement("img", {
-                  src: "assets/relhamma.png",
+                  src: this.props.avatar,
                   alt: this.props.username,
                   class: [
                     "rounded-full",
-                    "w-16",
-                    "h-16",
+                    "w-20",
+                    "h-20",
                     "object-cover",
                     "border-2",
                     "border-gray-100",
@@ -118,18 +120,18 @@ const FriendItem = defineComponent<FriendItemState, FriendItemProps>({
               ]
             ),
             createElement(
-              "div", 
-              { 
+              "div",
+              {
                 class: [
-                  "w-full", 
-                  "text-center", 
-                  "font-medium", 
-                  "text-gray-800", 
+                  "w-full",
+                  "text-center",
+                  "font-medium",
+                  "text-gray-800",
                   "dark:text-gray-200",
                   "truncate",
-                  "px-2"
-                ] 
-              }, 
+                  "px-2",
+                ],
+              },
               [`@${this.props.username}`]
             ),
             createElement(
