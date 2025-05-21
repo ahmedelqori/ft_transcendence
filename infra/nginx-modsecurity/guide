@@ -1,0 +1,70 @@
+from alpine:3.21.2
+--------------------
+apt update && apt upgrade
+apt install git
+apt install nginx
+
+apt install bison build-essential ca-certificates curl dh-autoreconf doxygen flex gawk git iputils-ping libcurl4-gnutls-dev libexpat1-dev libgeoip-dev liblmdb-dev libpcre3-dev libpcre2-dev libssl-dev libtool libxml2 libxml2-dev libyajl-dev locales liblua5.3-dev pkg-config wget zlib1g-dev zlib1g-dev libxslt1-dev libgd-dev libperl-dev systemctl
+
+
+systemctl start nginx
+
+cd /opt &&  
+git clone https://github.com/owasp-modsecurity/ModSecurity.git
+git clone --depth 1 https://github.com/SpiderLabs/ModSecurity-nginx.git
+git clone https://github.com/coreruleset/coreruleset modsecurity-crs
+wget http://nginx.org/download/nginx-1.22.1.tar.gz
+tar -xvzmf nginx-1.22.1.tar.gz
+rm -rf nginx-1.22.1.tar.gz
+
+--- for modsecurity repo ---
+cd /opt/ModSecurity
+git submodule init
+git submodule update
+./build.sh
+./configure
+make
+make install
+-----------------------------
+
+-- configure all modules for nginx repo --
+cd /opt/nginx-1.22.1
+# ARG OF CONFIGURE VIA : nginx -V 
+# for add module --add-dynamic-module=../ModSecurity-nginx 
+# and also to connect libmodsecurity with nginx
+
+./configure --with-cc-opt='-g -O2 -ffile-prefix-map=/build/nginx-AoTv4W/nginx-1.22.1=. -fstack-protector-strong -Wformat -Werror=format-security -fPIC -Wdate-time -D_FORTIFY_SOURCE=2' --with-ld-opt='-Wl,-z,relro -Wl,-z,now -fPIC' --prefix=/usr/share/nginx --conf-path=/etc/nginx/nginx.conf --http-log-path=/var/log/nginx/access.log --error-log-path=stderr --lock-path=/var/lock/nginx.lock --pid-path=/run/nginx.pid --modules-path=/usr/lib/nginx/modules --http-client-body-temp-path=/var/lib/nginx/body --http-fastcgi-temp-path=/var/lib/nginx/fastcgi --http-proxy-temp-path=/var/lib/nginx/proxy --http-scgi-temp-path=/var/lib/nginx/scgi --http-uwsgi-temp-path=/var/lib/nginx/uwsgi --with-compat --with-debug --with-pcre-jit --with-http_ssl_module --with-http_stub_status_module --with-http_realip_module --with-http_auth_request_module --with-http_v2_module --with-http_dav_module --with-http_slice_module --with-threads --with-http_addition_module --with-http_flv_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_mp4_module --with-http_random_index_module --with-http_secure_link_module --with-http_sub_module --with-mail_ssl_module --with-stream_ssl_module --with-stream_ssl_preread_module --with-stream_realip_module --with-http_geoip_module=dynamic --with-http_image_filter_module=dynamic --with-http_perl_module=dynamic --with-http_xslt_module=dynamic --with-mail=dynamic --with-stream=dynamic --with-stream_geoip_module=dynamic --add-dynamic-module=../ModSecurity-nginx
+
+make modules
+
+mkdir /etc/nginx/modules
+
+sudo cp objs/ngx_http_modsecurity_module.so /etc/nginx/modules
+-----------------------------
+
+-- add module in nginx.conf (/etc/nginx/nginx.conf)--
+load_module /etc/nginx/modules/ngx_http_modsecurity_module.so;
+-----------------------------
+
+-- Setting Up OWASP-CRS --
+mv modsecurity-crs/crs-setup.conf.example modsecurity-crs/crs-setup.conf 
+mv modsecurity-crs/rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf.example modsecurity-crs/rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf
+mv modsecurity-crs /usr/local
+-----------------------------
+
+mkdir /etc/nginx/modsec
+cp /opt/ModSecurity/unicode.mapping /etc/nginx/modsec
+# need also /opt/ModSecurity/modsecurity.conf
+#for this i have file in my local just copy it to path /etc/nginx/modsec
+# also copy main.conf to /etc/nginx/modsec
+
+finally need to modify config /etc/nginx/sites-available/default
+# get locally and copy it to /etc/nginx/sites-available
+
+{
+modsecurity on;
+modsecurity_rules_file /etc/nginx/modsec/main.conf;
+}
+
+
+systemctl restart nginx

@@ -1,0 +1,63 @@
+import fs from 'fs/promises';
+import path from 'path';
+import sharp from 'sharp';
+import crypto from 'crypto';
+import Player from '../models.js';
+
+async function remove_old_avatar(avatar_url) {
+  const file = avatar_url.split('/').pop();
+  const filePath = path.join(process.env.PROFILE_IMAGE_PATH, file);
+  try {
+    await fs.unlink(filePath);
+    console.log(`Removed old avatar: ${filePath}`);
+  }
+  catch (err) {
+    console.error(`Error removing old avatar: ${err.message}`);
+  }
+}
+
+export default async function avatar(req, reply){
+  const EXTENTIONS = {
+    'image/jpeg': '.jpg',
+    'image/png': '.png',
+    'image/webp': '.webp',
+  };
+  
+  try {
+    if (!req.fileData || !req.user) {
+      return reply.status(400).send({ error: 'Invalid request data' });
+    }
+
+    const fileBuffer = await req.fileData.toBuffer();
+    const extension = EXTENTIONS[req.fileData.mimetype];
+    if (!extension) {
+      return reply.status(400).send({ error: 'Unsupported file type' });
+    }
+
+    const filename = crypto.randomBytes(8).toString('hex') + '.webp';
+    const filePath = path.join(process.env.PROFILE_IMAGE_PATH, filename);
+
+    const webpBuffer = await sharp(fileBuffer)
+      .webp({ quality: 80 })
+      .toBuffer();
+
+    await fs.writeFile(filePath, webpBuffer);
+
+    const avatar_url = `${process.env.DOMAIN}/static/${filename}`;
+
+
+    const playerData = await Player.query().findById(req.user.id);
+    // remove old avatar
+    remove_old_avatar(playerData.avatar_url);
+    // save f database
+    await Player.query().patch({ avatar_url }).where({ id: req.user.id });
+
+    reply
+      .header('Location', avatar_url)
+      .status(200)
+      .send({ avatar_url });
+  } catch (err) {
+    console.log(`Error processing avatar: ${err.message}`);
+    reply.status(500).send({ error: 'Internal server error' });
+  }
+};

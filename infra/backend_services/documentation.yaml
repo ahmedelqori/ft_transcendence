@@ -1,0 +1,2117 @@
+openapi: 3.0.3
+info:
+  title: ft_transcendence
+  description: |-
+    ft_transcendence is the final project of the 42 curriculum. It is a full-stack web application where you build a real-time multiplayer Pong game with additional features. The goal is to combine backend, frontend, and real-time communication using modern web technologies.
+    
+    Some useful links:
+    - [School subject](https://cdn.intra.42.fr/pdf/pdf/150371/en.subject.pdf)
+    - [github](https://github.com/7h3Y055)
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: youssefbouchmama@hotmail.com
+  license:
+    name: Licens
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.11
+
+servers:
+  - url: https://pingpong.ma/
+
+tags:
+  - name: account
+    description: Operations about user account managments
+      
+  - name: friendship
+    description: Operations about user friendships
+      
+  - name: 2fa
+    description: Operations about user 2fa
+    
+  - name: notifications
+    description: Operations about user notifications
+
+  - name: tournaments
+    description: Operations about tournaments
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /api/account/login/{provider}/:
+    get:
+      tags:
+        - account
+      summary: Login with provider
+      description: Redirects the user to the login page of the specified provider. After successful authentication, the backend processes the login and redirects the user back to the frontend with a temporary access token.
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - google
+              - 42
+      responses:
+        '302':
+          description: Redirects to the frontend with a temporary access token in the query string.
+          headers:
+            Location:
+              description: URL of the frontend containing the temporary access token, expired in 5 minutes.
+              schema:
+                type: string
+                example: https://frontend.example.com/home?access_token=TEMPORARY_ACCESS_TOKEN
+    parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - google
+              - 42
+  /api/account/set-cookie:
+    get:
+      tags:
+      - account
+      summary: Set refresh token in cookies
+      description: This endpoint is accessed using a temporary access token provided in the Authorization header. It sets the refresh token in cookies and returns an access token in the response body.
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+          example: Bearer TEMPORARY_ACCESS_TOKEN
+      responses:
+        '200':
+          description: Refresh token set in cookies and access token returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    access_token:
+                      type: string
+                      example: JWT.TOKEN.TEST
+        '400':
+          description: Invalid temporary access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid temporary access token
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/account/login/refresh/:
+    post:
+      tags:
+        - account
+      summary: Refresh JWT tokens
+      operationId: refreshLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+                  example: JWT.TOKEN.TEST
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: JWT.TOKEN.TEST
+                  refresh_token:
+                    type: string
+                    example: JWT.TOKEN.TEST
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/account/whoami/:
+    get:
+      tags:
+        - account
+      summary: Get current user
+      security:
+        - bearerAuth: []
+      operationId: whoAmI
+      responses:
+        '200':
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  username:
+                    type: string
+                    example: ybouchma
+                  first_name:
+                    type: string
+                    example: Youssef
+                  last_name:
+                    type: string
+                    example: Bouchmama
+                  bio:
+                    type: string
+                    example: "one two three viva algerie"
+                  avatar_url:
+                    type: string
+                    example: https://pingpong.ma/profile_images/ybouchma.jpg
+                  status:
+                    type: string
+                    example: ON
+                  two_FA:
+                    type: integer
+                    example: 0
+                  wons:
+                    type: integer
+                    example: 3
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: 2025-03-13T07:19:20.993Z
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+
+  /api/account/update-profile/:
+    patch:
+      tags:
+        - account
+      summary: Update user profile
+      security:
+        - bearerAuth: []
+      operationId: updateProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: ybouchmaAA
+                first_name:
+                  type: string
+                  example: Youssef
+                last_name:
+                  type: string
+                  example: Bouchmama
+                bio:
+                  type: string
+                  example: "one two three viva algerie"
+                status:
+                  type: string
+                  example: ON
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  username:
+                    type: string
+                    example: ybouchmaAA
+                  first_name:
+                    type: string
+                    example: Youssef
+                  last_name:
+                    type: string
+                    example: Bouchmama
+                  bio:
+                    type: string
+                    example: "one two three viva algerie"
+                  avatar_url:
+                    type: string
+                    example: https://pingpong.ma/profile_images/ybouchma.jpg
+                  status:
+                    type: string
+                    example: ON
+                  two_FA:
+                    type: integer
+                    example: 0
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: 2025-03-13T07:19:20.993Z
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid input
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+
+  /api/account/avatar/:
+    post:
+      tags:
+        - account
+      summary: Upload avatar
+      security:
+        - bearerAuth: []
+      operationId: uploadAvatar
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+            encoding:
+                file:
+                  contentType: image/jpeg, image/png, image/gif, image/webp
+      responses:
+        '200':
+          description: Avatar uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  avatar_url:
+                    type: string
+                    example: https://pingpong.ma/profile_images/ybouchmaAA.png
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid file type
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/account/search/:
+    get:
+      tags:
+        - account
+      summary: Search users
+      security:
+        - bearerAuth: []
+      operationId: searchUsers
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 10
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 0
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        username:
+                          type: string
+                          example: ybouchmaAA
+                        first_name:
+                          type: string
+                          example: Youssef
+                        last_name:
+                          type: string
+                          example: Bouchmama
+                        bio:
+                          type: string
+                          example: "one two three viva algerie"
+                        avatar_url:
+                          type: string
+                          example: https://pingpong.ma/profile_images/ybouchmaAA.png
+                        status:
+                          type: string
+                          example: ON
+                        created_at:
+                          type: string
+                          format: date-time
+                          example: 2025-03-13T07:19:20.993Z
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid parameters
+  /api/account/{id/username}:
+    get:
+      tags:
+        - account
+      summary: Get user by ID or username
+      security:
+        - bearerAuth: []
+      operationId: getUserById
+      parameters:
+        - name: identifier
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  username:
+                    type: string
+                    example: ybouchmaAA
+                  first_name:
+                    type: string
+                    example: Youssef
+                  last_name:
+                    type: string
+                    example: Bouchmama
+                  bio:
+                    type: string
+                    example: "one two three viva algerie"
+                  avatar_url:
+                    type: string
+                    example: https://pingpong.ma/profile_images/ybouchmaAA.png
+                  status:
+                    type: string
+                    example: ON
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: 2025-03-13T07:19:20.993Z
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: User not found
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/account/users/:
+    get:
+      tags:
+        - account
+      summary: Get all users
+      security:
+        - bearerAuth: []
+      operationId: getAllUsers
+      parameters:
+        - name: n
+          in: query
+          required: true
+          schema:
+            type: integer
+            example: 5
+        - name: sort
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - newest
+              - oldest
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    username:
+                      type: string
+                      example: ybouchmaAA
+                    email:
+                      type: string
+                      example: ybouchma@student.1337.ma
+                    first_name:
+                      type: string
+                      example: Youssef
+                    last_name:
+                      type: string
+                      example: Bouchmama
+                    bio:
+                      type: string
+                      example: "one two three viva algerie"
+                    avatar_url:
+                      type: string
+                      example: https://pingpong.ma/profile_images/ybouchmaAA.png
+                    status:
+                      type: string
+                      example: ON
+                    two_FA:
+                      type: integer
+                      example: 0
+                    created_at:
+                      type: string
+                      format: date-time
+                      example: 2025-03-13T07:19:20.993Z
+        '400':
+          description: Invalid sort parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid sort parameter
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+
+
+
+
+
+
+
+
+
+
+                    
+  /api/notif/:
+    get:
+      tags:
+        - notifications
+      summary: Get all notifications
+      security:
+        - bearerAuth: []
+      operationId: getAllNotifications
+      responses:
+        '200':
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 28
+                        Sender:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 22
+                            username:
+                              type: string
+                              example: 7h3_Yosef
+                            first_name:
+                              type: string
+                              example: 7h3
+                            last_name:
+                              type: string
+                              example: Yosef
+                        type:
+                          type: string
+                          example: friendRequest
+                        payload:
+                          type: object
+                          oneOf:
+                            - properties:
+                                senderId:
+                                  type: integer
+                                  example: 22
+                                  properties:
+                                    senderId:
+                                      type: integer
+                                      example: 22
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+    delete:
+      tags:
+        - notifications
+      summary: Delete all notifications
+      security:
+        - bearerAuth: []
+      operationId: deleteAllNotifications
+      responses:
+        '204':
+          description: All notifications deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Marked 5 notifications as read
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/notif/{id}:
+    delete:
+      tags:
+        - notifications
+      summary: Delete notification by ID
+      security:
+        - bearerAuth: []
+      operationId: deleteNotificationById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: mark notification as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Marked 1 notifications as read
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Notification not found
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/notif/ws:
+    get:
+      tags:
+        - notifications
+      summary: WebSocket for notifications
+      description: |
+        Connect to the WebSocket endpoint at `wss://pimgpong.ma/api/notif/ws?authorization=access_token` to receive real-time notifications.
+
+        Upon connection, you will receive messages in the following format:
+        ```
+        {
+          "type": "<type>",
+          "payload": {}
+        }
+        ```
+        Possible values for `type`:
+          - `friendRequest` (friendship service)
+          - `directMessage` (chat service)
+          - `inviteToMatch` (game service)
+          - `tournamentInvite` (tournament service)
+          - `info` (other services)
+      security:
+        - bearerAuth: []
+      operationId: notificationsWebSocket
+      responses:
+        '101':
+          description: Switching protocols (WebSocket connection established)
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  /api/friends/{user_id}/request:
+    post:
+      tags:
+        - friendship
+      summary: Send friend request
+      security:
+        - bearerAuth: []
+      operationId: sendFriendRequest
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Friend request sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: Request Sent Successfully to 7h3_Yosef
+        '400':
+          description: Invalid user_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user_id
+        '404':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: User not found
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+    delete:
+      tags:
+        - friendship
+      summary: Cancel friend request
+      security:
+        - bearerAuth: []
+      operationId: cancelFriendRequest
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Friend request canceled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: Request canceled
+        '404':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request not found
+        '400':
+          description: Invalid user_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user_id
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/friends/{user_id}/request/accept:
+    post:
+      tags:
+        - friendship
+      summary: Accept friend request
+      security:
+        - bearerAuth: []
+      operationId: acceptFriendRequest
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Friend request accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: Request accepted
+        '404':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request not found
+        '400':
+          description: Invalid user_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user_id
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/friends/{user_id}/request/reject:
+    post:
+      tags:
+        - friendship
+      summary: Reject friend request
+      security:
+        - bearerAuth: []
+      operationId: rejectFriendRequest
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Friend request rejected
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: Request rejected
+        '404':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request not found
+        '400':
+          description: Invalid user_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user_id
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/friends/{user_id}/friend:
+    delete:
+      tags:
+        - friendship
+      summary: Remove friend
+      security:
+        - bearerAuth: []
+      operationId: removeFriend
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Unfriend
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: Unfriend success
+        '404':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request not found
+        '400':
+          description: Invalid user_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user_id
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/friends/{user_id}/block:
+    post:
+      tags:
+        - friendship
+      summary: Block user
+      security:
+        - bearerAuth: []
+      operationId: blockUser
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User blocked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: string
+                    example: User blocked
+        '404':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request not found
+        '400':
+          description: Invalid user_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user_id
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+    delete:
+      tags:
+        - friendship
+      summary: Unblock user
+      security:
+        - bearerAuth: []
+      operationId: unblockUser
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User not blocked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User not blocked
+        '404':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request not found
+        '400':
+          description: Invalid user_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user_id
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/friends/{user_id}:
+    get:
+      tags:
+        - friendship
+      summary: Get the relationship between you and the user
+      security:
+        - bearerAuth: []
+      operationId: getUserFriends
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User relationship [friend, blocked, pending, none]
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  state:
+                    type: string
+                    example: friend
+        '404':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Request not found
+        '400':
+          description: Invalid user_id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid user_id
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/friends/:
+    get:
+      tags:
+        - friendship
+      summary: Get all friends
+      security:
+        - bearerAuth: []
+      operationId: getAllFriends
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 10
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 0
+      responses:
+        '200':
+          description: List of friends
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 2
+                        username:
+                          type: string
+                          example: 7h3_Yosef
+                        first_name:
+                          type: string
+                          example: 7h3
+                        last_name:
+                          type: string
+                          example: Yosef
+                        bio:
+                          type: string
+                          example: ""
+                        avatar_url:
+                          type: string
+                          example: https://pingpong.ma/static/7h3_Yosef.png
+                        status:
+                          type: string
+                          example: ON
+                        created_at:
+                          type: string
+                          format: date-time
+                          example: 2025-03-22T21:22:46.164Z
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid parameters
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/friends/search:
+    get:
+      tags:
+        - friendship
+      summary: Search friends
+      security:
+        - bearerAuth: []
+      operationId: searchFriends
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 10
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 0
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+                - blocked
+                - pending
+                - online
+                - offline
+                - in-game
+            example: ON
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      format: int64
+                      example: 2
+                    username:
+                      type: string
+                      example: "7h3_Yosef"
+                    first_name:
+                      type: string
+                      example: "7h3"
+                    last_name:
+                      type: string
+                      example: "Yosef"
+                    bio:
+                      type: string
+                      example: ""
+                    avatar_url:
+                      type: string
+                      format: uri
+                      example: "https://pingpong.ma/static/7h3_Yosef.png"
+                    status:
+                      type: string
+                      example: "ON"
+                    created_at:
+                      type: string
+                      format: date-time
+                      example: "2025-03-22T21:22:46.164Z"
+        '400':
+          description: Invalid status
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: Invalid status
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  /api/2fa/enable:
+    post:
+      tags:
+        - 2fa
+      summary: Enable 2FA
+      security:
+        - bearerAuth: []
+      operationId: enable2FA
+      responses:
+        '200':
+          description: 2FA enabled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+                    example: KRQTELROGAVHMMK2JREGY5J6KVKWGOB2LY7D4TKRFZFEEOTIKFGA
+                  qr:
+                    type: string
+                    example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAAAklEQVR4AewaftIAAAc5SURBVO3BQY4kR3AAQffE/P/Lrr0pdCmg0D1LMhVm9gdrXeKw1kUOa13ksNZFDmtd5LDWRQ5rXeSw1kUOa13ksNZFDmtd5LDWRQ5rXeSw1kUOa13ksNZFfviQyt9U8UTlmyo+oTJVfELlScUTlScVk8rfVPGJw1oXOax1kcNaF/nhyyq+SeUTFZPKk4pJZap4ovJNKk8q/qaKb1L5psNaFzmsdZHDWhf54ZepvFHxhspU8UbFJ1Smik+o/KaKSeUTKm9U/KbDWhc5rHWRw1oX+WH9HypTxaQyVUwqU8UbFZPKE5X1vw5rXeSw1kUOa13kh/9nKp5UvKHyhsqTijcqJpWp4onKTQ5rXeSw1kUOa13kh19W8W+mMlU8qZhU3qiYVCaVJxWTylTxROWbKv5NDmtd5LDWRQ5rXeSHL1P5N1GZKt5QmSqeVEwqU8WTiknlEypTxaTyhsq/2WGtixzWushhrY
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/2fa/verify:
+    post:
+      tags:
+        - 2fa
+      summary: Verify 2FA
+      security:
+        - bearerAuth: []
+      operationId: verify2FA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  example: "378866"
+      responses:
+        '200':
+          description: 2FA verification result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpYXQiOjE3NDI0ODEyMzIsImV4cCI6MTc0MjQ5OTIzMn0.b4iUF9JrsemsYy2-TU66TF4wQVHVKz_vdkpy4wfvDo4WWio_GwLe8thxy0o16j-XSrhQRljA_-tGftpm6NkGf5KJVWok03iSaAjKe3KVTwzm8iVE0cIZzgcbEkjMvtqDR8O7ho8Pmfwo-7jfHPLASmbMtyfmh_FhLvTSzSysIfTJPRArI1HmoyEs8xpmJeM1NthlzxIfz6UTXLCyggeuat34IVGq6wq2wolrpv5bVIKQpsquVHzjjRFKyJtcfufRHf196qtcoJ6Ap_21VQE-qfyXXjANbb6mpki0evTMIClTs1WtNlxsFRxguRqJhtUfCWXA54HTcUVe__B594MKWg
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verified:
+                    type: boolean
+                    example: false
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/2fa/is-enable:
+    get:
+      tags:
+        - 2fa
+      summary: Check if 2FA is enabled
+      security:
+        - bearerAuth: []
+      operationId: is2FAEnabled
+      responses:
+        '200':
+          description: 2FA status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  two_fa:
+                    type: boolean
+                    example: true
+                  secret:
+                    type: string
+                    example: EMWDATSSI5TUSUCJLY7F4ZRZGJHF46ZUKQQSYKLTGJCFCXJJKZ4Q
+                  qr:
+                    type: string
+                    example: data:image/png;base64,iVBORw0KGgoa
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+  /api/2fa/disable:
+    delete:
+      tags:
+        - 2fa
+      summary: Disable 2FA
+      security:
+        - bearerAuth: []
+      operationId: disable2FA
+      responses:
+        '200':
+          description: 2FA disabled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 2FA disabled
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 2FA is not enabled
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  /api/tournament/:
+    post:
+      tags:
+        - tournaments
+      summary: Create a new tournament
+      description: |
+        Creates a new tournament with the specified name, nickname, and number of players. The number of players must be one of the allowed values (4, 8, or 16).
+      operationId: createTournament
+      requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tournament_name:
+                    type: string
+                    description: Name of the tournament.
+                    example: tournament_1
+                  nickname:
+                    type: string
+                    description: Nickname of the tournament owner.
+                    example: 7h3
+                  players_number:
+                    type: integer
+                    description: Number of players in the tournament (must be 4, 8, or 16).
+                    example: 16
+                required:
+                  - tournament_name
+                  - nickname
+                  - players_number
+      responses:
+          '201':
+            description: Tournament created successfully.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    owner_id:
+                      type: integer
+                      description: ID of the tournament owner.
+                      example: 22
+                    tournament_name:
+                      type: string
+                      description: Name of the tournament.
+                      example: tournament_1
+                    players_number:
+                      type: integer
+                      description: Number of players in the tournament.
+                      example: 16
+                    id:
+                      type: integer
+                      description: ID of the created tournament.
+                      example: 6
+          '400':
+            description: Invalid number of players.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      example: You can only create a tournament with 4, 8, or 16 players.
+  /api/tournament/{tournament_id}:
+    delete:
+      tags:
+        - tournaments
+      summary: Delete a tournament
+      description: Deletes a tournament by its ID.
+      operationId: deleteTournament
+      parameters:
+        - name: tournament_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Tournament deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Tournament deleted successfully
+        '404':
+          description: Tournament not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Tournament not found
+        '400':
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid id
+
+
+
+    get:
+      tags:
+        - tournaments
+      summary: Get tournament by ID
+      description: |
+        Returns tournament details by ID.
+        The `settings` and `invite_link` fields are only visible to the tournament owner.
+      operationId: getTournamentById
+      parameters:
+        - name: tournament_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Tournament details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 2
+                  name:
+                    type: string
+                    example: tour
+                  owner:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 23
+                      username:
+                        type: string
+                        example: 7h3_Yosef
+                      first_name:
+                        type: string
+                        example: 7h3
+                      last_name:
+                        type: string
+                        example: Yosef
+                      bio:
+                        type: string
+                        example: ""
+                      avatar_url:
+                        type: string
+                        example: https://localhost/static/0eff9deb89ff9399.webp
+                      status:
+                        type: string
+                        example: ON
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: 2025-05-08T07:35:25.732Z
+                  settings:
+                    type: object
+                    description: Only present if you are the owner
+                    properties:
+                      code:
+                        type: integer
+                        example: 8204
+                  invite_link:
+                    type: string
+                    description: Only present if you are the owner
+                    example: http://localhost:3001/api/tournament/2/join?code=8204
+                  total_places:
+                    type: integer
+                    example: 4
+                  total_players:
+                    type: integer
+                    example: 4
+                  status:
+                    type: string
+                    example: COMPLETE
+                  created_at:
+                    type: string
+                    example: 2025-05-13 09:06:27
+        '404':
+          description: Tournament not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: tournament not found
+        '400':
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid id
+
+
+
+  /api/tournament/list:
+    get:
+      tags:
+        - tournaments
+      summary: List all tournaments
+      description: Returns a list of all tournaments with their details.
+      operationId: listTournaments
+      responses:
+        '200':
+          description: List of tournaments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 12
+                    name:
+                      type: string
+                      example: t1212
+                    owner:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        username:
+                          type: string
+                          example: ybouchma
+                        first_name:
+                          type: string
+                          example: Youssef
+                        last_name:
+                          type: string
+                          example: Bouchmama
+                        bio:
+                          type: string
+                          example: ""
+                        avatar_url:
+                          type: string
+                          example: https://pingpong.ma/profile_images/ybouchma.jpg
+                        status:
+                          type: string
+                          example: ON
+                        created_at:
+                          type: string
+                          format: date-time
+                          example: 2025-03-18T21:34:29.780Z
+                    total_places:
+                      type: integer
+                      example: 4
+                    total_players:
+                      type: integer
+                      example: 1
+                    status:
+                      type: string
+                      example: CREATED
+                    created_at:
+                      type: string
+                      example: 2025-03-24 15:36:09
+  /api/tournament/{tournament_id}/join:
+    post:
+      tags:
+        - tournaments
+      summary: Join a tournament
+      description: Join a tournament by ID and code.
+      operationId: joinTournament
+      parameters:
+        - name: tournament_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "1234"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nickname:
+                  type: string
+                  example: 7h3
+      responses:
+        '200':
+          description: Successfully joined the tournament
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: joined
+        '400':
+          description: Wrong code
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: wrong code
+        '404':
+          description: Tournament not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: tournament not found
+  /api/tournament/{tournament_id}/leave:
+    post:
+      tags:
+        - tournaments
+      summary: Leave a tournament
+      description: Leave a tournament by its ID.
+      operationId: leaveTournament
+      parameters:
+        - name: tournament_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully left the tournament
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: left
+        '400':
+          description: Not joined
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: not joined
+  /api/tournament/{tournament_id}/results:
+    get:
+      tags:
+        - tournaments
+      summary: Get tournament results
+      description: Retrieve the results of a tournament by its ID.
+      operationId: getTournamentResults
+      parameters:
+        - name: tournament_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Tournament results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: tour
+                  first_round:
+                    type: integer
+                    example: 4
+                  players:
+                    type: array
+                    items:
+                      type: integer
+                    example: [23, 3, 8, 26]
+                  status:
+                    type: string
+                    example: FINISHED
+                  rounds:
+                    type: object
+                    properties:
+                      round16:
+                        type: array
+                        items:
+                          type: object
+                        example: []
+                      round8:
+                        type: array
+                        items:
+                          type: object
+                        example: []
+                      round4:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            playerOne:
+                              type: integer
+                              example: 23
+                            playerTwo:
+                              type: integer
+                              example: 3
+                        example:
+                          - playerOne: 23
+                            playerTwo: 3
+                          - playerOne: 8
+                            playerTwo: 26
+                      round2:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            playerOne:
+                              type: integer
+                              example: 3
+                            playerTwo:
+                              type: integer
+                              example: 26
+                        example:
+                          - playerOne: 3
+                            playerTwo: 26
+                      winner:
+                        type: integer
+                        example: 3
+        '404':
+          description: Tournament not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Tournament ID is not exist
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Tournament ID is required
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
