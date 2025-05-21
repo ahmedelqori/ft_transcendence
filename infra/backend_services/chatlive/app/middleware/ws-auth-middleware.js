@@ -3,22 +3,19 @@ import { Agent } from 'https';
 
 export default async function wsAuth(req, reply) {
   const token = req.query.token;
-  const DOMAIN = process.env.DOMAIN ;
   if (!token) {
     return reply.code(401).send({ message: 'Token missing in URL' });
   }
   try {
-    const response = await axios.get(`${DOMAIN}/api/account/whoami/`, {
+    
+    const response = await axios.get(`${process.env.WHOAMI_URL}`, {
       headers: { 
         Authorization: `Bearer ${token}` 
-      },
-      httpsAgent: new Agent({ 
-        rejectUnauthorized: false // Dev only - remove in production
-      })
+      }
     });
 
     if (response.status !== 200) {
-        console.log('2  Auth error:',err);
+        // console.log('2  Auth error:',err);
       return reply.code(401).send({ message: 'Invalid token' });
     }
 
@@ -26,7 +23,37 @@ export default async function wsAuth(req, reply) {
     req.user = response.data;
     
   } catch (err) {
-    console.log('Auth error:',err);
+    // console.log('Auth error:',err);
     return reply.code(401).send({ message: 'Token verification failed' });
   }
 }
+
+// export default async function wsAuth(req, reply) {
+//   const token = req.query.token;
+//   const DOMAIN = process.env.DOMAIN ;
+//   if (!token) {
+//     return reply.code(401).send({ message: 'Token missing in URL' });
+//   }
+//   try {
+//     const response = await axios.get(`${DOMAIN}/api/account/whoami/`, {
+//       headers: { 
+//         Authorization: `Bearer ${token}` 
+//       },
+//       httpsAgent: new Agent({ 
+//         rejectUnauthorized: false // Dev only - remove in production
+//       })
+//     });
+
+//     if (response.status !== 200) {
+//         console.log('2  Auth error:',err);
+//       return reply.code(401).send({ message: 'Invalid token' });
+//     }
+
+//     // 3. Attach user data to request
+//     req.user = response.data;
+    
+//   } catch (err) {
+//     console.log('Auth error:',err);
+//     return reply.code(401).send({ message: 'Token verification failed' });
+//   }
+// }

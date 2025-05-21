@@ -96,7 +96,7 @@ const get_oauth2_urls = (provider) => {
             token_url: 'https://api.intra.42.fr/oauth/token',
             userinfo_url: 'https://api.intra.42.fr/v2/me',
             client_id: `${secrets.ORIGIN_42}`,
-            client_secret: `${process.env.SOCIAL_AUTH_42_OAUTH2_SECRET}`,
+            client_secret: `${secrets.SECRET_42}`,
         }
     }
     else if (provider == 'google') {
@@ -104,7 +104,7 @@ const get_oauth2_urls = (provider) => {
             token_url: 'https://oauth2.googleapis.com/token',
             userinfo_url: 'https://www.googleapis.com/oauth2/v1/userinfo',
             client_id: `${secrets.ORIGIN_GOOGLE}`,
-            client_secret: `${process.env.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET}`
+            client_secret: `${secrets.SECRET_GOOGLE}`
         }
     }
     else{

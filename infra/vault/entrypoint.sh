@@ -13,6 +13,11 @@ do
     sleep 1
 done
 
+if [ -f /vault/data/init.txt ]; then
+        echo "Found old /vault/data/init.txt. Removing it..."
+        rm -f /vault/data/init.txt
+fi
+
 echo "__________________Checking if Vault is already initialized__________________"
 if ! vault status -format=json | grep -q '"initialized": true'; then
     echo "__________________Initializing Vault...__________________"

@@ -17,6 +17,7 @@ fullrebuild: fclean up
 
 ps:
 	$(CMD) ps -a
+	
 
 logs:
 	$(CMD) logs -f $(c)
@@ -28,6 +29,7 @@ clean:
 	$(CMD) down --rmi all
 
 fclean: down
+	echo -n "" > infra/.temp.env
 	$(CMD) down --rmi all -v --remove-orphans
 	docker system prune -af
 	docker volume prune -f

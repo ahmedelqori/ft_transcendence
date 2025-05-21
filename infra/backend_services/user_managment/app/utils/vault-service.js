@@ -94,6 +94,8 @@ export async function loadSecrets()
         { key: 'ORIGIN_S2S', path: 'secret/data/oauth/S2S',field: 'ORIGIN' },
         { key: 'ORIGIN_GOOGLE', path: 'secret/data/oauth/google', field: 'SOCIAL_AUTH_GOOGLE_OAUTH2_KEY' },
         { key: 'ORIGIN_42', path: 'secret/data/oauth/42',   field: 'SOCIAL_AUTH_42_OAUTH2_KEY' },
+        { key: 'SECRET_GOOGLE', path: 'secret/data/oauth/google', field: 'SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET' },
+        { key: 'SECRET_42', path: 'secret/data/oauth/42',   field: 'SOCIAL_AUTH_42_OAUTH2_SECRET' },
         { key: 'JWT_PRIVATE', path: 'secret/data/jwt/private', field: 'jwt_private_key' },
         { key: 'JWT_PUBLIC', path: 'secret/data/jwt/public', field: 'jwt_public_key' },
     ];
