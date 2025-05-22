@@ -41,7 +41,6 @@ const LeaderBoardInterface = defineComponent<void>({
             class: [
               "w-full",
               "flex-1",
-              "overflow-y-auto",
               "flex",
               "flex-col",
               "gap-4",
@@ -49,6 +48,7 @@ const LeaderBoardInterface = defineComponent<void>({
               "justify-start",
               "overflow-scroll",
               "overflow-x-hidden",
+              "overflow-y-auto",
               "[&::-webkit-scrollbar]:w-1",
               "[&::-webkit-scrollbar-track]:rounded-full",
               "[&::-webkit-scrollbar-track]:bg-gray-100",

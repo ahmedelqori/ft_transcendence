@@ -1,4 +1,5 @@
 import enhancedFetch from "@/Hooks/fetch.js";
+import { router } from "@/router/Router";
 import {
   createElement,
   createFragment,
@@ -12,38 +13,52 @@ interface ProfileInterfaceProps {
 }
 
 interface ProfileInterfaceState {
+  id: number;
   avatar: any;
   isLoading: boolean;
   createdAt: string | null;
   found: boolean;
   animationComplete: boolean;
+  gameWin: number;
+  gameLose: number;
+  scoreDiffrence: number;
 }
 const ProfileInterface = defineComponent<
   ProfileInterfaceState,
   ProfileInterfaceProps
 >({
   async onMounted(
-    this: IComponent<ProfileInterfaceState, ProfileInterfaceProps>
+    this: IComponent<ProfileInterfaceState, ProfileInterfaceProps> & {
+      extractData: (data: any) => void;
+    }
   ) {
     try {
       document.title = this.props.username;
       const res = await enhancedFetch.fetch(
         `https://www.meedivo.me/api/account/${this.props.username}`
       );
-      if (!res.ok) {
-        throw res;
-      }
+      if (!res.ok) throw res;
+
       const user = await res.json();
+
+      const response = await enhancedFetch.fetch(
+        `http://localhost:3000/api/games/user/${user.id}`,
+        {
+          mode: "no-cors",
+        }
+      );
+      if (!res.ok) throw res;
+      const data = await response.json();
+      this.extractData(data);
+      console.log(this.state);
       const isoDate = user.created_at;
       const date = new Date(isoDate);
-
       const day = date.getUTCDate();
       const month = date.toLocaleString("en-US", {
         month: "short",
         timeZone: "UTC",
       });
       const year = date.getUTCFullYear().toString().slice(-2);
-
       const formattedDate = `${day}-${month}-${year}`;
 
       setTimeout(() => {
@@ -53,6 +68,7 @@ const ProfileInterface = defineComponent<
           isLoading: false,
           createdAt: formattedDate,
           animationComplete: false,
+          id: user.id,
         });
 
         setTimeout(() => {
@@ -69,6 +85,7 @@ const ProfileInterface = defineComponent<
           isLoading: false,
           createdAt: null,
           animationComplete: false,
+          id: -1,
         });
     }
   },
@@ -79,6 +96,10 @@ const ProfileInterface = defineComponent<
       found: false,
       createdAt: null,
       animationComplete: false,
+      gameWin: 0,
+      gameLose: 0,
+      scoreDiffrence: 0,
+      id: -1,
     };
   },
   render(this: IComponent<ProfileInterfaceState, ProfileInterfaceProps>) {
@@ -352,7 +373,7 @@ const ProfileInterface = defineComponent<
                                 "self-end",
                               ],
                             },
-                            ["4000/8000xp"]
+                            [`${this.state.scoreDiffrence}/10000xp`]
                           ),
                           createElement(
                             "div",
@@ -377,7 +398,10 @@ const ProfileInterface = defineComponent<
                                 ],
                                 style: {
                                   width: this.state.animationComplete
-                                    ? "50%"
+                                    ? `${
+                                        (this.state.scoreDiffrence / 10000) *
+                                        100
+                                      }%`
                                     : "0%",
                                   transitionDelay: "600ms",
                                 },
@@ -445,7 +469,7 @@ const ProfileInterface = defineComponent<
                                   "font-bold",
                                 ],
                               },
-                              ["27"]
+                              [`${this.state.gameWin}`]
                             ),
                             createElement(
                               "p",
@@ -494,7 +518,7 @@ const ProfileInterface = defineComponent<
                                   "font-bold",
                                 ],
                               },
-                              ["9"]
+                              [`${this.state.gameLose}`]
                             ),
                             createElement(
                               "p",
@@ -637,6 +661,29 @@ const ProfileInterface = defineComponent<
       ]
     );
   },
+  extractData(
+    this: IComponent<ProfileInterfaceState, ProfileInterfaceProps>,
+    arr: any
+  ) {
+    // XP = baseXP + (winXP * gameWin) - (lossPenalty * gameLose) + (scoreBonus * scoreDifference)
+
+    let winnerGames: number = 0;
+    let loseGames: number = 0;
+    let currentXp: number = 0;
+    arr.map((e: any) => {
+      e.winnerId === this.state.id ? winnerGames++ : loseGames++;
+      currentXp +=
+        e.playerOneId == this.state.id
+          ? e.playerOneScore - e.playerTwoScore
+          : e.playerTwoScore - e.playerOneScore;
+    });
+    const xp = 50 * winnerGames - 20 * loseGames + 2 * currentXp;
+    this.updateState({
+      gameWin: winnerGames,
+      gameLose: loseGames,
+      scoreDiffrence: xp >= 0 ? xp : 0,
+    });
+  },
 });
 
 const style = document.createElement("style");
@@ -660,3 +707,13 @@ style.innerHTML = `
 document.head.appendChild(style);
 
 export default ProfileInterface;
+// endedAt: "2025-04-30T13:40:26.841Z";
+// id: 154;
+// playerOneId: 1;
+// playerOneScore: 7;
+// playerTwoId: 2;
+// playerTwoScore: 10;
+// startedAt: "2025-04-21T14:04:42.280Z";
+// status: "FINISHED";
+// tournementId: 0;
+// winnerId: 2;

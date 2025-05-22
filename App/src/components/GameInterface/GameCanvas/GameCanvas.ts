@@ -11,14 +11,11 @@ import {
 } from "@/services/socket-manager.js";
 import { GameRenderer } from "../GameRenderer.js";
 import { CanvasManager } from "@/services/canvas-manager.js";
-import { WaitingConfigurationOverlay } from "../GameOverlays/WaitingConfigurationOverlay.js";
 
 interface GameCanvasProps {
   gameState: GameState | null;
   gameConfig: GameConfig | null;
   socketManager: SocketManager | null;
-  user: any,
-  friendName: string,
 }
 
 interface GameCanvasState {
@@ -31,7 +28,6 @@ interface GameCanvasState {
     mouseMove: ((e: MouseEvent) => void) | null;
     contextMenu: ((e: Event) => void) | null;
   };
-  showOverlay: boolean
 }
 
 interface GameCanvasMethods {
@@ -58,8 +54,7 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
         keyUp: null,
         mouseMove: null,
         contextMenu: null
-      },
-      showOverlay: true
+      }
     };
   },
 
@@ -81,14 +76,9 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     window.addEventListener("keydown", keyDownHandler);
     window.addEventListener("keyup", keyUpHandler);    
     this.startKeyboardControlLoop();    
-    // setTimeout(() => {
+    setTimeout(() => {
       this.setupCanvasEventListeners();
-    // }, 10000);
-    if (this.props.gameConfig) {
-      setTimeout(() => {
-        this.updateState({ showOverlay: false });
-      }, 2000);
-    }
+    }, 300);
   },
 
   setupCanvasEventListeners(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods) {
@@ -99,13 +89,12 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
       console.log("[GameCanvas] Canvas element found, adding mouse event listeners");
       canvas.addEventListener("contextmenu", boundHandlers.contextMenu);
       canvas.addEventListener("mousemove", boundHandlers.mouseMove);
-    } 
-    // else {
-    //   console.log("[GameCanvas] Canvas element not available yet, will retry");
-    //   setTimeout(() => {
-    //     this.setupCanvasEventListeners();
-    //   }, 300);
-    // }
+    } else {
+      console.log("[GameCanvas] Canvas element not available yet, will retry");
+      setTimeout(() => {
+        this.setupCanvasEventListeners();
+      }, 300);
+    }
   },
 
   onUnmounted(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods) {
@@ -307,24 +296,45 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
   },
 
   render(this: IComponent<GameCanvasState, GameCanvasProps>) {
-    const { gameState, gameConfig, user, friendName } = this.props;
-
+    const { gameState, gameConfig } = this.props;
+    
     if (!gameConfig) {
       return createElement(
-        WaitingConfigurationOverlay,
-        { visible: true },
-        []
+        "div", {
+          class: [
+            "relative", 
+            "w-full",
+            "h-full",
+            "flex",
+            "items-center",
+            "justify-center",
+            "rounded-lg",
+            "border-2",
+            "border-[#878787]",
+            "border-opacity-[30%]",
+            "bg-black",
+            "bg-opacity-10",
+          ]
+        },
+        [
+          createElement(
+            "div",
+            {
+              class: ["text-center", "text-[var(--light-grey)]", "text-lg"]
+            },
+            ["Waiting for game configuration..."]
+          )
+        ]
       );
     }
+    
     return createElement(
       "div", {
         class: [
           "relative", 
-          "z-10", 
           "flex",
-          "flex-col",
-          // "items-center",
-          // "justify-center",
+          "items-center",
+          "justify-center",
           "w-full",
           "h-full",
           "overflow-hidden",
@@ -335,73 +345,6 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
           margin: "0 auto"
         }
       }, [
-        createElement(
-          "div",
-          {
-            class: [
-              "flex",
-              "flex-row",
-              "justify-between",
-              // "items-center",
-              "w-full",
-              // "mb-2",
-              // "px-8",
-              "text-2xl",
-              "font-bold",
-              "text-gray-400",
-              "tracking-wide"
-            ],
-            style: {
-              gap: "0"
-            }
-          },
-          [
-            createElement(
-              "span",
-              {
-                class: ["flex", "flex-row", "items-center"],
-                style: { gap: "0px" }
-              },
-              [
-                createElement("img", {
-                  src: user.avatar_url,
-                  class: [
-                    "w-[60px]",
-                    "h-[60px]",
-                    "rounded-[50%]",
-                    "max-lg:h-[30px]",
-                    "max-lg:w-[30px]",
-                  ],
-                  style: { marginRight: "0px" }
-                }),
-                createElement("span", { style: { marginLeft: "10px" } }, [user.username || "You"])
-              ]
-            ),
-            createElement("span", { style: { opacity: "0.5" } }, ["vs"]),
-            createElement(
-              "span",
-              {
-                class: ["flex", "flex-row", "items-center"],
-                style: { gap: "0px" }
-              },
-              [
-                createElement("span", { style: { marginRight: "10px" } }, [friendName || "Friend"]),
-                createElement("img", {
-                  src: "/assets/default.webp",
-                  class: [
-                    "w-[60px]",
-                    "h-[60px]",
-                    "rounded-[50%]",
-                    "max-lg:h-[30px]",
-                    "max-lg:w-[30px]",
-                  ],
-                  style: { marginLeft: "0px" }
-                }),
-              ]
-            ),
-          ]
-        ),
-
         createElement(GameRenderer, { 
           gameState, 
           gameConfig: gameConfig

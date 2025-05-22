@@ -30,8 +30,6 @@ import { CountdownOverlay } from "./GameOverlays/CountdownOverlay.js";
 
 interface GameInterfaceProps {
   localSocketManager?: SocketManager;
-  user: any;
-  friendName?: string;
 }
 
 interface GameInterfaceState {
@@ -612,6 +610,7 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       countdownValue,
       playerPosition,
     } = this.state;
+
     console.log("[GameInterface] Render with state:", {
       isConnected,
       playerPosition,
@@ -639,7 +638,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
         },
       },
       [
-
         createElement(WaitingConfigurationOverlay, {
           visible: showWaitingConfigOverlay,
         }),
@@ -692,12 +690,11 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
             !showCountdownOverlay,
           onResume: () => this.togglePauseResume(),
         }),
+
         createElement(GameCanvas, {
           gameState,
           gameConfig: gameConfig,
           socketManager: socketManager,
-          user: this.props.user,
-          friendName: this.props.friendName,
         }),
       ]
     );
@@ -708,7 +705,7 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
         class: [
           "flex",
           "flex-col",
-          "gap-0",
+          "gap-2",
           "w-full",
           "border-2",
           "py-3",
@@ -728,10 +725,11 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       [
         createElement(GameControls, {
           isConnected,
-          gameState: gameState,
+          gameState: gameState || ({} as GameState),
           onPause: () => this.togglePauseResume(),
           onCancel: () => this.cancelGame(),
         }),
+
         gameCanvasWithOverlays,
       ]
     );

@@ -237,6 +237,18 @@ export const GameRenderer = defineComponent<
             "bg-opacity-10",
           ],
         },
+        [
+          createElement(
+            "div",
+            {
+              class: ["text-center", "text-[var(--light-grey)]", "text-lg"],
+              style: {
+                fontFamily: "'Poppins', sans-serif",
+              },
+            },
+            ["Waiting for game configuration..."]
+          ),
+        ]
       );
     }
 

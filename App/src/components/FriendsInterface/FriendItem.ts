@@ -6,6 +6,8 @@ import {
 
 interface FriendItemProps {
   username: string;
+  avatar: string;
+  id: number;
 }
 interface FriendItemState {
   isLoading: boolean;
@@ -31,7 +33,7 @@ const FriendItem = defineComponent<FriendItemState, FriendItemProps>({
               "h-full",
               "border-2",
               "rounded-2xl",
-              "border-gray-300",
+              "border-[#878787]",
               "border-opacity-30",
               "animate-pulse",
               "flex",
@@ -47,8 +49,8 @@ const FriendItem = defineComponent<FriendItemState, FriendItemProps>({
           [
             createElement("div", {
               class: [
-                "bg-gray-200",
-                "dark:bg-gray-700",
+                "bg-[#878787]",
+                "bg-opacity-30",
                 "rounded-full",
                 "w-16",
                 "h-16",
@@ -57,8 +59,8 @@ const FriendItem = defineComponent<FriendItemState, FriendItemProps>({
             }),
             createElement("div", {
               class: [
-                "bg-gray-200",
-                "dark:bg-gray-700",
+                "bg-[#878787]",
+                "bg-opacity-30",
                 "rounded-md",
                 "h-4",
                 "w-3/4",
@@ -79,8 +81,7 @@ const FriendItem = defineComponent<FriendItemState, FriendItemProps>({
               "justify-center",
               "border-2",
               "rounded-2xl",
-              "border-gray-300",
-              "dark:border-gray-700",
+              "border-[#878787]",
               "border-opacity-30",
               "relative",
               "py-6",
@@ -100,16 +101,15 @@ const FriendItem = defineComponent<FriendItemState, FriendItemProps>({
               },
               [
                 createElement("img", {
-                  src: "assets/relhamma.png",
+                  src: this.props.avatar,
                   alt: this.props.username,
                   class: [
                     "rounded-full",
-                    "w-16",
-                    "h-16",
+                    "w-20",
+                    "h-20",
                     "object-cover",
                     "border-2",
-                    "border-gray-100",
-                    "dark:border-gray-800",
+                    "border-[#878787]",
                     "hover:scale-110",
                     "transition-transform",
                     "duration-200",
@@ -118,18 +118,18 @@ const FriendItem = defineComponent<FriendItemState, FriendItemProps>({
               ]
             ),
             createElement(
-              "div", 
-              { 
+              "div",
+              {
                 class: [
-                  "w-full", 
-                  "text-center", 
-                  "font-medium", 
-                  "text-gray-800", 
+                  "w-full",
+                  "text-center",
+                  "font-medium",
+                  "text-gray-800",
                   "dark:text-gray-200",
                   "truncate",
-                  "px-2"
-                ] 
-              }, 
+                  "px-2",
+                ],
+              },
               [`@${this.props.username}`]
             ),
             createElement(

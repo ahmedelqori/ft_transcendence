@@ -21,7 +21,7 @@ const Profile = defineComponent<ProfileState>({
         "https://www.meedivo.me/api/account/whoami/"
       );
       const data = await res.json();
-      const username = data.username;;
+      const username = (router.getParams as any).username;
       this.updateState({ username, whoami: data.username, isLoading: false });
     } catch (err) {
       console.log(err);
