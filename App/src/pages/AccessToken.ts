@@ -18,6 +18,7 @@ const AccessToken = defineComponent({
         },
       });
 
+      if (res.status === 401) throw "Unauthorized";
       const data = await res.json();
       localStorage.setItem("access_token", data.access_token);
       const response = await enhancedFetch.fetch(

@@ -9,7 +9,6 @@ const Settings = defineComponent<void>({
   },
   state() {},
   render() {
-    console.log(authState.getState());
     return createElement(
       "main",
       {

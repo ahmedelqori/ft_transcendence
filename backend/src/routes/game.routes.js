@@ -4,11 +4,10 @@ import {
   createGame, 
   updateGame,
   cancelGame,
-  acceptGameInvitation,
   deleteGame,
-  declineGameInvitation,
   getUserGames
 } from "../controllers/game.controller.js";
+import {acceptGameInvitation, declineGameInvitation} from "../controllers/createGame.utils.js"
 import { authenticate } from "../middlewares/auth.middleware.js";
 
 const idSchema = {
@@ -70,7 +69,7 @@ export const websocketRouteSchema = {
 };
 
 export const gameRoutes = function(fastify, options, done) {
-  fastify.addHook('preHandler', authenticate);
+  // fastify.addHook('preHandler', authenticate);
   fastify.get('/', {
     schema: {
       tags: ['games'],
@@ -137,7 +136,6 @@ export const gameRoutes = function(fastify, options, done) {
       description: 'Creates a new game with specified players',
       body: {
         type: 'object',
-        required: ['playerOneId'],
         properties: {
           playerOneId: { 
             type: 'integer',

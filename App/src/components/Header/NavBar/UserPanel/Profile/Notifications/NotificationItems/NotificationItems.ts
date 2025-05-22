@@ -1,16 +1,38 @@
 import {
   createElement,
+  createFragment,
   defineComponent,
+  eventBus,
   type IComponent,
 } from "@/uccello/Uccello.js";
+import FriendRequestNotif from "./FriendRequestNotif";
+import enhancedFetch from "@/Hooks/fetch";
 
-interface NotificationItemsProps {
-  listItems: any[];
+interface NotificationItemsState {
+  Notifications: any[];
 }
 
-const NotificationItems = defineComponent<void, NotificationItemsProps>({
-  state() {},
-  render(this: IComponent<void, NotificationItemsProps>) {
+const NotificationItems = defineComponent<NotificationItemsState>({
+  async onMounted(this: IComponent<NotificationItemsState>) {
+    try {
+      // const res = await enhancedFetch.fetch(
+      //   "https://www.meedivo.me/api/notif/"
+      // );
+      // const data = await res.json();
+      // this.updateState({ Notifications: data.result });
+      // console.log(data);
+    } catch (err) {}
+    eventBus.on("add:notif", (data: any) => {
+      console.log(this.state.Notifications);
+      this.updateState({
+        Notifications: [...this.state.Notifications, { data }],
+      });
+    });
+  },
+  state() {
+    return { Notifications: [] };
+  },
+  render(this: IComponent<NotificationItemsState>) {
     return createElement(
       "div",
       {
@@ -32,58 +54,25 @@ const NotificationItems = defineComponent<void, NotificationItemsProps>({
           "dark:[&::-webkit-scrollbar-thumb]:bg-opacity-[70%]",
         ],
       },
-      this.props.listItems.map((e) => {
-        return createElement("div", { class: ["flex-row", "gap-[20px]"] }, [
-          createElement("img", {
-            src: e.avatar,
-            class: ["w-[40px]", "rounded-full"],
-          }),
-          createElement("div", { class: ["mr-auto", "items-start"] }, [
-            createElement("p", { class: ["text-[14px]"] }, [e.username]),
-            e.sendRequest
-              ? createElement(
-                  "span",
-                  { class: ["text-[var(--light-grey)]", "text-[10px]"] },
-                  ["Send Request"]
-                )
-              : null,
-          ]),
-          createElement("div", { class: ["flex-row", "gap-2"] }, [
-            createElement(
-              "button",
-              {
-                class: [
-                  "rounded-[16px]",
-                  "bg-[var(--light-yellow)]",
-                  "text-[var(--dark-black)]",
-                  "px-2",
-                  "py-1",
-                  "text-[10px]",
-                  "font-medium",
-                  "hover:scale-[104%]",
-                ],
-              },
-              ["Accept"]
-            ),
-            createElement(
-              "button",
-              {
-                class: [
-                  "rounded-[16px]",
-                  "bg-[var(--red-color)]",
-                  "text-[var(--dark-black)]",
-                  "text-[10px]",
-                  "px-2",
-                  "py-1",
-                  "font-medium",
-                  "hover:scale-[104%]",
-                ],
-              },
-              ["Decline"]
-            ),
-          ]),
-        ]);
-      })
+      !this.state.Notifications.length
+        ? [
+            createElement("div", {}, [
+              "You’re all caught up! 🎉 There are no new notifications at the moment.",
+            ]),
+          ]
+        : this.state.Notifications.map((e: any) => {
+            console.log(e);
+            const info = e.data;
+            switch (info.type) {
+              case "friendRequest":
+                return createElement(FriendRequestNotif, {
+                  username: info.data.username,
+                  id: info.data.id,
+                  avatar: info.data.avatar,
+                });
+            }
+            return createFragment([]);
+          })
     );
   },
 });

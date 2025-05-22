@@ -3,13 +3,10 @@ import {
   defineComponent,
   type IComponent,
 } from "@/uccello/Uccello.js";
-import FloatNotification from "./FloatNotification/FloatNotification.js";
 import NotificationItems from "./NotificationItems/NotificationItems.js";
 
 interface NotificationsState {
   showNotification: boolean;
-  notifications: any[];
-  newNotification: string | null;
 }
 
 const Notifications = defineComponent<NotificationsState>({
@@ -19,41 +16,8 @@ const Notifications = defineComponent<NotificationsState>({
       handleClickOutSide: (e: MouseEvent) => void;
     }
   ) {
-    // const socket = new WebSocket("ws://localhost:3002");
     this.handleClickOutSide = this.handleClickOutSide.bind(this);
     document.addEventListener("mousedown", this.handleClickOutSide);
-    // socket.addEventListener("message", ({ data }) => {
-    //   if (this.state.showNotification) {
-    //     this.updateState({
-    //       notifications: [
-    //         {
-    //           avatar: "assets/afanidi.png",
-    //           username: data,
-    //           sendRequest: true,
-    //         },
-    //         ...this.state.notifications,
-    //       ],
-    //       newNotification: null,
-    //     });
-    //   } else {
-    //     this.updateState({ newNotification: data });
-    //     this.updateState({ showNotification: true }),
-    //       setTimeout(() => {
-    //         this.updateState({
-    //           notifications: [
-    //             {
-    //               avatar: "assets/afanidi.png",
-    //               username: data,
-    //               sendRequest: true,
-    //             },
-    //             ...this.state.notifications,
-    //           ],
-    //           newNotification: null,
-    //           showNotification: false,
-    //         });
-    //       }, 3000);
-    //   }
-    // });
   },
 
   onUnmounted(
@@ -69,23 +33,6 @@ const Notifications = defineComponent<NotificationsState>({
     return {
       newNotification: null,
       showNotification: false,
-      notifications: [
-        {
-          avatar: "assets/afanidi.png",
-          username: "afanidi",
-          sendRequest: true,
-        },
-        {
-          avatar: "assets/afanidi.png",
-          username: "afanidi",
-          sendRequest: true,
-        },
-        {
-          avatar: "assets/afanidi.png",
-          username: "afanidi",
-          sendRequest: true,
-        },
-      ],
     };
   },
 
@@ -118,20 +65,20 @@ const Notifications = defineComponent<NotificationsState>({
                 "text-[1.5rem]",
                 "text-[#878787]",
                 "relative",
-                `after:content-["${
-                  this.state.notifications.length > 9
-                    ? "+9"
-                    : this.state.notifications.length
-                }"]`,
-                "after:absolute",
-                "after:w-fit",
-                "after:h-fit",
-                "after:p-2",
-                "after:rounded-full",
-                "after:right-[-22px]",
-                "after:top-[-18px]",
-                "after:text-[10px]",
-                "after:bg-[#ddf247]",
+                // `after:content-["${
+                //   this.state.notifications.length > 9
+                //     ? "+9"
+                //     : this.state.notifications.length
+                // }"]`,
+                // "after:absolute",
+                // "after:w-fit",
+                // "after:h-fit",
+                // "after:p-2",
+                // "after:rounded-full",
+                // "after:right-[-22px]",
+                // "after:top-[-18px]",
+                // "after:text-[10px]",
+                // "after:bg-[#ddf247]",
               ],
             }),
           ]
@@ -160,17 +107,7 @@ const Notifications = defineComponent<NotificationsState>({
                   "justify-center",
                 ],
               },
-              [
-                this.state.notifications.length && !this.state.newNotification
-                  ? createElement(NotificationItems, {
-                      listItems: this.state.notifications,
-                    })
-                  : this.state.newNotification
-                  ? createElement(FloatNotification)
-                  : !this.state.notifications.length
-                  ? "You're all caught up! 🎉 There are no new notifications at the moment."
-                  : null,
-              ]
+              [createElement(NotificationItems)]
             )
           : null,
       ]
@@ -178,22 +115,9 @@ const Notifications = defineComponent<NotificationsState>({
   },
 
   handleShowNotification(this: IComponent<NotificationsState>, e: MouseEvent) {
-    if (this.state.newNotification) {
-      this.updateState({
-        // notifications: [
-        //   {
-        //     avatar: "../../../../../../../../public/assets/afanidi.png",
-        //     username: this.state.newNotification,
-        //     sendRequest: true,
-        //   },
-        //   ...this.state.notifications,
-        // ],
-        newNotification: null,
-      });
-    } else
-      this.updateState({
-        showNotification: !this.state.showNotification,
-      });
+    this.updateState({
+      showNotification: !this.state.showNotification,
+    });
   },
 
   handleClickOutSide(this: IComponent<NotificationsState>, e: MouseEvent) {
@@ -201,7 +125,7 @@ const Notifications = defineComponent<NotificationsState>({
       console.error("Component state is undefined");
       return;
     }
-    if (this.state.showNotification && !this.state.newNotification) {
+    if (this.state.showNotification) {
       const element = this.getHtmlElement;
       if (element && !element.contains(e.target as Node)) {
         this.updateState({

@@ -165,6 +165,7 @@ export class SocketManager {
       }
 
       let wsUrl: string;
+      // wsUrl = `wss://www.meedivo.me/api/game/ws/local/${this.gameId}`;
 
       if (this.isLocal) {
         wsUrl = `ws://127.0.0.1:3000/ws/local/${this.gameId}`;

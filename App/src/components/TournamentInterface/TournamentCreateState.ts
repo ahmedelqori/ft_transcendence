@@ -7,6 +7,12 @@ interface TournamentCreateStateSt {
 }
 interface TournamentCreateStateProps {
   setState: (state: string) => void;
+  setData: (
+    state: string,
+    number: number,
+    nickName: string,
+    title: string
+  ) => void;
 }
 
 const TournamentCreateState = defineComponent<
@@ -22,7 +28,6 @@ const TournamentCreateState = defineComponent<
   render(
     this: IComponent<TournamentCreateStateSt, TournamentCreateStateProps>
   ) {
-    console.log(this.state);
     return createElement("div", { class: ["h-full", "w-full"] }, [
       createElement(
         "div",
@@ -229,6 +234,16 @@ const TournamentCreateState = defineComponent<
                 "text-lg",
                 "text-center",
               ],
+              on: {
+                click: () => {
+                  this.props.setData(
+                    "bracket",
+                    this.state.number,
+                    this.state.nickName,
+                    this.state.title
+                  );
+                },
+              },
             },
             ["Create"]
           ),

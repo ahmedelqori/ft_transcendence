@@ -13,11 +13,14 @@ import {
 } from "@/uccello/Uccello.js";
 import { authState } from "@/Hooks/Auth";
 import Toast from "@/components/Toast/Toast";
-import notifSystem from "@/Hooks/Notif";
+import handleErrors from "./Hooks/Errors";
+import NotifSystem from "@/Hooks/Notif";
 
 const ROOT = document.getElementById("root");
 
-notifSystem;
+handleErrors;
+
+var NotifWatcher: NotifSystem | null = null;
 
 interface AppState {
   isLoggedIn: boolean | null;
@@ -31,12 +34,21 @@ const App = defineComponent<AppState>({
   ) {
     eventBus.on("auth:logout", () => {
       this.updateState({ isLoggedIn: false });
+      if (NotifWatcher) {
+        NotifWatcher.destroy();
+        NotifWatcher = null;
+      }
     });
     authState.subscribe((state) => {
-      if (state.isAuthenticated && !this.state.isLoggedIn)
+      if (state.isAuthenticated && !this.state.isLoggedIn) {
         this.updateState({ isLoggedIn: true });
-      else if (!state.isAuthenticated && this.state.isLoggedIn) {
+        NotifWatcher = new NotifSystem();
+      } else if (!state.isAuthenticated && this.state.isLoggedIn) {
         this.updateState({ isLoggedIn: false });
+        if (NotifWatcher) {
+          NotifWatcher.destroy();
+          NotifWatcher = null;
+        }
       }
     });
   },
@@ -87,7 +99,7 @@ const App = defineComponent<AppState>({
           ]
         ),
         this.state.isLoggedIn === false ? createElement(Footer) : null,
-        this.state.isLoggedIn ? createElement(Toast) : null,
+        authState.getState().isAuthenticated ? createElement(Toast) : null,
       ]
     );
   },

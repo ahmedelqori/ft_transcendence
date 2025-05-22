@@ -79,7 +79,7 @@ fastify.register(setupLocalWebSocketHandlers, {
 });
 
 const start = async function() {
-  const port = process.env.PORT || 3001;
+  const port = process.env.PORT || 3000;
   try {
     fastify.listen({ port, host: "0.0.0.0" });
     fastify.log.info(`Documentation available at http://localhost:${port}/docs`);

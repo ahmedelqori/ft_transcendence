@@ -1,7 +1,7 @@
 import { createElement, defineComponent } from "@/uccello/Uccello.js";
 import EditAvatar from "./EditAvatar/EditAvatar.js";
 import EditGeneralInfo from "./EditGeneralInfo/EditGeneralInfo.js";
-import EditInfo from "./EditInfo/EditInfo.js";
+import EditSecurity from "./EditInfo/EditInfo.js";
 
 const SettingsInteface = defineComponent<void>({
   state() {},
@@ -38,7 +38,7 @@ const SettingsInteface = defineComponent<void>({
           [
             createElement(EditAvatar),
             createElement(EditGeneralInfo),
-            createElement(EditInfo),
+            createElement(EditSecurity),
           ]
         ),
       ]

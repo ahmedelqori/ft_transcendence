@@ -1,4 +1,5 @@
 import enhancedFetch from "@/Hooks/fetch";
+import { router } from "@/router/Router";
 import {
   createElement,
   createFragment,
@@ -17,11 +18,33 @@ interface RequestReceivedParams {
   id: number;
 }
 
+interface DirectMessageParams {
+  username: string;
+  avatar: string;
+  id: number;
+}
+
 const Toast = defineComponent<ToastState>({
   onMounted(this: IComponent<ToastState>) {
     eventBus.on("notif:requestReceived", (data: RequestReceivedParams) => {
       this.updateState({
         NotifComponent: createElement(FriendRequest, {
+          avatar: data.avatar,
+          username: data.username,
+          id: data.id,
+        }),
+      });
+      setTimeout(() => {
+        eventBus.emit("add:notif", { type: "friendRequest", data });
+        this.updateState({ NotifComponent: null });
+      }, 6000);
+    });
+    eventBus.on("reset:notif", () => {
+      this.updateState({ NotifComponent: null });
+    });
+    eventBus.emit("notif:directMessage", (data: DirectMessageParams) => {
+      this.updateState({
+        NotifComponent: createElement(DirectMessage, {
           avatar: data.avatar,
           username: data.username,
           id: data.id,
@@ -58,6 +81,36 @@ const Toast = defineComponent<ToastState>({
   },
 });
 
+// =================================================================== //
+interface DirectMessageProps {
+  avatar: any;
+  username: string;
+  id: number;
+}
+const DirectMessage = defineComponent<void, DirectMessageProps>({
+  render(this: IComponent<void, FriendRequestProps>) {
+    return createElement("div", { class: ["flex-row", "gap-[20px]"] }, [
+      createElement("img", {
+        width: "40px",
+        height: "40px",
+        src: this.props.avatar || "/assets/default.webp",
+        class: ["w-[40px]", "h-[40px]", "rounded-full"],
+      }),
+      createElement("div", { class: ["mr-auto", "items-start"] }, [
+        createElement("p", { class: ["text-xs"] }, [
+          this.props.username || "unknown",
+        ]),
+        createElement(
+          "span",
+          { class: ["text-[var(--light-grey)]", "text-[10px]"] },
+          ["Send Request"]
+        ),
+      ]),
+    ]);
+  },
+});
+
+// =================================================================== //
 interface FriendRequestProps {
   avatar: any;
   username: string;
@@ -75,12 +128,18 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
       createElement("img", {
         width: "40px",
         height: "40px",
-        src: this.props.avatar || "/assets/afanidi.png",
+        src: this.props.avatar || "/assets/default.webp",
         class: ["w-[40px]", "h-[40px]", "rounded-full"],
+        on: {
+          click: () => {
+            router.navigateTo(`/profile/${this.props.username}`);
+            eventBus.emit("reset:notif");
+          },
+        },
       }),
       createElement("div", { class: ["mr-auto", "items-start"] }, [
         createElement("p", { class: ["text-xs"] }, [
-          this.props.username || "afanidi",
+          this.props.username || "unknown",
         ]),
         createElement(
           "span",
@@ -136,6 +195,8 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
         `https://www.meedivo.me/api/friends/${this.props.id}/request/accept`,
         { method: "POST" }
       );
+      eventBus.emit("update:friends");
+      eventBus.emit("reset:notif");
     } catch (err) {
       console.log(err);
     }
@@ -147,6 +208,7 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
         `https://www.meedivo.me/api/friends/${this.props.id}/request/reject`,
         { method: "POST" }
       );
+      eventBus.emit("reset:notif");
     } catch (err) {
       console.log(err);
     }
