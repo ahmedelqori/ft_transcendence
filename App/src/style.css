@@ -31,6 +31,7 @@ body {
   overflow-x: hidden;
 }
 
+
 #root::before {
   top: -400px;
   left: 300px;

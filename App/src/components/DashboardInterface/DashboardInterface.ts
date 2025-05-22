@@ -83,20 +83,19 @@ const DashboardInterface = defineComponent<IDashboardInterface>({
                       "div",
                       {
                         style: {
-                          "clip-path": "polygon(0 0, 95% 0, 45% 100%, 0% 100%)",
-                          "background-image": 'url("/assets/random.webp")',
-                          "background-position": "center",
-                          "background-repeat": "no-repeat",
-                          "background-size": "cover",
+                          "clip-path": "polygon(0 0, 95% 0, 85% 100%, 0% 100%)",
                         },
                         class: [
-                          "w-1/3",
+                          "w-2/5",
                           "h-full",
                           "absolute",
                           "top-0",
                           "left-0",
                           "rounded-tl-[30px]",
                           "rounded-bl-[30px]",
+                          "border-2",
+                          "border-[#878787]",
+                          "border-opacity-[30%]",
                           "cursor-pointer",
                           this.state.hoverCards[0] ||
                           this.state.hoverCards.indexOf(1) === -1
@@ -121,17 +120,16 @@ const DashboardInterface = defineComponent<IDashboardInterface>({
                           "clip-path":
                             "polygon(25% 0%, 100% 0%, 75% 100%, 0% 100%)",
                           transform: "translate(-50%, -50%)",
-                          "background-image": 'url("/assets/tournament.webp")',
-                          "background-position": "center",
-                          "background-repeat": "no-repeat",
-                          "background-size": "cover",
                         },
                         class: [
-                          "w-2/3",
+                          "w-1/5",
                           "h-full",
                           "absolute",
                           "top-[50%]",
                           "left-[50%]",
+                          "border-2",
+                          "border-[#878787]",
+                          "border-opacity-[30%]",
                           "cursor-pointer",
                           this.state.hoverCards[1] ||
                           this.state.hoverCards.indexOf(1) === -1
@@ -148,43 +146,25 @@ const DashboardInterface = defineComponent<IDashboardInterface>({
                           },
                         },
                       },
-                      [
-                        createElement(
-                          "div",
-                          {
-                            class: [
-                              "w-full",
-                              "whitespace-nowrap",
-                              "bg-[var(--light-yellow)]",
-                              "text-black",
-                              "max-h-6",
-                              "pl-[50%]",
-                            ],
-                          },
-                          [
-                            "The international tournament, which brought together elite competitors from around the world",
-                          ]
-                        ),
-                      ]
+                      []
                     ),
                     createElement(
                       "div",
                       {
                         style: {
                           "clip-path":
-                            " polygon(55% 0, 100% 0, 100% 100%, 5% 100%)",
-                          "background-image": 'url("/assets/offline.webp")',
-                          "background-position": "center",
-                          "background-repeat": "no-repeat",
-                          "background-size": "cover",
+                            " polygon(15% 0, 100% 0, 100% 100%, 5% 100%)",
                         },
                         class: [
-                          "w-1/3",
+                          "w-2/5",
                           "h-full",
                           "absolute",
                           "right-0",
                           "rounded-tr-[30px]",
                           "rounded-br-[30px]",
+                          "border-2",
+                          "border-[#878787]",
+                          "border-opacity-[30%]",
                           "cursor-pointer",
                           this.state.hoverCards[2] ||
                           this.state.hoverCards.indexOf(1) === -1
