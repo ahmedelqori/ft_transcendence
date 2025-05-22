@@ -35,6 +35,7 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
     this: IComponent<FriendInfoBarState, FriendInfoBarProps> & {
       handleUnfriendButton: () => Promise<void>;
       handleBlockButton: () => Promise<void>;
+      handlePlayButton: () => Promise<void>;
     }
   ) {
     return createElement(
@@ -102,6 +103,9 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
                 "hover:border-[#ddf247]",
                 "hover:text-[#ddf247]",
               ],
+              on: {
+                click: () => this.handlePlayButton(),
+              },
             },
             [
               createElement(
@@ -251,6 +255,21 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
       eventBus.emit("update:friends");
       eventBus.emit("remove:friend");
     } catch (err) {}
+  },
+  async handlePlayButton(
+    this: IComponent<FriendInfoBarState, FriendInfoBarProps>
+  ) {
+    try {
+      await enhancedFetch.fetch(`http://localhost:3000/api/games`, {
+        method: "POST",
+        body: JSON.stringify({ playerTwoId: this.props.friendId }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    } catch (err) {
+      console.log(err);
+    }
   },
 });
 

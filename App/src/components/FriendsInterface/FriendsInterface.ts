@@ -4,6 +4,7 @@ import {
   defineComponent,
 } from "@/uccello/Uccello.js";
 import FriendItem from "./FriendItem.js";
+import enhancedFetch from "@/Hooks/fetch.js";
 
 interface FriendsInterfaceState {
   friends: (string | null)[];
@@ -12,30 +13,21 @@ interface FriendsInterfaceState {
 }
 
 const FriendsInterface = defineComponent<FriendsInterfaceState>({
-  onMounted(this: IComponent<FriendsInterfaceState>) {
+  async onMounted(this: IComponent<FriendsInterfaceState>) {
+    try {
+      const res = await enhancedFetch.fetch(
+        "https://www.meedivo.me/api/friends/"
+      );
+      const data = await res.json();
+      this.updateState({ friends: data });
+    } catch (err) {}
     this.updateState({
       totalPages: Math.ceil(this.state.friends.length / 9),
     });
   },
   state() {
     return {
-      friends: [
-        "sajaite",
-        "ael-qori",
-        "afanidi",
-        "ybouchma",
-        "relhamma",
-        "zibnoukh",
-        "baarif",
-        "aes-arg",
-        "mbentahi",
-        "user10",
-        "user11",
-        "user12",
-        "user13",
-        "user14",
-        "user15",
-      ],
+      friends: [],
       currentPage: 0,
       totalPages: 1,
     };
@@ -92,26 +84,52 @@ const FriendsInterface = defineComponent<FriendsInterfaceState>({
             ],
             onScroll: this.handleScroll,
           },
-          pages.map((pageUsers) =>
-            createElement(
-              "div",
-              {
-                class: [
-                  "grid",
-                  "grid-cols-3",
-                  "grid-rows-3",
-                  "gap-4",
-                  "w-full",
-                  "h-full",
-                  "flex-shrink-0",
-                  "snap-center",
-                ],
-              },
-              pageUsers.map((username) =>
-                createElement(FriendItem, { username })
+          pages.length === 0
+            ? [
+                createElement(
+                  "div",
+                  {
+                    class: [
+                      "flex",
+                      "flex-col",
+                      "items-center",
+                      "gap-2",
+                      "my-auto",
+                    ],
+                  },
+                  [
+                    createElement(
+                      "span",
+                      { class: ["text-gray-500", "text-lg", "italic"] },
+                      ["No friends yet"]
+                    ),
+                  ]
+                ),
+              ]
+            : pages.map((pageUsers) =>
+                createElement(
+                  "div",
+                  {
+                    class: [
+                      "grid",
+                      "grid-cols-3",
+                      "grid-rows-3",
+                      "gap-4",
+                      "w-full",
+                      "h-full",
+                      "flex-shrink-0",
+                      "snap-center",
+                    ],
+                  },
+                  pageUsers.map((e: any) =>
+                    createElement(FriendItem, {
+                      username: e.username,
+                      avatar: e.avatar_url,
+                      id: e.id,
+                    })
+                  )
+                )
               )
-            )
-          )
         ),
         createElement("div", {
           class: [

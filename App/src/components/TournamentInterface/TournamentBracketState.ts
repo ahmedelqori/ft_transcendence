@@ -1,5 +1,5 @@
 import { createElement, defineComponent, IComponent } from "@/uccello/Uccello";
-import TournamentBracketFour from "./TournamentBracketFour";
+import TournamentBracket from "./TournamentBracket";
 interface TournamentBracketStateProps {
   number: number;
   nickName: string;
@@ -11,7 +11,7 @@ const TournamentBracketState = defineComponent<
 >({
   render(this: IComponent<void, TournamentBracketStateProps>) {
     return createElement("div", { class: ["w-full", "h-full"] }, [
-      createElement(TournamentBracketFour),
+      createElement(TournamentBracket, { number: this.props.number }),
     ]);
   },
 });

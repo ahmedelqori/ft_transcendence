@@ -31,6 +31,7 @@ const AccessToken = defineComponent({
           username: userdata.username,
           id: userdata.id,
           avatar: userdata.avatar_url,
+          createdAt: userdata.created_at,
         },
       });
       router.navigateTo("/dashboard");
