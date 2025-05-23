@@ -117,7 +117,7 @@ export class SocketManager {
   private socket: WebSocket | null = null;
   private isConnected: boolean = false;
   private gameId: string = "";
-  private userId: string = "";
+  private user: any = null;
   private playerPosition: string = "";
   private gameState: GameState = {
     state: GameStates.START,
@@ -140,31 +140,25 @@ export class SocketManager {
     onReconnect: [],
   };
 
-  /**
-   * Initialize the socket manager with game ID and user ID
-   */
-  init(gameId: string, userId: string): SocketManager {
+  init(gameId: string, user: any): SocketManager {
     console.log(
-      `[SocketManager] Initializing for game ${gameId}, user ${userId}`
+      `[SocketManager] Initializing for game ${gameId}, user ${user.id}`
     );
     this.gameId = gameId;
-    this.userId = userId;
+    this.user = user;
     return this;
   }
 
-  /**
-   * Connect to WebSocket server
-   */
   connect(): Promise<{ message: string }> {
     return new Promise((resolve, reject) => {
-      if (!this.gameId || !this.userId) {
+      if (!this.gameId || !this.user?.id) {
         console.error(
           "[SocketManager] Cannot connect: Missing gameId or userId"
         );
         return reject(new Error("Missing gameId or userId"));
       }
 
-      let wsUrl: string;
+      let wsUrl;
       if (this.isLocal) {
         wsUrl = `ws://127.0.0.1:3000/ws/local/${this.gameId}`;
         console.log("[SocketManager] Connecting to local game:", wsUrl);
@@ -173,14 +167,6 @@ export class SocketManager {
         wsUrl = `ws://127.0.0.1:3000/ws/game/${this.gameId}?token=${token}`;
         console.log("[SocketManager] Connecting to online game:", wsUrl);
       }
-      // if (this.isLocal) {
-      //   wsUrl = `ws://localhost:3000/api/game/ws/local/${this.gameId}`;
-      //   console.log("[SocketManager] Connecting to local game:", wsUrl);
-      // } else {
-      //   const token = `Bearer ${localStorage.getItem("access_token")}`;
-      //   wsUrl = `ws://localhost:3000/ws/game/${this.gameId}?token=${token}`;
-      //   console.log("[SocketManager] Connecting to online game:", wsUrl);
-      // }
 
       this.socket = new WebSocket(wsUrl);
 
@@ -226,9 +212,6 @@ export class SocketManager {
     });
   }
 
-  /**
-   * Disconnect from WebSocket server
-   */
   disconnect(): void {
     if (this.socket) {
       console.log("[SocketManager] Disconnecting from server");
@@ -236,9 +219,6 @@ export class SocketManager {
     }
   }
 
-  /**
-   * Send message to WebSocket server
-   */
   sendMessage(message: any): boolean {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       console.log("[SocketManager] Sending message:", message.type);
@@ -249,25 +229,17 @@ export class SocketManager {
     return false;
   }
 
-  /**
-   * Join an online game
-   */
+
   joinGame(): boolean {
     console.log("[SocketManager] Joining game");
     return this.sendMessage({ type: "joinGame" });
   }
 
-  /**
-   * Start a local game
-   */
   startOfflineGame(): boolean {
     console.log("[SocketManager] Starting offline game");
     return this.sendMessage({ type: "startOfflineGame" });
   }
 
-  /**
-   * Move paddle in local game
-   */
   sendOfflinePaddleMove(position: number, side: "left" | "right"): boolean {
     if (this.isLocal) {
       if (side === "left") {
@@ -276,7 +248,6 @@ export class SocketManager {
         this.gameState.paddles.right = position;
       }
     }
-
     return this.sendMessage({
       type: "offlinePaddleMove",
       position: position,
@@ -284,16 +255,13 @@ export class SocketManager {
     });
   }
 
-  /**
-   * Move paddle in online game
-   */
   sendPaddleMove(position: number): boolean {
-    if (this.isLocal) {
-      const normalizedPosition = Math.max(0, Math.min(100, position));
-      let side: "left" | "right" =
-        (this.playerPosition as "left" | "right") || "left";
-      return this.sendOfflinePaddleMove(normalizedPosition, side);
-    }
+    // if (this.isLocal) {
+    //   const normalizedPosition = Math.max(0, Math.min(100, position));
+    //   let side: "left" | "right" =
+    //     (this.playerPosition as "left" | "right") || "left";
+    //   return this.sendOfflinePaddleMove(normalizedPosition, side);
+    // }
 
     if (this.playerPosition) {
       if (this.playerPosition === "left") {
@@ -483,7 +451,7 @@ export class SocketManager {
           });
           break;
 
-        case "gameFinished":
+                case "gameFinished":
           this.gameState = message.data.gameState;
           console.log(
             `[SocketManager] Game finished. Winner: ${this.gameState.winner}`

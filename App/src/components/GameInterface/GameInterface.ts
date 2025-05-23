@@ -29,7 +29,7 @@ import { WaitingOpponentOverlay } from "./GameOverlays/WaitingOpponentOverlay.js
 import { CountdownOverlay } from "./GameOverlays/CountdownOverlay.js";
 
 interface GameInterfaceProps {
-  localSocketManager?: SocketManager;
+  isLocal?: boolean;
 }
 
 interface GameInterfaceState {
@@ -39,7 +39,7 @@ interface GameInterfaceState {
   playerPosition: string | null;
   isConnected: boolean;
   socketEventHandlers: Record<string, Function>;
-  beforeUnloadHandler: ((ev: BeforeUnloadEvent) => void) | null;
+  // beforeUnloadHandler: ((ev: BeforeUnloadEvent) => void) | null;
 
   showPausedOverlay: boolean;
   showVictoryOverlay: boolean;
@@ -65,8 +65,9 @@ interface GameInterfaceMethods {
   cancelGame(): void;
   handlePlayAgain(): void;
   startCountdown(seconds: number): void;
-  setupOnlineGame(providedGameId?: string): Promise<void>;
-  setupLocalGame(socketManager: SocketManager): void;
+  setupOnlineGame(): Promise<void>;
+  setupLocalGame(): Promise<void>;
+  setupGame(gameId: string, isLocal: boolean): Promise<void>;
 }
 
 
@@ -85,7 +86,7 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       playerPosition: null,
       isConnected: false,
       socketEventHandlers: {},
-      beforeUnloadHandler: null,
+      // beforeUnloadHandler: null,
 
       showPausedOverlay: false,
       showVictoryOverlay: false,
@@ -108,135 +109,72 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       GameInterfaceMethods
   ) {
     console.log("[GameInterface] Component mounted");
-
-    if (this.props.localSocketManager) {
-      this.setupLocalGame(this.props.localSocketManager);
-    } else {
+    if (this.props.isLocal)
+      await this.setupLocalGame();
+    else
       await this.setupOnlineGame();
-    }
   },
 
-  setupLocalGame(
+  async setupLocalGame(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
-      GameInterfaceMethods,
-    socketManager: SocketManager
+      GameInterfaceMethods
   ) {
     console.log("[GameInterface] Setting up local game");
-
-    const handleBeforeUnload = () => {
-      if (socketManager.getIsConnected()) {
-        socketManager.disconnect();
-      }
-    };
-
-    this.updateState({
-      socketManager,
-      beforeUnloadHandler: handleBeforeUnload,
-    });
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    this.setupSocketListeners();
-
-    socketManager
-      .connect()
-      .then(() => {
-        console.log(
-          "[GameInterface] Local connection established, starting game"
-        );
-        socketManager.startOfflineGame();
-      })
-      .catch((error) => {
-        console.error(
-          `[GameInterface] Local game connection failed: ${error.message}`
-        );
-      });
+    try {
+      await this.setupGame(`local_${Date.now()}`, true);
+    } catch (error) {
+      console.error(`[GameInterface] Local game connection failed: ${error}`);
+    }
   },
 
   async setupOnlineGame(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
-      GameInterfaceMethods,
-    providedGameId?: string
+      GameInterfaceMethods
   ) {
     console.log("[GameInterface] Setting up online game");
-
     const router = this.getAppContext?.router;
-    const gameIdFromUrl = extractNumericId(router?.getParams?.gameId);
-    const gameId = providedGameId || gameIdFromUrl;
-
+    const gameId = extractNumericId(router?.getParams?.gameId);
     if (!gameId) {
       console.error("[GameInterface] Missing game ID in URL");
       return;
     }
-
-    let userId;
+    try {
+      await this.setupGame(gameId, false);
+    } catch (err) {
+      console.error("[GameInterface] Failed to get user info:", err);
+    }
+  },
+  async setupGame(
+    this: IComponent<GameInterfaceState, GameInterfaceProps> &
+      GameInterfaceMethods,
+    gameId: string,
+    isLocal: boolean
+  ): Promise<void> {
     try {
       const response = await enhancedFetch.fetch(
         "https://www.meedivo.me/api/account/whoami/"
       );
+      const user = await response.json();      
+      const socketManager = new SocketManager();
+      socketManager.init(gameId, user);
+      socketManager.setLocalGameMode(isLocal);
 
-      if (!response.ok) {
-        throw new Error(`Failed to get user info: ${response.statusText}`);
+      this.updateState({
+        socketManager,
+        showWaitingConfigOverlay: true
+      });
+      this.setupSocketListeners();
+      await socketManager.connect();
+      console.log(`[GameInterface] ${isLocal ? "Local" : "Online"} connection established`);      
+      if (isLocal) {
+        socketManager.startOfflineGame();
       }
-
-      const user = await response.json();
-      userId = user.id;
-      console.log(`[GameInterface] User authenticated: ${userId}`);
-    } catch (err) {
-      console.error("[GameInterface] Failed to get user info:", err);
-      return;
+    } catch (error) {
+      console.error(`[GameInterface] ${isLocal ? "Local" : "Online"} connection failed: ${error}`);
+      throw error;
     }
-
-    if (!userId) {
-      console.error("[GameInterface] Missing user ID");
-      return;
-    }
-
-    const socketManager = new SocketManager();
-    socketManager.init(gameId, userId);
-
-    const handleBeforeUnload = () => {
-      if (socketManager.getIsConnected()) {
-        socketManager.disconnect();
-      }
-    };
-
-    this.updateState({
-      socketManager,
-      beforeUnloadHandler: handleBeforeUnload,
-      showWaitingConfigOverlay: true,
-    });
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    window.addEventListener("popstate", handleBeforeUnload);
-
-    this.setupSocketListeners();
-    this.connectToGame();
   },
 
-  onUnmounted(
-    this: IComponent<GameInterfaceState, GameInterfaceProps> &
-      GameInterfaceMethods
-  ) {
-    console.log("[GameInterface] Component unmounting");
-    const { socketManager, beforeUnloadHandler, countdownTimerId } = this.state;
-
-    if (socketManager?.getIsConnected()) {
-      console.log("[GameInterface] Disconnecting socket on unmount");
-      socketManager.disconnect();
-    }
-
-    this.removeSocketListeners();
-
-    if (beforeUnloadHandler) {
-      window.removeEventListener("beforeunload", beforeUnloadHandler);
-      window.removeEventListener("popstate", beforeUnloadHandler);
-    }
-
-    if (countdownTimerId !== null) {
-      clearInterval(countdownTimerId);
-    }
-  },
 
   setupSocketListeners(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
@@ -463,7 +401,7 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     });
   },
 
-  connectToGame(
+  async connectToGame(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods
   ) {
@@ -479,14 +417,12 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     }
 
     console.log("[GameInterface] Connecting to game server");
-    socketManager
-      .connect()
-      .then(() => {
-        console.log("[GameInterface] Connection successful");
-      })
-      .catch((error) => {
-        console.error(`[GameInterface] Connection failed: ${error.message}`);
-      });
+    try {
+      await socketManager.connect();
+      console.log("[GameInterface] Connection successful");
+    } catch (error) {
+      console.error(`[GameInterface] Connection failed: ${error}`);
+    }
   },
 
   disconnectFromGame(
@@ -733,6 +669,30 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
         gameCanvasWithOverlays,
       ]
     );
+  },
+  onUnmounted(
+    this: IComponent<GameInterfaceState, GameInterfaceProps> &
+      GameInterfaceMethods
+  ) {
+    console.log("[GameInterface] Component unmounting");
+    const { socketManager, countdownTimerId } = this.state;
+    // const {beforeUnloadHandler} = this.state
+
+    if (socketManager?.getIsConnected()) {
+      console.log("[GameInterface] Disconnecting socket on unmount");
+      socketManager.disconnect();
+    }
+
+    this.removeSocketListeners();
+
+    // if (beforeUnloadHandler) {
+    //   window.removeEventListener("beforeunload", beforeUnloadHandler);
+    //   window.removeEventListener("popstate", beforeUnloadHandler);
+    // }
+
+    if (countdownTimerId !== null) {
+      clearInterval(countdownTimerId);
+    }
   },
 });
 

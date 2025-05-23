@@ -25,14 +25,14 @@ interface GameCanvasState {
   boundHandlers: {
     keyDown: ((e: KeyboardEvent) => void) | null;
     keyUp: ((e: KeyboardEvent) => void) | null;
-    mouseMove: ((e: MouseEvent) => void) | null;
+    // mouseMove: ((e: MouseEvent) => void) | null;
     contextMenu: ((e: Event) => void) | null;
   };
 }
 
 interface GameCanvasMethods {
   findCanvasElement(): HTMLCanvasElement | null;
-  handleMouseMove(e: MouseEvent): void;
+  // handleMouseMove(e: MouseEvent): void;
   handleKeyDown(e: KeyboardEvent): void;
   handleKeyUp(e: KeyboardEvent): void;
   handleContextMenu(e: Event): void;
@@ -52,7 +52,7 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
       boundHandlers: {
         keyDown: null,
         keyUp: null,
-        mouseMove: null,
+        // mouseMove: null,
         contextMenu: null
       }
     };
@@ -62,14 +62,14 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     console.log("[GameCanvas] Component mounted");    
     const keyDownHandler = this.handleKeyDown.bind(this);
     const keyUpHandler = this.handleKeyUp.bind(this);
-    const mouseMoveHandler = this.handleMouseMove.bind(this);
+    // const mouseMoveHandler = this.handleMouseMove.bind(this);
     const contextMenuHandler = this.handleContextMenu.bind(this);
     
     this.updateState({
       boundHandlers: {
         keyDown: keyDownHandler,
         keyUp: keyUpHandler,
-        mouseMove: mouseMoveHandler,
+        // mouseMove: mouseMoveHandler,
         contextMenu: contextMenuHandler
       }
     });    
@@ -84,11 +84,12 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
   setupCanvasEventListeners(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods) {
     const { boundHandlers } = this.state;
     const canvas = this.findCanvasElement();
-    
-    if (canvas && boundHandlers.mouseMove && boundHandlers.contextMenu) {
+    // if (canvas && boundHandlers.mouseMove && boundHandlers.contextMenu) {
+
+    if (canvas && boundHandlers.contextMenu) {
       console.log("[GameCanvas] Canvas element found, adding mouse event listeners");
       canvas.addEventListener("contextmenu", boundHandlers.contextMenu);
-      canvas.addEventListener("mousemove", boundHandlers.mouseMove);
+      // canvas.addEventListener("mousemove", boundHandlers.mouseMove);
     } else {
       console.log("[GameCanvas] Canvas element not available yet, will retry");
       setTimeout(() => {
@@ -121,9 +122,9 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     
     const gameCanvas = this.findCanvasElement();
     if (gameCanvas) {
-      if (boundHandlers.mouseMove) {
-        gameCanvas.removeEventListener("mousemove", boundHandlers.mouseMove);
-      }
+      // if (boundHandlers.mouseMove) {
+      //   gameCanvas.removeEventListener("mousemove", boundHandlers.mouseMove);
+      // }
       
       if (boundHandlers.contextMenu) {
         gameCanvas.removeEventListener("contextmenu", boundHandlers.contextMenu);
@@ -139,23 +140,23 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     e.preventDefault();
   },
 
-  handleMouseMove(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods, e: MouseEvent) {
-    const { socketManager, gameState } = this.props;
+  // handleMouseMove(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods, e: MouseEvent) {
+  //   const { socketManager, gameState } = this.props;
     
-    if (socketManager?.isLocalGame()) return;
-    if (!socketManager || 
-        !gameState || 
-        gameState.state !== GameStates.IN_PLAY) {
-      return;
-    }
-    const canvas = e.target as HTMLCanvasElement;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    const paddlePos = Math.max(0, Math.min(100, y));
-    console.log(`[GameCanvas] Mouse move: paddle position ${paddlePos.toFixed(1)}`);
-    socketManager.sendPaddleMove(paddlePos);
-  },
+  //   if (socketManager?.isLocalGame()) return;
+  //   if (!socketManager || 
+  //       !gameState || 
+  //       gameState.state !== GameStates.IN_PLAY) {
+  //     return;
+  //   }
+  //   const canvas = e.target as HTMLCanvasElement;
+  //   if (!canvas) return;
+  //   const rect = canvas.getBoundingClientRect();
+  //   const y = ((e.clientY - rect.top) / rect.height) * 100;
+  //   const paddlePos = Math.max(0, Math.min(100, y));
+  //   console.log(`[GameCanvas] Mouse move: paddle position ${paddlePos.toFixed(1)}`);
+  //   socketManager.sendPaddleMove(paddlePos);
+  // },
 
   handleKeyDown(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods, e: KeyboardEvent) {
     const { socketManager } = this.props;

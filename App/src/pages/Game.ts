@@ -1,9 +1,9 @@
 import GameInterface from "@/components/GameInterface/GameInterface.js";
 import { createElement, defineComponent, type IComponent, eventBus } from "@/uccello/Uccello.js";
 
-interface GameState {
-  isLoading: boolean;
-}
+// interface GameState {
+//   isLoading: boolean;
+// }
 const Game = defineComponent<void>({
   state(): void {},
   onMounted(this: IComponent<void>) {
