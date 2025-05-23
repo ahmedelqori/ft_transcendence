@@ -1,6 +1,7 @@
 import { tournament, tournament_games, tournament_players } from "../models.js";
 import jwt from 'jsonwebtoken';
-import {secret} from '../server.js';
+import fs from 'fs';
+// import {secret} from '../server.js';
 
 
 const is_authenticated = async (req) => {
@@ -11,7 +12,7 @@ const is_authenticated = async (req) => {
     if (!token) {
         return undefined;
     }
-    const publicKey = secret;
+    const publicKey = fs.readFileSync('./public.pem', 'utf8');
     try {
         const decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] });
         if (decoded) {

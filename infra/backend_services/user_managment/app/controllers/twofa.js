@@ -1,13 +1,13 @@
 import Player from "../models.js";
-import { secrets } from "../server.js";
+// import { secrets } from "../server.js";
 
 
 export default async function twoFA(req, res) {
     
     console.log('req.headers.origin', req.headers.origin);
-    console.log('process.env.ORIGIN', secrets.ORIGIN_S2S);
+    console.log('process.env.ORIGIN', process.env.ORIGIN);
 
-    if (req.headers.origin !== secrets.ORIGIN_S2S) {
+    if (req.headers.origin !== process.env.ORIGIN) {
         res.status(401).send({ message: 'unauthorized' });
         return ;
     };

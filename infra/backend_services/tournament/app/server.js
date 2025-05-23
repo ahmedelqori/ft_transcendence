@@ -5,9 +5,9 @@ import Knex from 'knex'; // query builder (translate js queries to sql queries)
 import knexConfig from './knexfile.cjs'; // knex config
 import { Model } from 'objection'; // ORM build on top of Knex
 import cors from '@fastify/cors'; // to handle CORS
-import { loadSecret } from './utils/vault-service.js'; 
+// import { loadSecret } from './utils/vault-service.js'; 
 
-export const secret = await loadSecret();
+// export const secret = await loadSecret();
 
 const knex = Knex(knexConfig);
 

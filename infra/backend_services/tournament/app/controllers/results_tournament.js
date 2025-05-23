@@ -5,7 +5,7 @@ import { stat } from "fs";
 
 
 export default async function results_tournament(req, res) {
-    // if (req.headers.origin !== secrets.ORIGIN_S2S) {
+    // if (req.headers.origin !== process.env.ORIGIN) {
     //     res.status(401).send({ message: 'unauthorized' });
     //     return ;
     // }

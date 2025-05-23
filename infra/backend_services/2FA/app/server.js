@@ -7,9 +7,9 @@ import knexConfig from './knexfile.cjs'; // knex config
 import { Model } from 'objection'; // ORM build on top of Knex 
 import multipart from '@fastify/multipart'; // to handle file uploads
 import cors from '@fastify/cors'; // to handle CORS
-import { loadSecrets } from './utils/vault-service.js'; 
+// import { loadSecrets } from './utils/vault-service.js'; 
 
-export const secrets = await loadSecrets();
+// export const secrets = await loadSecrets();
 
 const knex = Knex(knexConfig);
 Model.knex(knex);

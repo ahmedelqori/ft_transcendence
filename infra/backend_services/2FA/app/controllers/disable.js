@@ -1,6 +1,6 @@
 import db from '../models.js';
 import axios from 'axios';
-import { secrets } from '../server.js';
+// import { secrets } from '../server.js';
 
 export default async function disable(req, res) {
     if (!req.user.two_FA) {
@@ -19,7 +19,7 @@ export default async function disable(req, res) {
         const r = await axios.post(process.env.TWOFA_URL,{status: false}, {
             headers: {
                 Authorization: req.headers.authorization,
-                origin: secrets.ORIGIN_S2S,
+                origin: process.env.ORIGIN,
             },
         });
         if (r.status !== 200) {

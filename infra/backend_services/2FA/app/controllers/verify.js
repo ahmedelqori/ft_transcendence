@@ -3,7 +3,7 @@ import speakeazy from 'speakeasy';
 import axios from 'axios';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
-import { secrets } from '../server.js';
+// import { secrets } from '../server.js';
 
 export default async function verify(req, res) {
     let { code } = req.body || {};
@@ -39,7 +39,7 @@ export default async function verify(req, res) {
             const r = await axios.post(process.env.TWOFA_URL,{status: true}, {
                 headers: {
                     Authorization: req.headers.authorization,
-                    origin: secrets.ORIGIN_S2S,
+                    origin: process.env.ACCEPTED_ORIGIN,
                 },
             });
             if (r.status !== 200) {
@@ -58,7 +58,7 @@ export default async function verify(req, res) {
             return;
         };
     }else {
-        const privateKey = secrets.JWT_PRIVATE;
+        const privateKey = fs.readFileSync('./private.pem', 'utf8');
         const payload = { user_id: req.user.id };
 
         const jwt_access_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '1h' });

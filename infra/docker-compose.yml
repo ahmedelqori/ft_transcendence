@@ -1,5 +1,5 @@
 volumes:
-  vault_database:
+  # vault_database:
   temp_env:
   user_managment_database:
   profile_images:
@@ -20,22 +20,22 @@ networks:
     driver: bridge
 
 services:
-  vault:
-    image: "vault:app"
-    container_name: vault
-    build: ./vault/.
-    hostname: vault 
-    env_file:
-      - ./.global.env
-    networks:
-      - appNet
-    volumes:
-      - vault_database:/vault/data
-      - temp_env:/home/vault
-    ports:
-      - "8200:8200"
-    cap_add:
-      - IPC_LOCK
+  # vault:
+  #   image: "vault:app"
+  #   container_name: vault
+  #   build: ./vault/.
+  #   hostname: vault 
+  #   env_file:
+  #     - ./.global.env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - vault_database:/vault/data
+  #     - temp_env:/home/vault
+  #   ports:
+  #     - "8200:8200"
+  #   cap_add:
+  #     - IPC_LOCK
     
   nginx-modsecurity:
     image: "nginx-modsecurity:app"
@@ -48,8 +48,6 @@ services:
     restart: always
     volumes:
       - profile_images:/app/profile_images
-    depends_on:
-      - vault
 
 
   user_managment:
@@ -65,8 +63,6 @@ services:
       - profile_images:/app/profile_images
       - user_managment_database:/app
       - temp_env:/app/temp_env
-    depends_on:
-      - vault
 
   2fa:
     build:
@@ -81,7 +77,6 @@ services:
       - 2fa_database:/app/
       - temp_env:/app/temp_env
     depends_on:
-      - vault
       - user_managment
 
   friendship:

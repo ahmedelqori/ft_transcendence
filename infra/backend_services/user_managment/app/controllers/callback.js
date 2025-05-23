@@ -4,7 +4,7 @@ import fs from 'fs';
 import jwt from 'jsonwebtoken'
 import sharp from 'sharp';
 import crypto from 'crypto';
-import {secrets} from '../server.js';
+// import {secrets} from '../server.js';
 
 export default async function callback(req, reply) {
     const state = req.cookies.state;
@@ -65,7 +65,7 @@ export default async function callback(req, reply) {
         return reply.status(500).send({'error': 'Error inserting player'})
     }
 
-    const privateKey = secrets.JWT_PRIVATE;
+    const privateKey = fs.readFileSync('./private.pem', 'utf8');
     
     if (player.two_FA){
         const payload = { unverified_user_id: player.id };
@@ -95,16 +95,16 @@ const get_oauth2_urls = (provider) => {
         return {
             token_url: 'https://api.intra.42.fr/oauth/token',
             userinfo_url: 'https://api.intra.42.fr/v2/me',
-            client_id: `${secrets.ORIGIN_42}`,
-            client_secret: `${secrets.SECRET_42}`,
+            client_id: `${process.env.SOCIAL_AUTH_42_OAUTH2_KEY}`,
+            client_secret: `${process.env.SOCIAL_AUTH_42_OAUTH2_SECRET}`,
         }
     }
     else if (provider == 'google') {
         return {
             token_url: 'https://oauth2.googleapis.com/token',
             userinfo_url: 'https://www.googleapis.com/oauth2/v1/userinfo',
-            client_id: `${secrets.ORIGIN_GOOGLE}`,
-            client_secret: `${secrets.SECRET_GOOGLE}`
+            client_id: `${process.env.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY}`,
+            client_secret: `${process.env.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET}`
         }
     }
     else{

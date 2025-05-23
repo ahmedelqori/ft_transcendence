@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
-import {secrets} from '../server.js';
+import fs from 'fs';
+// import {secrets} from '../server.js';
 
 export default async function refresh(req, res) {
     const refresh_token = req.body.refresh_token;
@@ -8,8 +9,8 @@ export default async function refresh(req, res) {
 
     }
 
-    const privateKey = secrets.JWT_PRIVATE; // here
-    const publicKey = secrets.JWT_PUBLIC; // here
+    const privateKey = fs.readFileSync('./private.pem', 'utf8'); // here
+    const publicKey = fs.readFileSync('./public.pem', 'utf8'); // here
 
     try {
 
