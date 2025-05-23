@@ -1,6 +1,6 @@
 #!/bin/bash
 
-while ! grep -q "WRAPPED_TOKEN_2FA=" /.temp.env; do
+while ! grep -q "WRAPPED_TOKEN_2FA=" /app/temp_env/.temp.env; do
   echo "Waiting for WRAPPED_TOKEN_2FA environment variable to be set..."
   sleep 1
 done

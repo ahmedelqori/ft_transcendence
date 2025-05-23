@@ -1,3 +1,24 @@
+volumes:
+  vault_database:
+  temp_env:
+  user_managment_database:
+  profile_images:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./infra/volumes/profile_images
+      o: bind
+  friendship_database:
+  2fa_database:
+  notification_database:
+  tournament_database:
+  chatlive_database:
+  game_database:
+
+networks:
+  appNet:
+    driver: bridge
+
 services:
   vault:
     image: "vault:app"
@@ -9,13 +30,12 @@ services:
     networks:
       - appNet
     volumes:
-      - vault_database:/vault/
-      - ./.temp.env:/.temp.env
+      - vault_database:/vault/data
+      - temp_env:/home/vault
     ports:
       - "8200:8200"
     cap_add:
       - IPC_LOCK
-    restart: always
     
   nginx-modsecurity:
     image: "nginx-modsecurity:app"
@@ -44,7 +64,7 @@ services:
     volumes:
       - profile_images:/app/profile_images
       - user_managment_database:/app
-      - ./.temp.env:/.temp.env
+      - temp_env:/app/temp_env
     depends_on:
       - vault
 
@@ -59,7 +79,7 @@ services:
       - appNet
     volumes:
       - 2fa_database:/app/
-      - ./.temp.env:/.temp.env
+      - temp_env:/app/temp_env
     depends_on:
       - vault
       - user_managment
@@ -103,7 +123,7 @@ services:
       - appNet
     volumes:
       - tournament_database:/app/
-      - ./.temp.env:/.temp.env
+      - temp_env:/app/temp_env
     depends_on:
       - user_managment
 
@@ -132,71 +152,3 @@ services:
       - game_database:/app/
     depends_on:
       - user_managment
-
-volumes:
-  vault_database:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./infra/volumes/vault_database
-      o: bind
-
-  profile_images:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./infra/volumes/profile_images
-      o: bind
-
-  user_managment_database:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./infra/volumes/user_managment_database
-      o: bind
-
-  friendship_database:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./infra/volumes/friendship_database
-      o: bind
-
-  2fa_database:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./infra/volumes/2fa_database
-      o: bind
-  notification_database:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./infra/volumes/notification_database
-      o: bind
-      
-  tournament_database:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./infra/volumes/tournament_database
-      o: bind
-
-  chatlive_database:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./infra/volumes/chatlive_database
-      o: bind
-
-  game_database:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./infra/volumes/game_database
-      o: bind
-
- 
-networks:
-  appNet:
-    driver: bridge

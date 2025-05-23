@@ -93,7 +93,7 @@ cmds:
         - vault operator generate-root
             -> Enter the unseal keys when prompted. Once the process is complete, you’ll receive a new root token.
         - now we need to decode token 
-  cmd : vault operator generate-root -decode="JyVHFx1LBEAVKg0zHBMBNXwDWRMSDQIPYzktAg" -nonce="df59416e-ade2-65b3-a23d-d510e2d2763b"  -otp="OS49RsGpgdNQtjOe8Q4GPZPc2pWJ"
+  cmd : vault operator generate-root -decode="CU4ZWCUjBXIzCDYtDBlEUElzF2EnLQdTCS5dUg" -nonce="b5578cc7-16ca-f710-2b20-6ff6bd7bf9f3"  -otp="a8jvhoO4gfDakxqgxJC6qWR6sZ13"
   then we get token goood ********************************
   
   then we login with it using this cmd : 

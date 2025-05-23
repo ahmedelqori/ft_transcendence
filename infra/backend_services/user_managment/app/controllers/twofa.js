@@ -7,7 +7,7 @@ export default async function twoFA(req, res) {
     console.log('req.headers.origin', req.headers.origin);
     console.log('process.env.ORIGIN', secrets.ORIGIN_S2S);
 
-    if (req.headers.origin !== secrets.ORIGIN_S2S); {
+    if (req.headers.origin !== secrets.ORIGIN_S2S) {
         res.status(401).send({ message: 'unauthorized' });
         return ;
     };

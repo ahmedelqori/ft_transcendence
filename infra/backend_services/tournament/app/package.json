@@ -20,6 +20,7 @@
     "fastify": "^5.2.1",
     "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",
+    "nodemon": "^3.1.10",
     "objection": "^3.1.5",
     "pino-pretty": "^13.0.0",
     "random": "^5.3.0",

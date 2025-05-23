@@ -1,7 +1,7 @@
 import axios from 'axios';
 import https from 'https';
 import dotenv from 'dotenv';
-dotenv.config({ path: '/.temp.env' });
+dotenv.config({ path: '/app/temp_env/.temp.env' });
 
 
 const config = {
@@ -9,6 +9,7 @@ const config = {
   vaultAddr: process.env.VAULT_ADDR || "https://localhost:8200/",
   wrapToken: process.env.WRAPPED_TOKEN_TOURNAMENT  || '',
   roleId: process.env.ROLE_ID  || '',
+  secretId: process.env.SECRET_ID  || '',
   port: 3000
 };
 
@@ -90,9 +91,9 @@ export async function loadSecret()
     const vault = new VaultService({ vaultAddr: config.vaultAddr });
     let secret = '';
     try {
-        const secretId = await vault.unwrapToken(config.wrapToken);
-        console.log('Unwrapped secretId done!');
-        const token = await vault.login(config.roleId, secretId);
+        // const secretId = await vault.unwrapToken(config.wrapToken);
+        // console.log('Unwrapped secretId done !');
+        const token = await vault.login(config.roleId, config.secretId);
         secret = await getData(vault,'secret/data/jwt/public','jwt_public_key',token);
     }catch (error) {
         console.error('Error:', error.message);

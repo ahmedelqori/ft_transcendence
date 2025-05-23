@@ -54,7 +54,7 @@ if [ -f /vault/data/init.txt ]; then
     #write a new policy
     vault policy write policy /vault/config/policy.hcl
     #create role for this policy (with bound_cidr_list)
-    vault write auth/approle/role/backend token_policies="policy" token_ttl=1h token_max_ttl=4h secret_id_ttl="10m" secret_id_num_uses=1 # Short-lived SecretID
+    vault write auth/approle/role/backend token_policies="policy" token_ttl=1h token_max_ttl=48h secret_id_ttl="10m" secret_id_num_uses=1 # Short-lived SecretID
 
     #store kv
     vault kv put secret/data/oauth/google SOCIAL_AUTH_GOOGLE_OAUTH2_KEY='499739725290-got362gnd4n9n7t6ook75kdve4stabu5.apps.googleusercontent.com' SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET='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'
@@ -72,19 +72,22 @@ if [ -f /vault/data/init.txt ]; then
     
     # create a secret id and wrap it in a temporary token
     # add wrap token in the env
-    WRAPPED_TOKEN_2FA=$(vault write -f -wrap-ttl=2m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
-    WRAPPED_TOKEN_USER_MANAGEMENT=$(vault write -f -wrap-ttl=2m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
-    WRAPPED_TOKEN_TOURNAMENT=$(vault write -f -wrap-ttl=2m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
+    WRAPPED_TOKEN_2FA=$(vault write -f -wrap-ttl=1000m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
+    WRAPPED_TOKEN_USER_MANAGEMENT=$(vault write -f -wrap-ttl=1000m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
+    WRAPPED_TOKEN_TOURNAMENT=$(vault write -f -wrap-ttl=1000m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
     ROLE_ID=$(vault read -format=json auth/approle/role/backend/role-id | grep -o '"role_id": *"[^"]*"' | awk -F'"' '{print $4}')
 
-    printf "WRAPPED_TOKEN_2FA=\"%s\"\n" "$WRAPPED_TOKEN_2FA" > /.temp.env
-    printf "WRAPPED_TOKEN_USER_MANAGEMENT=\"%s\"\n" "$WRAPPED_TOKEN_USER_MANAGEMENT" >> /.temp.env
-    printf "WRAPPED_TOKEN_TOURNAMENT=\"%s\"\n" "$WRAPPED_TOKEN_TOURNAMENT" >> /.temp.env
-    printf "\nROLE_ID=\"%s\"\n" "$ROLE_ID" >> /.temp.env
+    printf "WRAPPED_TOKEN_2FA=\"%s\"\n" "$WRAPPED_TOKEN_2FA" > /home/vault/.temp.env
+    printf "WRAPPED_TOKEN_USER_MANAGEMENT=\"%s\"\n" "$WRAPPED_TOKEN_USER_MANAGEMENT" >> /home/vault/.temp.env
+    printf "WRAPPED_TOKEN_TOURNAMENT=\"%s\"\n" "$WRAPPED_TOKEN_TOURNAMENT" >> /home/vault/.temp.env
+    printf "\nROLE_ID=\"%s\"\n" "$ROLE_ID" >> /home/vault/.temp.env
 
-    echo "__________________Wrapped token created and stored in .global.env__________________"
+
+    SECRET_ID=$(vault write -f -format=json auth/approle/role/backend/secret-id | grep -o '"secret_id": *"[^"]*"' | awk -F'"' '{print $4}')
+    printf "\nSECRET_ID=\"%s\"\n" "$SECRET_ID" >> /home/vault/.temp.env
+
     #cleanup
-    # vault token revoke "$ROOT_TOKEN"
+    vault token revoke "$ROOT_TOKEN"
     unset ROOT_TOKEN
     unset WRAPPED_TOKEN_2FA
     unset WRAPPED_TOKEN_USER_MANAGEMENT

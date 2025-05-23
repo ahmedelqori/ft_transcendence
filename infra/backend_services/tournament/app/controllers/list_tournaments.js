@@ -14,10 +14,12 @@ export default async function list_tournaments(req, res) {
         }
         const n = (await tournament_players.query().where('tournament_id', r.id)).length;
         const owner_user = (await get_user(req, r.owner_id));
+        const nickname = (await tournament_players.query().where({'tournament_id': r.id, player_id: owner_user.id}).first().select('nickname')).nickname;
         tournaments.push({
             id: r.id,
             name: r.tournament_name,
             owner: owner_user,
+            nickname,
             total_places: r.players_number,
             total_players: n,
             status: r.status,

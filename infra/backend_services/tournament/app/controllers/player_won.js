@@ -26,7 +26,7 @@ const is_authenticated = async (req) => {
 export default async function player_won(req, res) {
     const user = await is_authenticated(req);
     if (!user) {
-        return reply.status(401).send({ 'error': 'Unauthorized' });
+        return res.status(401).send({ 'error': 'Unauthorized' });
     }
 
     const player_id = Number(req.params?.id);

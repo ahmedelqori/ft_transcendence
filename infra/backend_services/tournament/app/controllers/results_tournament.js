@@ -5,6 +5,11 @@ import { stat } from "fs";
 
 
 export default async function results_tournament(req, res) {
+    // if (req.headers.origin !== secrets.ORIGIN_S2S) {
+    //     res.status(401).send({ message: 'unauthorized' });
+    //     return ;
+    // }
+
     const id = Number(req.params.id);
     if (isNaN(id) || id <= 0) {
         return res.status(400).send({error: 'Tournament ID is required'});
