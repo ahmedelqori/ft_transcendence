@@ -288,21 +288,23 @@ export async function updateGameInDatabase(gameId, gameRoom, winner) {
     };
     
     let winnerId = determineWinnerId(winner, game, gameRoom);
-    const updatedGame = {...game, ...updateData, winner: winnerId}
+    
     if (winnerId == -1) {
       fastify.log.info(`Game ${gameId} marked as CANCELED since both players disconnected`);
-      updatedGame.status = "CANCELED";
+      updateData.status = "CANCELED";
     }
     else {
       fastify.log.info(winnerId 
         ? `Game ${gameId} updated in database with winner ID: ${winnerId}` 
         : `Game ${gameId} updated in database without a winner`
       );
-      updatedGame.status = "FINISHED";      
-    }
-      updatedGame = await fastify.prisma.game.update({
+      updateData.status = "FINISHED";      
+    }    
+    updateData.winnerId = winnerId;
+    
+    let updatedGame = await fastify.prisma.game.update({
       where: { id: gameId },
-      data: updatedGame
+      data: updateData
     });
     
     if (updatedGame.tournementId) {
