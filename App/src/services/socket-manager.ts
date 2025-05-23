@@ -256,13 +256,6 @@ export class SocketManager {
   }
 
   sendPaddleMove(position: number): boolean {
-    // if (this.isLocal) {
-    //   const normalizedPosition = Math.max(0, Math.min(100, position));
-    //   let side: "left" | "right" =
-    //     (this.playerPosition as "left" | "right") || "left";
-    //   return this.sendOfflinePaddleMove(normalizedPosition, side);
-    // }
-
     if (this.playerPosition) {
       if (this.playerPosition === "left") {
         this.gameState.paddles.left = position;
@@ -277,25 +270,17 @@ export class SocketManager {
     });
   }
 
-  /**
-   * Pause game
-   */
   pauseGame(): boolean {
     console.log("[SocketManager] Requesting game pause");
     return this.sendMessage({ type: "pauseGame" });
   }
 
-  /**
-   * Resume game
-   */
+
   resumeGame(): boolean {
     console.log("[SocketManager] Requesting game resume");
     return this.sendMessage({ type: "resumeGame" });
   }
 
-  /**
-   * Getters
-   */
   getGameState(): GameState {
     return this.gameState;
   }
@@ -318,9 +303,7 @@ export class SocketManager {
   getGameId(): string {
     return this.gameId;
   }
-  /**
-   * Event listener management
-   */
+
   addEventListener<K extends keyof EventCallbacks>(
     event: K,
     callback: EventCallbacks[K][number]
@@ -341,9 +324,7 @@ export class SocketManager {
     }
   }
 
-  /**
-   * Handle incoming WebSocket messages
-   */
+
   private _handleMessage(event: MessageEvent): void {
     try {
       const message = JSON.parse(event.data.toString());
@@ -494,9 +475,6 @@ export class SocketManager {
     }
   }
 
-  /**
-   * Notify registered listeners of events
-   */
   private _notifyListeners<K extends keyof EventCallbacks>(
     event: K,
     data: Parameters<EventCallbacks[K][number]>[0]
@@ -512,11 +490,34 @@ export class SocketManager {
     }
   }
 
-  /**
-   * Set local game mode
-   */
   setLocalGameMode(local: boolean) {
     console.log(`[SocketManager] Setting local game mode to: ${local}`);
     this.isLocal = local;
+  }
+
+  cleanup(): void {
+    console.log("[SocketManager] Cleaning up resources");    
+    if (this.isConnected && this.socket) {
+      try {
+        this.socket.close(1000, "Client cleanup");
+      } catch (err) {
+        console.warn("[SocketManager] Error during socket close:", err);
+      }
+    }
+    for (const eventType in this.listeners) {
+      this.listeners[eventType as keyof EventCallbacks] = [];
+    }
+    this.socket = null;
+    this.isConnected = false;    
+    this.playerPosition = "";
+    this.gameState = {
+      state: GameStates.START,
+      paddles: { left: 50, right: 50 },
+      ball: { x: 50, y: 50 },
+      score: { left: 0, right: 0 },
+    };
+    this.gameConfig = null;
+    
+    console.log("[SocketManager] Resources cleaned up");
   }
 }
