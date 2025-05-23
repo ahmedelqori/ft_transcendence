@@ -1,0 +1,65 @@
+
+
+
+# User-managment:
+#     get     /login/google/
+#     get     /login/42/
+#     get     /login/callback/
+#     post        /login/refresh/
+#     get     /whoami/
+#     patch       /update-profile/
+#     post        /avatar/
+#     get     /search/
+#     get     /:id
+#     get     /users/
+
+
+# Notifications:
+#     /api/notif/ post
+#     /api/notif/ get
+#     /api/notif/ delete
+#     /api/notif/:id delete
+#     /api/notif/ws websocket
+
+
+# Friendship:
+#     /api/friends/:user_id/request post
+#     /api/friends/:user_id/request/accept post
+#     /api/friends/:user_id/request/reject post
+#     /api/friends/:user_id/friend delete
+#     /api/friends/:user_id/request delete
+#     /api/friends/:user_id/block post
+#     /api/friends/:user_id/block delete
+#     /api/friends/:user_id get
+#     /api/friends/ get
+#     /api/friends/search get
+
+
+# 2FA:
+#     /api/2fa/enable post
+#     /api/2fa/verify post
+#     /api/2fa/is-enable get
+#     /api/2fa/disable delete
+
+
+
+
+# molatrac
+# eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozLCJpYXQiOjE3NDUwMTI5MjQsImV4cCI6MTc0NTAzMDkyNH0.nY_5zQlrI32xeXIdW-UplRQmH9FjTCRpEJZkbkLHwRiNDFAswQUCHhhIXcwadpc3cLvmoJo4DDD8NgcwhBjydCDooVCR7SZaDWPRBU5q3ZXyZ9rwFBGXaSlgACBHJC4SWdiUORZAKtWynLp0UbGFc7ibZONRJ_OzgoRBYqUtwm5Qr7ApBpsA_5F9T6w0X3H12T4FUF6Fgh2UErSfzzFma1a3tDnPTmUVgJy2b9H9M_uGllxvY4LiXmK33cpi1DXWyQZW6mpo9NMY9Y3yeuJkxS50iPztFU03iIh7dmywf6MvXUa4YFRCPoyCq36AxIm9T_hnCL0gUp9gWNq86T1f4A
+
+
+# ybouchma
+# eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJpYXQiOjE3NDUwMTMwNjMsImV4cCI6MTc0NTAzMTA2M30.DKWuIoQVvkBAIK4OSWXasVsGNz8iGKyl4cTeUqTQK547rCq7DnlCpHYWgDK5CRIyFW-t8_BTYxRClEcHEiwDwiIACZ3swesVXE9tVedYMLPr6Rj2FetIOADuE6RWmo2-MhqP_1ukULbIXr0cAj1EEuAa7u4BwdWS55H3B1KScbcUXcVpZEFZzfKKpMSQic7uinJtpI-sU9DIhVthPi14Q49AiKrP_GVVcSxmpQFC67Js5OPfFfTZsHHQliTT9XVd9QoKkmettgJ8JGY7hcY4UBzp2rSFL4LqA6o--l41IwPPnYdvJO--ObvyOefC_S_dM9f9E83kE-fcXo6v5hxF6Q
+
+
+# 7h3
+# eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJpYXQiOjE3NDUwMTMxNDYsImV4cCI6MTc0NTAzMTE0Nn0.GuNStKQdv0f5vyT6Mmi5S7BmWzz4zVh646EiibAISITf6raq-LCYiBN92iELXgAOXmH74Ljq3u1ESSmynJ_muZpLp1w2poi643KsadzeadimzFNRpjcWyCKP_AqyKTuIKIrJxW71dsWZsi0YfFcVrLOBo5T42yzAXFN-_6Jpdo1ydm2onrPTStrekyD4GblIIyTA3kSltxzshmAsT4cANys5zsY8j20NRCO_0yvot3PSUu-g0QfPhRKKu-Lf2MquaEMZqVvChr-Q3cMVkaM0r6cs9lY7jGPba7SEMGQV5iM-YORiwi9VRyzWKUWpWnA6f6XExS_LB5yFmz8ffY5qsg
+
+# google
+# eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo2LCJpYXQiOjE3NDUwMTMxNTksImV4cCI6MTc0NTYxNzk1OX0.Ga9kH0fAuJiWXZOVtPWmTEXIIldY8Ig-7QJSn22y995XTHuQBoQpegIIor-k-f_8AurFdNyDw1PkB_DYz7-VUBq3Oa6QiQW-HxQ60bQFJxkJG68-uW8JtOu6TR3vMGMMKiGeR8iCZn_2McVQ6KncJhkGAR1Ed9fNOaq8U57awz-J6pXbjeS5JPd13A2IwKRzNeeRz1TTa4iwDwUCUxBNGrwlAp-l5A2SK6cG2EZmfvApxIki8lBG7K4AdTqG8IJLWvr40QJ3N0pYU-HGJgZDeguwt2UU-vFj2rT199D_U5FDDE95bjfHVy8U-KekpXBP7-0QgF0QzgcrChJhHGu11A
+
+
+
+# FrontEnd → User clicks login → Redirect to BackEnd login.
+# BackEnd → ... → Redirect to FrontEnd home with temporary access token.
+# FrontEnd → Calls BackEnd set-cookie endpoint → BackEnd sends new access token in the response and set refresh token in the cookies.
