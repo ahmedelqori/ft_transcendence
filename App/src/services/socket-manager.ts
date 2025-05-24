@@ -216,6 +216,7 @@ export class SocketManager {
     if (this.socket) {
       console.log("[SocketManager] Disconnecting from server");
       this.socket.close(1000);
+      this.socket = null;
     }
   }
 
@@ -497,9 +498,10 @@ export class SocketManager {
 
   cleanup(): void {
     console.log("[SocketManager] Cleaning up resources");    
-    if (this.isConnected && this.socket) {
+    if (this.socket) {
       try {
         this.socket.close(1000, "Client cleanup");
+        this.socket = null;
       } catch (err) {
         console.warn("[SocketManager] Error during socket close:", err);
       }
@@ -507,7 +509,6 @@ export class SocketManager {
     for (const eventType in this.listeners) {
       this.listeners[eventType as keyof EventCallbacks] = [];
     }
-    this.socket = null;
     this.isConnected = false;    
     this.playerPosition = "";
     this.gameState = {

@@ -276,7 +276,8 @@ export function sendInitialGameData(
   }
 }
 
-export async function updateGameInDatabase(gameId, gameRoom, winner) {
+export async function updateGameInDatabase(socket, gameRoom, winner) {
+  const gameId = socket.gameId
   try {
     const game = gameRoom.gameData || await fastify.prisma.game.findUnique({
       where: { id: gameId },
@@ -309,7 +310,7 @@ export async function updateGameInDatabase(gameId, gameRoom, winner) {
     
     if (updatedGame.tournementId) {
       try {
-        await notifyGameFinished(updatedGame);
+        await notifyGameFinished(socket.token, {...game, ...updatedGame});
         fastify.log.info(`Tournament ${updatedGame.tournementId} notified about finished game ${gameId}`);
       } catch (error) {
         fastify.log.error(`Failed to notify tournament service: ${error.message}`);
@@ -352,29 +353,40 @@ function determineWinnerId(winner, game, gameRoom) {
   return -1;
 }
 
-async function notifyGameFinished(game) {
-  if (!game || !game.tournementId) {
-    fastify.log.warn("Cannot notify tournament: invalid game data or not a tournament game");
-    return;
-  }
-  
+async function notifyGameFinished(token, game) {
+  // await axios.post(
+  //   `https://64.23.191.17/api/notif/`,
+  //   {
+  //     to: updatedGame.playerOneId,
+  //     type: "gameAccepted",
+  //     payload: updatedGame,
+  //   },
+  //   {
+  //     headers: {
+  //       Authorization: `${req.token}`,
+  //     },
+  //     httpsAgent: new Agent({
+  //       rejectUnauthorized: false,
+  //     }),
+  //   }
+  // );
+  // } catch (error) {
+  //   fastify.log.error(`Error sending regular game invitation notification: ${error.message}`);
+  //   throw error;
+  // }
   try {
-    const response = await axios.post(`${process.env.TOURNAMENT_SERVICE_URL}/games/finished`, {
-      tournamentId: game.tournementId,
-      gameId: game.id,
-      playerOneId: game.playerOneId,
-      playerTwoId: game.playerTwoId,
-      playerOneScore: game.playerOneScore, 
-      playerTwoScore: game.playerTwoScore,
-      winnerId: game.winnerId,
-      status: game.status
-    });
-    
-    if (response.status !== 200) {
-      throw new Error(`Tournament service returned status ${response.status}`);
-    }
-    
-    return response.data;
+    await axios.post(`https://64.23.191.17/api/tournament/${game.tournementId}/results`,
+      {game:game},
+      {
+        headers: {
+          Authorization: `${token}`,
+          origin: "A" // to change
+        },
+        httpsAgent: new Agent({
+          rejectUnauthorized: false,
+        }),
+      }
+    );
   } catch (error) {
     fastify.log.error(`Error notifying tournament about finished game: ${error.message}`);
     throw new Error('Failed to notify tournament service');

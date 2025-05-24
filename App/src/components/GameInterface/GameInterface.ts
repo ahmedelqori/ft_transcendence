@@ -184,7 +184,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       console.log("[GameInterface] Connected to server");
       this.updateState({
         isConnected: true,
-        // currentOverlay: OverlayType.WAITING_CONFIG,
       });
     };
 

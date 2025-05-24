@@ -143,9 +143,9 @@ function setupSocketEventHandlers(socket) {
 function handleMessage(socket, data) {
   const messageHandlers = {
     joinGame: () => handleJoinGame(socket),
-    paddleMove: () => handlePaddleMove(socket, data.position),
-    pauseGame: () => handlePauseGame(socket),
-    resumeGame: () => handleResumeGame(socket),
+    paddleMove: () => handlePaddleMove(socket.gameId, socket.userId, data.position),
+    pauseGame: () => handlePauseGame(socket.gameId, socket.userId),
+    resumeGame: () => handleResumeGame(socket.gameId, socket.userId),
   };
 
   const handler = messageHandlers[data.type];
@@ -161,37 +161,32 @@ function handleMessage(socket, data) {
 
 function handleJoinGame(socket) {
   try {
-    const gameId = socket.gameId;
-    const userId = socket.userId;
-    
-    let gameRoom = gameRooms.get(gameId);
+    let gameRoom = gameRooms.get(socket.gameId);
     if (!gameRoom) {
-      gameRoom = createGameRoom(gameId);
-      gameRooms.set(gameId, gameRoom);
-      fastify.log.info(`Created new game room for game ${gameId}`);
+      gameRoom = createGameRoom(socket.gameId);
+      gameRooms.set(socket.gameId, gameRoom);
+      fastify.log.info(`Created new game room for game ${socket.gameId}`);
     }
 
     if (socket.alreadyJoined){
       fastify.log.info(
-        `Skipping redundant join request from user ${userId} who already joined`
+        `Skipping redundant join request from user ${socket.userId} who already joined`
       );
       return;
     }
 
-    if (gameRoom.disconnectedPlayers && gameRoom.disconnectedPlayers[userId]) {
-      return handlePossibleReconnection(socket);
+    if (gameRoom.disconnectedPlayers && gameRoom.disconnectedPlayers[socket.userId]) {
+      return handlePossibleReconnection(socket.gameId, socket.userId, gameRoom);
     }
 
-    handleNewPlayerJoin(socket);
+    handleNewPlayerJoin(socket.gameId, socket.userId, gameRoom);
   } catch (error) {
-    const gameId = socket.gameId;
-    const userId = socket.userId;
     fastify.log.error(
-      `Error in handleJoinGame for game ${gameId}, user ${userId}: ${error.message}`
+      `Error in handleJoinGame for game ${socket.gameId}, user ${socket.userId}: ${error.message}`
     );
     sendToUser(
-      gameId,
-      userId,
+      socket.gameId,
+      socket.userId,
       Message("error", {
         message: "Failed to join game due to an internal error",
       })
@@ -199,30 +194,22 @@ function handleJoinGame(socket) {
   }
 }
 
-function handlePossibleReconnection(socket) {
-  const gameId = socket.gameId;
-  const userId = socket.userId;
-  const gameRoom = gameRooms.get(gameId);
-  
+function handlePossibleReconnection(gameId, userId, gameRoom) {
   const disconnectedPlayer = gameRoom.disconnectedPlayers[userId];
   const reconnectTime = Date.now() - disconnectedPlayer.disconnectedAt;
 
   if (reconnectTime <= gameRoom.maxReconnectTime) {
-    return handleReconnection(socket, gameRoom);
+    return handleReconnection(gameId, userId, gameRoom);
   } else {
     fastify.log.warn(
       `Player ${userId} reconnection window expired (${reconnectTime}ms > ${gameRoom.maxReconnectTime}ms)`
     );
-    handleTimeOutReconnection(socket, gameRoom);
+    handleTimeOutReconnection(gameId, userId, gameRoom);
     return false;
   }
 }
 
-function handleNewPlayerJoin(socket) {
-  const gameId = socket.gameId;
-  const userId = socket.userId;
-  const gameRoom = gameRooms.get(gameId);
-  
+function handleNewPlayerJoin(gameId, userId, gameRoom) {
   const players = gameRoom.players;
   const playerKeys = Object.keys(players);
   const playersCount = playerKeys.length;
@@ -285,19 +272,14 @@ function handleNewPlayerJoin(socket) {
 
 // *************************** RECONNECTION HANDLING ***************************
 
-function handleReconnection(socket, gameRoom) {
+function handleReconnection(gameId, userId, gameRoom) {
   try {
-    const gameId = socket.gameId;
-    const userId = socket.userId;
     const disconnectedPlayer = gameRoom.disconnectedPlayers[userId];
-    
     gameRoom.players[userId] = {
       id: userId,
       position: disconnectedPlayer.position,
     };
-    
     delete gameRoom.disconnectedPlayers[userId];
-    
     if (gameRoom.disconnectTimer) {
       clearTimeout(gameRoom.disconnectTimer);
       gameRoom.disconnectTimer = null;
@@ -356,8 +338,6 @@ function handleReconnection(socket, gameRoom) {
     
     return true;
   } catch (error) {
-    const gameId = socket.gameId;
-    const userId = socket.userId;
     fastify.log.error(
       `Error in handleReconnection for game ${gameId}, user ${userId}: ${error.message}`
     );
@@ -365,10 +345,8 @@ function handleReconnection(socket, gameRoom) {
   }
 }
 
-function handleTimeOutReconnection(socket, gameRoom) {
+function handleTimeOutReconnection(gameId, userId, gameRoom) {
   try {
-    const gameId = socket.gameId;
-    const userId = socket.userId;
     fastify.log.info(
       `Handling reconnection timeout for user ${userId} in game ${gameId}`
     );
@@ -434,9 +412,7 @@ function handleTimeOutReconnection(socket, gameRoom) {
 
     return false;
   } catch (error) {
-    const gameId = socket.gameId;
-    const userId = socket.userId;
-    fastify.log.error(`Error in handleTimeOutReconnection for game ${gameId}, user ${userId}: ${error.message}`);
+    fastify.log.error(`Error in handleTimeOutReconnection: ${error.message}`);
     return false;
   }
 }
@@ -480,12 +456,11 @@ function initiateGameStart(gameId, userId, gameRoom) {
 
 // *************************** PADDLE MOVEMENT ***************************
 
-function handlePaddleMove(socket, position) {
-  const gameId = socket.gameId;
-  const userId = socket.userId;
+function handlePaddleMove(gameId, userId, position) {
+  const socket = connections.get(gameId)?.get(userId);
   const gameRoom = gameRooms.get(gameId);
 
-  if (!gameRoom) {
+  if (!gameRoom || !socket) {
     return false;
   }
 
@@ -531,9 +506,8 @@ function handlePaddleMove(socket, position) {
 
 // *************************** GAME PAUSE/RESUME ***************************
 
-function handlePauseGame(socket) {
-  const gameId = socket.gameId;
-  const userId = socket.userId;
+function handlePauseGame(gameId, userId) {
+  const socket = connections.get(gameId)?.get(userId);
   const gameRoom = validateGameAndPlayer(gameId, userId, socket, "pause");
   if (!gameRoom) return false;
 
@@ -570,9 +544,8 @@ function handlePauseGame(socket) {
   }
 }
 
-function handleResumeGame(socket) {
-  const gameId = socket.gameId;
-  const userId = socket.userId;
+function handleResumeGame(gameId, userId) {
+  const socket = connections.get(gameId)?.get(userId);
   const gameRoom = validateGameAndPlayer(gameId, userId, socket, "resume");
   if (!gameRoom) return false;
 
@@ -611,9 +584,7 @@ function handleResumeGame(socket) {
 
 // *************************** DISCONNECT HANDLING ***************************
 
-function handleDisconnect(socket, closeCode) {
-  const userId = socket.userId
-  const gameId = socket.gameId
+function handleDisconnect(gameId, userId, closeCode) {
   fastify.log.info(
     `User ${userId} disconnected from game ${gameId} ${
       closeCode ? ` with code ${closeCode}` : ""
@@ -654,7 +625,7 @@ function handleDisconnect(socket, closeCode) {
       return;
     case Game.IN_PLAY:
     case Game.PAUSED:
-      disconnectTimeout(gameRoom, socket, closeCode);
+      disconnectTimeout(gameRoom, gameId, userId, closeCode);
       return;
     default:
       fastify.log.warn(
@@ -664,9 +635,7 @@ function handleDisconnect(socket, closeCode) {
   }
 }
 
-function disconnectTimeout(gameRoom, socket, closeCode) {
-  const userId = socket.userId
-  const gameId = socket.gameId
+function disconnectTimeout(gameRoom, gameId, userId, closeCode) {
   const isIntentionalDisconnect =
     closeCode === WS_CLOSE.NORMAL || closeCode === WS_CLOSE.GOING_AWAY;
 
@@ -687,6 +656,8 @@ function disconnectTimeout(gameRoom, socket, closeCode) {
   );
 
   const remainingPlayerIds = Object.keys(remainingPlayers);
+  const remainingPlayerId =
+    remainingPlayerIds.length > 0 ? remainingPlayerIds[0] : null;
 
   if (gameRoom.gameState.state === Game.IN_PLAY) {
     gameRoom.gameState.state = Game.PAUSED;
@@ -703,7 +674,7 @@ function disconnectTimeout(gameRoom, socket, closeCode) {
     gameRoom.gameState.state = Game.CANCELED;
     gameRoom.endedAt = new Date();
 
-    updateGameInDatabase(socket, gameRoom, gameRoom.gameState.winner)
+    updateGameInDatabase(gameId, gameRoom, gameRoom.gameState.winner)
       .then(() => {
         fastify.log.info(
           `Game ${gameId} updated in database after all players disconnected`
@@ -737,13 +708,11 @@ function disconnectTimeout(gameRoom, socket, closeCode) {
   );
 
   gameRoom.disconnectTimer = setTimeout(async () => {
-    await handleReconnectionTimeout(socket, gameRoom);
+    await handleReconnectionTimeout(gameId, userId, gameRoom);
   }, timeout);
 }
 
-async function handleReconnectionTimeout(socket, gameRoom) {
-  const userId = socket.userId
-  const gameId = socket.gameId
+async function handleReconnectionTimeout(gameId, userId, gameRoom) {
   if (gameRoom.disconnectedPlayers[userId]) {
     stopGameLoop(gameId);
     gameRoom.gameState.state = Game.CANCELED;
@@ -791,7 +760,7 @@ async function handleReconnectionTimeout(socket, gameRoom) {
     );
 
     try {
-      await updateGameInDatabase(socket, gameRoom, gameRoom.gameState.winner);
+      await updateGameInDatabase(gameId, gameRoom, gameRoom.gameState.winner);
     } catch (error) {
       fastify.log.error(
         `Failed to update game ${gameId} in database: ${error.message}`
@@ -802,8 +771,7 @@ async function handleReconnectionTimeout(socket, gameRoom) {
 
 // *************************** GAME OVER HANDLING ***************************
 
-async function handleGameOver(socket, finalGameState) {
-  const gameId = socket.gameId
+async function handleGameOver(gameId, finalGameState) {
   try {
     fastify.log.info(
       `Game ${gameId} has ended. Winner: ${finalGameState.winner}`
@@ -814,7 +782,6 @@ async function handleGameOver(socket, finalGameState) {
       fastify.log.warn(
         `Cannot handle game over for non-existent game ${gameId}`
       );
-      stopGameLoop(gameId);
       return;
     }
 
@@ -838,7 +805,7 @@ async function handleGameOver(socket, finalGameState) {
     );
 
     try {
-      await updateGameInDatabase(socket, gameRoom, finalGameState.winner);
+      await updateGameInDatabase(gameId, gameRoom, finalGameState.winner);
     } catch (error) {
       fastify.log.error(
         `Database error in handleGameOver for game ${gameId}: ${error.message}`

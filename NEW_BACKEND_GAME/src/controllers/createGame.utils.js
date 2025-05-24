@@ -199,7 +199,7 @@ async function sendGameInvitation(req, game) {
     );
     return true;
   } catch (error) {
-    fastify.log.error(`Error sending regular game invitation notification: ${error.message}`);
+    fastify.log.error(`Error sending regular send game invitation notification: ${error.message}`);
     throw error;
   }
 }
@@ -299,7 +299,7 @@ export const acceptGameInvitation = async function(req, reply) {
       }
     );
     } catch (error) {
-      fastify.log.error(`Error sending regular game invitation notification: ${error.message}`);
+      fastify.log.error(`Error sending regular game Accept invitation notification: ${error.message}`);
       throw error;
     }
     return reply.code(200).send({
@@ -355,7 +355,7 @@ export const declineGameInvitation = async function(req, reply) {
             }
           );
     } catch (error) {
-      fastify.log.error(`Error sending regular game invitation notification: ${error.message}`);
+      fastify.log.error(`Error sending regular game decline invitation notification: ${error.message}`);
       throw error;
     }
     return reply.code(200).send({
