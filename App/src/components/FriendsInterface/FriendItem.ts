@@ -15,9 +15,7 @@ interface FriendItemState {
 
 const FriendItem = defineComponent<FriendItemState, FriendItemProps>({
   onMounted(this: IComponent<FriendItemState, FriendItemProps>) {
-    setTimeout(() => {
-      this.updateState({ isLoading: false });
-    }, 1500);
+    if (this.getIsMounted) this.updateState({ isLoading: false });
   },
   state() {
     return { isLoading: true };

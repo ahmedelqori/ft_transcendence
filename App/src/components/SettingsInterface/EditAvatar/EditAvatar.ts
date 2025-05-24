@@ -15,16 +15,16 @@ interface EditAvatarState {
 }
 
 const EditAvatar = defineComponent<EditAvatarState>({
-  async onMounted() {
+  async onMounted(this: IComponent<EditAvatarState>) {
     try {
       const res = await enhancedFetch.fetch(
         "https://www.meedivo.me/api/account/whoami/"
       );
       const data = await res.json();
-
-      this.updateState({
-        avatarUrl: data.avatar_url,
-      });
+      if (this.getIsMounted)
+        this.updateState({
+          avatarUrl: data.avatar_url,
+        });
     } catch (err) {
       console.error("Error fetching user data:", err);
     }

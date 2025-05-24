@@ -19,11 +19,14 @@ const FriendsInterface = defineComponent<FriendsInterfaceState>({
         "https://www.meedivo.me/api/friends/"
       );
       const data = await res.json();
-      this.updateState({ friends: data });
-    } catch (err) {}
-    this.updateState({
-      totalPages: Math.ceil(this.state.friends.length / 9),
-    });
+      if (this.getIsMounted) this.updateState({ friends: data });
+    } catch (err) {
+      console.log(err);
+    }
+    if (this.getIsMounted)
+      this.updateState({
+        totalPages: Math.ceil(this.state.friends.length / 9),
+      });
   },
   state() {
     return {

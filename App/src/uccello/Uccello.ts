@@ -1650,6 +1650,7 @@ export interface IComponent<State = {}, Props = {}> {
   get offset(): number;
   get getAppContext(): any;
   get getHtmlElement(): any;
+  get getIsMounted(): boolean;
 }
 
 /**
@@ -1913,6 +1914,9 @@ export function defineComponent<State = {}, Props = {}>({
 
     get getHtmlElement() {
       return this.vdom?.el!;
+    }
+    get getIsMounted() {
+      return this.isMounted;
     }
   }
 

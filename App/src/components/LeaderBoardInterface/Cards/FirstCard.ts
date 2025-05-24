@@ -13,9 +13,6 @@ const FirstCard = defineComponent<FirstCardState>({
     return { isLoading: true };
   },
   onMounted(this: IComponent<FirstCardState>) {
-    setTimeout(() => {
-      this.updateState({ isLoading: false });
-    }, 3000);
   },
   render(this: IComponent<FirstCardState>) {
     return this.state.isLoading
