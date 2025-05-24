@@ -74,6 +74,13 @@ const routes: any[] = [
     },
   },
   {
+    path: "/tournament/:id",
+    component: Tournament,
+    beforeEnter: async () => {
+      if (!(await isAuth())) return "/login";
+    },
+  },
+  {
     path: "/game",
     component: GameSetup,
     beforeEnter: async () => {

@@ -12,11 +12,7 @@ const ThirdCard = defineComponent<CardState>({
   state() {
     return { isLoading: true };
   },
-  onMounted(this: IComponent<CardState>) {
-    setTimeout(() => {
-      this.updateState({ isLoading: false });
-    }, 3000);
-  },
+  onMounted(this: IComponent<CardState>) {},
   render(this: IComponent<CardState>) {
     return this.state.isLoading
       ? createElement(
