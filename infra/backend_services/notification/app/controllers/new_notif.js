@@ -5,6 +5,8 @@ const TYPE = [
     'friendRequest', // friendship service
     'directMessage', // chat service
     'inviteToMatch', // game service
+    'gameAccepted', // game service
+    'gameDeclined', // game service
     'tournamentInvite', // tournament service
     'info', // others service
 ];
