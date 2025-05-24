@@ -18,6 +18,16 @@ async function get_user_with_id(req, res) {
         }
         delete player.email;
         delete player.two_FA;
+        try{
+            const r = await axios.get(`${process.env.TOURNAMENT_URL}${player.id}/wons`, {
+                headers: {
+                    Authorization: req.headers.authorization,
+                },
+            })
+            player.wons = r.data.wons;
+        }catch{
+            player.wons = 0;
+        }
         res
             .status(200)
             .send(player);
@@ -42,6 +52,16 @@ async function get_user_with_username(req, res) {
         }
         delete player.email;
         delete player.two_FA;
+        try{
+            const r = await axios.get(`${process.env.TOURNAMENT_URL}${player.id}/wons`, {
+                headers: {
+                    Authorization: req.headers.authorization,
+                },
+            })
+            player.wons = r.data.wons;
+        }catch{
+            player.wons = 0;
+        }
         res
             .status(200)
             .send(player);
