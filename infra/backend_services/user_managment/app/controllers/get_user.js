@@ -16,8 +16,6 @@ async function get_user_with_id(req, res) {
             res.send({'error': 'User not found'});
             return;
         }
-        delete player.email;
-        delete player.two_FA;
         try{
             const r = await axios.get(`${process.env.TOURNAMENT_URL}${player.id}/wons`, {
                 headers: {
@@ -28,6 +26,8 @@ async function get_user_with_id(req, res) {
         }catch{
             player.wons = 0;
         }
+        delete player.email;
+        delete player.two_FA;
         res
             .status(200)
             .send(player);
@@ -50,8 +50,6 @@ async function get_user_with_username(req, res) {
             res.send({'error': 'User not found'});
             return;
         }
-        delete player.email;
-        delete player.two_FA;
         try{
             const r = await axios.get(`${process.env.TOURNAMENT_URL}${player.id}/wons`, {
                 headers: {
@@ -62,6 +60,8 @@ async function get_user_with_username(req, res) {
         }catch{
             player.wons = 0;
         }
+        delete player.email;
+        delete player.two_FA;
         res
             .status(200)
             .send(player);
