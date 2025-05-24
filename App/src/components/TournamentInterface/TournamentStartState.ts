@@ -44,19 +44,20 @@ const TournamentStartState = defineComponent<
         "https://www.meedivo.me/api/tournament/list"
       );
       const data = await res.json();
-      this.updateState({
-        tournaments: data.map((e: any) => {
-          return {
-            name: e.name,
-            owner: e.owner.username,
-            createdAt: this.convertTime(e.created_at),
-            maxplayers: e.total_places,
-            currentplayers: e.total_players,
-            id: e.id,
-            nickname: e.nickname,
-          };
-        }),
-      });
+      if (this.getIsMounted)
+        this.updateState({
+          tournaments: data.map((e: any) => {
+            return {
+              name: e.name,
+              owner: e.owner.username,
+              createdAt: this.convertTime(e.created_at),
+              maxplayers: e.total_places,
+              currentplayers: e.total_players,
+              id: e.id,
+              nickname: e.nickname,
+            };
+          }),
+        });
       console.log(data);
     } catch (err) {
       console.log(err);
