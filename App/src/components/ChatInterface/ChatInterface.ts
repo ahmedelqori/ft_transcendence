@@ -17,14 +17,6 @@ interface ChatInterfaceState {
 
 const ChatInterface = defineComponent<ChatInterfaceState>({
   async onMounted(this: IComponent<ChatInterfaceState>) {
-    if (window.innerWidth <= 768)
-      this.updateState({ isMobile: true, showConversation: false });
-    else this.updateState({ isMobile: false, showConversation: true });
-    window.addEventListener("resize", (event) => {
-      if (window.innerWidth <= 768)
-        this.updateState({ isMobile: true, showConversation: false });
-      else this.updateState({ isMobile: false, showConversation: true });
-    });
     eventBus.on("remove:friend", () => {
       this.updateState({
         showSelectedUser: "",

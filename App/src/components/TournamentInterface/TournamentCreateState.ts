@@ -1,3 +1,4 @@
+import enhancedFetch from "@/Hooks/fetch";
 import { createElement, defineComponent, IComponent } from "@/uccello/Uccello";
 
 interface TournamentCreateStateSt {
@@ -26,7 +27,9 @@ const TournamentCreateState = defineComponent<
     return { number: 4, nickName: "", title: "" };
   },
   render(
-    this: IComponent<TournamentCreateStateSt, TournamentCreateStateProps>
+    this: IComponent<TournamentCreateStateSt, TournamentCreateStateProps> & {
+      handleCreateButton: () => Promise<void>;
+    }
   ) {
     return createElement("div", { class: ["h-full", "w-full"] }, [
       createElement(
@@ -235,14 +238,7 @@ const TournamentCreateState = defineComponent<
                 "text-center",
               ],
               on: {
-                click: () => {
-                  this.props.setData(
-                    "bracket",
-                    this.state.number,
-                    this.state.nickName,
-                    this.state.title
-                  );
-                },
+                click: async () => await this.handleCreateButton(),
               },
             },
             ["Create"]
@@ -250,6 +246,36 @@ const TournamentCreateState = defineComponent<
         ]
       ),
     ]);
+  },
+  async handleCreateButton(
+    this: IComponent<TournamentCreateStateSt, TournamentCreateStateProps>
+  ) {
+    try {
+      this.props.setData(
+        "bracket",
+        this.state.number,
+        this.state.nickName,
+        this.state.title
+      );
+      const res = await enhancedFetch.fetch(
+        "https://www.meedivo.me/api/tournament/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tournament_name: this.state.title,
+            nickname: this.state.nickName,
+            players_number: this.state.number,
+          }),
+        }
+      );
+      const data = await res.json();
+      console.log(data);
+    } catch (err) {
+      console.log(err);
+    }
   },
 });
 

@@ -1,5 +1,7 @@
 import { createElement, defineComponent, IComponent } from "@/uccello/Uccello";
 import TournamentInvite from "./TournamentInvite";
+import enhancedFetch from "@/Hooks/fetch";
+import { router } from "@/router/Router";
 
 interface TournamentBracketProps {
   number: number;
@@ -7,14 +9,30 @@ interface TournamentBracketProps {
 
 interface TournamentBracketState {
   inviteUsers: boolean;
+  isLoading: boolean;
+  numberOfPlayers: number;
 }
 
 const TournamentBracket = defineComponent<
   TournamentBracketState,
   TournamentBracketProps
 >({
+  async onMounted(
+    this: IComponent<TournamentBracketState, TournamentBracketProps>
+  ) {
+    try {
+      const response = await enhancedFetch.fetch(
+        `https://www.meedivo.me/api/tournament/${(router.getParams as any).id}`
+      );
+      const data = await response.json();
+      this.updateState({ numberOfPlayers: data.total_places });
+      console.log(data);
+    } catch (err) {
+      console.log(err);
+    }
+  },
   state() {
-    return { inviteUsers: false };
+    return { inviteUsers: false, isLoading: true, numberOfPlayers: 4 };
   },
   render(this: IComponent<TournamentBracketState, TournamentBracketProps>) {
     return createElement(
