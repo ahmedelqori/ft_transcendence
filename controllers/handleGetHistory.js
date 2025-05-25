@@ -5,6 +5,7 @@ export async function handleGetHistory(data, userId, connection, app) {
   const skip = (page - 1) * limit;
 
   // 1) Récupération de la conversation (id)
+  // that have error i get msg from database , but you forget about msg memory map
   const conversation = await prisma.conversation.findFirst({
     where: {
       AND: [
