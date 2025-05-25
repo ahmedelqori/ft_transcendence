@@ -14,6 +14,13 @@ export default async function join_tournament(req, res) {
         return;
     }
 
+    const tp = await tournament_players.query().where({'tournament_id': id, 'player_id': req.user.id});
+    if (tp.length > 0){
+        res.status(200).send({message: "already joined"});
+        return;
+    }
+
+
     const code = Number(req.query.code);
     if (isNaN(code) || code < 0){
         res.status(400).send({error: "Bad request"});
@@ -32,12 +39,6 @@ export default async function join_tournament(req, res) {
     const n = (await tournament_players.query().where('tournament_id', id)).length;
     if (t.players_number <= n){
         res.status(400).send({error: "tournament is full"});
-        return;
-    }
-
-    const tp = await tournament_players.query().where({'tournament_id': id, 'player_id': req.user.id});
-    if (tp.length > 0){
-        res.status(400).send({error: "already joined"});
         return;
     }
 

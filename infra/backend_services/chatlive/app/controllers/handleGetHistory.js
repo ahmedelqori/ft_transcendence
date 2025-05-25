@@ -1,7 +1,7 @@
 export async function handleGetHistory(data, userId, connection, app) {                     
   const prisma = app.prisma;
   const { receiverId, page = 1 } = data;
-  const limit = 10;
+  const limit = 100;
   const skip = (page - 1) * limit;
 
   // 1) Récupération de la conversation (id)

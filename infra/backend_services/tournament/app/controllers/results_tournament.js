@@ -5,18 +5,15 @@ import { stat } from "fs";
 
 
 export default async function results_tournament(req, res) {
-    // if (req.headers.origin !== process.env.ORIGIN) {
-    //     res.status(401).send({ message: 'unauthorized' });
-    //     return ;
-    // }
-
     const id = Number(req.params.id);
     if (isNaN(id) || id <= 0) {
         return res.status(400).send({error: 'Tournament ID is required'});
     }
 
     const t = await tournament.query().where({id}).first();
-    if (!t || t.owner_id != req.user.id){
+    const p = await tournament_players.query().where({tournament_id: id, player_id: req.user.id});
+    console.log("tournament players: ", p);
+    if (!t || !p.length){
         return res.status(404).send({error: 'Tournament ID is not exist'});
     }
 
@@ -41,18 +38,18 @@ export default async function results_tournament(req, res) {
             });
 
             if (games[i].round == 2){
-                // winner = get_user(req, game.data.winnerId);
-                winner = 23;
+                winner = get_user(req, game.data.winnerId);
+                // winner = 23;
                 // winner = await get_user(req, 23);
             }
 
             if (games[i].round == 2){
                 round2.push(
                         {
-                            playerOne:  game.data.playerOneId,
-                            // playerOne: await get_user(req, game.data.playerOneId),
-                            playerTwo:  game.data.playerTwoId
-                            // playerTwo: await get_user(req, game.data.playerTwoId)
+                            // playerOne:  game.data.playerOneId,
+                            playerOne: await get_user(req, game.data.playerOneId),
+                            // playerTwo:  game.data.playerTwoId
+                            playerTwo: await get_user(req, game.data.playerTwoId)
                         }
                 );
             }
@@ -60,10 +57,10 @@ export default async function results_tournament(req, res) {
             if (games[i].round == 4){
                 round4.push(
                     {
-                        playerOne:  game.data.playerOneId,
-                        // playerOne: await get_user(req, game.data.playerOneId),
-                        playerTwo:  game.data.playerTwoId
-                        // playerTwo: await get_user(req, game.data.playerTwoId)
+                        // playerOne:  game.data.playerOneId,
+                        playerOne: await get_user(req, game.data.playerOneId),
+                        // playerTwo:  game.data.playerTwoId
+                        playerTwo: await get_user(req, game.data.playerTwoId)
                     }
                 );
             }
@@ -71,10 +68,10 @@ export default async function results_tournament(req, res) {
             if (games[i].round == 8){
                 round8.push(
                     {
-                        playerOne:  game.data.playerOneId,
-                        // playerOne: await get_user(req, game.data.playerOneId),
-                        playerTwo:  game.data.playerTwoId
-                        // playerTwo: await get_user(req, game.data.playerTwoId)
+                        // playerOne:  game.data.playerOneId,
+                        playerOne: await get_user(req, game.data.playerOneId),
+                        // playerTwo:  game.data.playerTwoId
+                        playerTwo: await get_user(req, game.data.playerTwoId)
                     }
                 );
             }
@@ -82,10 +79,10 @@ export default async function results_tournament(req, res) {
             if (games[i].round == 16){
                 round16.push(
                     {
-                        playerOne:  game.data.playerOneId,
-                        // playerOne: await get_user(req, game.data.playerOneId),
-                        playerTwo:  game.data.playerTwoId
-                        // playerTwo: await get_user(req, game.data.playerTwoId)
+                        // playerOne:  game.data.playerOneId,
+                        playerOne: await get_user(req, game.data.playerOneId),
+                        // playerTwo:  game.data.playerTwoId
+                        playerTwo: await get_user(req, game.data.playerTwoId)
                     }
                 );
             }
@@ -101,8 +98,8 @@ export default async function results_tournament(req, res) {
     // res.status(200).send(aaa);
     const players = [];
     for (let i = 0; i < aaa.length; i++) {
-        const user = aaa[i].player_id;
-        // const user = await get_user(req, aaa[i].player_id);
+        // const user = aaa[i].player_id;
+        const user = await get_user(req, aaa[i].player_id);
         if (user) {
             players.push(user);
         }

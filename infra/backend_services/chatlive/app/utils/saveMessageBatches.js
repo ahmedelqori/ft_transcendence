@@ -29,6 +29,6 @@ export async function saveMessageBatches(messageBatches,prisma)
         console.error('Error saving message batches:', error);
     }finally {
         messageBatches.clear();
-        await prisma.$disconnect();
+        console.log('Message batches saved and cleared successfully.');
     }
 }

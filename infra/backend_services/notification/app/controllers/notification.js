@@ -23,7 +23,6 @@ export default async function notification(connection, req) {
     console.log('New connection:');
     connections.set(req.user.id, connection);
 
-
     console.log('User ID:', req.user.id, " are online");
     update_user_status(req, "ON");
 
