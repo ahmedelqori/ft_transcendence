@@ -3,10 +3,9 @@ export enum GameStates {
   JOINED = 1,
   IN_PLAY = 2,
   PAUSED = 3,
-  RECONNECT = 4,
-  CANCELED = 5,
-  ERROR = 6,
-  FINISHED = 7,
+  CANCELED = 4,    // Fixed: Match backend position
+  FINISHED = 5,    // Fixed: Match backend position
+  RECONNECT = 6,   // Fixed: Match backend position
 }
 
 // Game data interfaces
@@ -23,6 +22,8 @@ export interface Score {
 export interface BallState {
   x: number;
   y: number;
+  xDir?: number;  // Add ball direction - matches backend
+  yDir?: number;  // Add ball direction - matches backend
 }
 
 export interface GameState {
@@ -111,6 +112,10 @@ interface EventCallbacks {
   onGameFinish: ((data: GameFinishData) => void)[];
   onError: ((data: ErrorData) => void)[];
   onReconnect: ((data: ReconnectData) => void)[];
+  onPlayerLeft: ((data: { message: string; userId: string }) => void)[];
+  onPlayerAbandoned: ((data: { position: string; userId: string }) => void)[];
+  onReconnectionExpired: ((data: { gameId: string; message: string; gameState: GameState }) => void)[];
+  onJoinedOfflineGame: ((data: { gameId: string; userId: string; gameState: GameState }) => void)[];
 }
 
 export class SocketManager {
@@ -138,6 +143,10 @@ export class SocketManager {
     onGameFinish: [],
     onError: [],
     onReconnect: [],
+    onPlayerLeft: [],
+    onPlayerAbandoned: [],
+    onReconnectionExpired: [],
+    onJoinedOfflineGame: [],
   };
 
   init(gameId: string, user: any): SocketManager {
@@ -216,6 +225,15 @@ export class SocketManager {
     if (this.socket) {
       console.log("[SocketManager] Disconnecting from server");
       this.socket.close(1000);
+      this.socket = null;
+    }
+  }
+
+  // Add method for intentional disconnect (cancel button)
+  disconnectIntentionally(): void {
+    if (this.socket) {
+      console.log("[SocketManager] Intentionally disconnecting from server (cancel)");
+      this.socket.close(1000); // NORMAL close code for intentional disconnect
       this.socket = null;
     }
   }
@@ -451,6 +469,54 @@ export class SocketManager {
           this._notifyListeners("onGameState", {
             state: "canceled",
             gameState: this.gameState,
+            message: message.data.message,
+          });
+          break;
+
+        case "playerLeft":
+          console.log(`[SocketManager] Player left: ${message.data.message}`);
+          this._notifyListeners("onPlayerLeft", {
+            message: message.data.message,
+            userId: message.data.userId,
+          });
+          break;
+
+        case "playerAbandoned":
+          console.log(`[SocketManager] Player abandoned game (position: ${message.data.position})`);
+          this._notifyListeners("onPlayerAbandoned", {
+            position: message.data.position,
+            userId: message.data.userId,
+          });
+          break;
+
+        case "reconnectionExpired":
+          console.log(`[SocketManager] Reconnection expired: ${message.data.message}`);
+          this.gameState = message.data.gameState;
+          this._notifyListeners("onReconnectionExpired", {
+            gameId: message.data.gameId,
+            message: message.data.message,
+            gameState: message.data.gameState,
+          });
+          break;
+
+        case "joinedOfflineGame":
+          console.log(`[SocketManager] Joined offline game: ${message.data.gameId}`);
+          this.gameState = message.data.gameState;
+          this._notifyListeners("onJoinedOfflineGame", {
+            gameId: message.data.gameId,
+            userId: message.data.userId,
+            gameState: message.data.gameState,
+          });
+          break;
+
+        case "info":
+          console.log(`[SocketManager] Info message: ${message.data.message}`);
+          // Handle info messages (like device change notifications)
+          break;
+
+        case "gameError":
+          console.error(`[SocketManager] Game error: ${message.data.message}`);
+          this._notifyListeners("onError", {
             message: message.data.message,
           });
           break;

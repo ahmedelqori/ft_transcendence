@@ -21,11 +21,17 @@ export function startGameLoop(gameId, gameState, callback) {
   const gameLoop = createGameLoop(gameState, callback);
   const frameTime = 1000 / defaultGameConfig.FPS;
   gameLoop.interval = setInterval(() => {
-    if (gameLoop.running) {
+    if (gameLoop.running && gameState.state === Game.IN_PLAY) {
       updateBallPosition(gameLoop.gameState);
       if (gameLoop.callback) {
         gameLoop.callback(gameLoop.gameState);
       }
+    } else if (gameState.state === Game.FINISHED || gameState.state === Game.CANCELED) {
+      // Send final state update before stopping
+      if (gameLoop.callback) {
+        gameLoop.callback(gameLoop.gameState);
+      }
+      stopGameLoop(gameId);
     }
   }, frameTime);
   gameLoops.set(gameId, gameLoop);
@@ -104,7 +110,7 @@ export function resetBallAndPaddles(gameState) {
 }
 
 export function updateBallPosition(gameState) {
-  if (gameState.state != Game.IN_PLAY) return;
+  if (gameState.state !== Game.IN_PLAY) return;
   gameState.ball.x += gameState.ball.xDir;
   gameState.ball.y += gameState.ball.yDir;
 
@@ -227,7 +233,10 @@ export function checkScoring(gameState) {
     gameState.state = Game.FINISHED;
     gameState.winner =
       gameState.score.left === defaultGameConfig.scoreToWin ? "left" : "right";
+    fastify.log.info(`Game scoring complete - Winner: ${gameState.winner}, Score: ${gameState.score.left}-${gameState.score.right}`);
+    return true;
   }
+  return false;
 }
 
 export function updatePaddlePosition(gameState, userId, position, isPlayerOne) {

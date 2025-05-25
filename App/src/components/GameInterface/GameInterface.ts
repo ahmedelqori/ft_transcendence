@@ -193,7 +193,9 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       );
       this.updateState({
         isConnected: false,
-        currentOverlay: this.state.isConnected ? OverlayType.DISCONNECTED : OverlayType.NONE,
+        // When YOU disconnect, don't show the opponent disconnect overlay
+        // Show reconnecting or none overlay instead
+        currentOverlay: OverlayType.NONE,
       });
     };
 
@@ -247,6 +249,37 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       }
     };
 
+    handlers.onPlayerLeft = (data: { message: string; userId: string }) => {
+      console.log(`[GameInterface] Player left: ${data.message}`);
+      this.updateState({
+        currentOverlay: OverlayType.WAITING_OPPONENT,
+      });
+    };
+
+    handlers.onPlayerAbandoned = (data: { position: string; userId: string }) => {
+      console.log(`[GameInterface] Player abandoned game (position: ${data.position})`);
+      // Player abandoned during active game - show victory overlay
+      this.updateState({
+        currentOverlay: OverlayType.VICTORY,
+      });
+    };
+
+    handlers.onReconnectionExpired = (data: { gameId: string; message: string; gameState: GameState }) => {
+      console.log(`[GameInterface] Reconnection expired: ${data.message}`);
+      // Handle reconnection timeout - could show disconnected overlay or redirect
+      this.updateState({
+        currentOverlay: OverlayType.DISCONNECTED,
+      });
+    };
+
+    handlers.onJoinedOfflineGame = (data: { gameId: string; userId: string; gameState: GameState }) => {
+      console.log(`[GameInterface] Joined offline game: ${data.gameId}`);
+      this.updateState({
+        gameState: data.gameState,
+        currentOverlay: OverlayType.NONE,
+      });
+    };
+
     handlers.onGameStart = (data: GameStartData) => {
       console.log("[GameInterface] Game started", data.gameState);
 
@@ -264,12 +297,26 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
 
     handlers.onGamePause = (data: GamePauseResumeData) => {
       console.log(`[GameInterface] Game paused: ${data.reason || "No reason"}`);
-      this.updateState({ currentOverlay: OverlayType.PAUSED });
+      
+      // Check if this is a pause due to opponent disconnection
+      if (data.reason === "playerDisconnected") {
+        console.log("[GameInterface] Opponent disconnected, showing disconnect overlay");
+        this.updateState({ 
+          currentOverlay: OverlayType.DISCONNECTED,
+          opponentDisconnected: true 
+        });
+      } else {
+        // Regular pause (user requested)
+        this.updateState({ currentOverlay: OverlayType.PAUSED });
+      }
     };
 
     handlers.onGameResume = (data: GamePauseResumeData) => {
       console.log(`[GameInterface] Game resumed: ${data.message}`);
-      this.updateState({ currentOverlay: OverlayType.NONE });
+      this.updateState({ 
+        currentOverlay: OverlayType.NONE,
+        opponentDisconnected: false 
+      });
     };
 
     handlers.onGameFinish = (data: GameFinishData) => {
@@ -452,8 +499,8 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
   ) {
     const { socketManager } = this.state;
     if (socketManager && socketManager.getIsConnected()) {
-      console.log("[GameInterface] Canceling game");
-      this.disconnectFromGame();
+      console.log("[GameInterface] Canceling game (intentional disconnect)");
+      socketManager.disconnectIntentionally(); // Use intentional disconnect method
     }
   },
 
@@ -599,7 +646,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
           })
         ),
         
-        // Always render the game canvas
         createElement(GameCanvas, {
           gameState,
           gameConfig: gameConfig,

@@ -277,15 +277,26 @@ export function sendInitialGameData(
 }
 
 export async function updateGameInDatabase(socket, gameRoom, winner) {
-  const gameId = socket.gameId
+  const gameId = socket.gameId;
   try {
     const game = gameRoom.gameData || await fastify.prisma.game.findUnique({
       where: { id: gameId },
     });
+    
+    // Map scores based on player positions
+    let playerOneScore, playerTwoScore;
+    if (game.playerOneId === gameRoom.players.left?.id) {
+      playerOneScore = gameRoom.gameState.score.left;
+      playerTwoScore = gameRoom.gameState.score.right;
+    } else {
+      playerOneScore = gameRoom.gameState.score.right;
+      playerTwoScore = gameRoom.gameState.score.left;
+    }
+
     const updateData = {
       endedAt: new Date(),
-      playerOneScore: gameRoom.gameState.score.left,
-      playerTwoScore: gameRoom.gameState.score.right
+      playerOneScore: playerOneScore,
+      playerTwoScore: playerTwoScore
     };
     
     let winnerId = determineWinnerId(winner, game, gameRoom);

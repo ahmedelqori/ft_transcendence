@@ -9,6 +9,7 @@ export const Game = Object.freeze({
   PAUSED: 3,
   CANCELED: 4,
   FINISHED: 5,
+  RECONNECT: 6,
 });
 
 export const defaultGameConfig = {
@@ -54,7 +55,7 @@ export function createGameRoom(gameId) {
     disconnectedPlayers: {},
     gameState: createGameState(),
     maxReconnectTime: 100000,
-    intentionalDisconnectTime: 40000,
+    intentionalDisconnectTime: 0,
     disconnectTimer: null,
     endedAt: null,
     gameData: null,
