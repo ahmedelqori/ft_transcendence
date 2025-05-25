@@ -24,6 +24,7 @@ interface TournamentStartStateSt {
   tournaments: roomInterface[];
   id: number;
   nickName: string;
+  code: string;
   selected: boolean;
 }
 interface TournamentStartProps {
@@ -69,6 +70,7 @@ const TournamentStartState = defineComponent<
       id: -1,
       selected: false,
       nickName: "",
+      code: "",
     };
   },
   render(
@@ -292,6 +294,8 @@ const TournamentStartState = defineComponent<
             class: ["w-full", "h-full"],
             GoToTournament: () => this.handleSelectTournament(),
             setNickName: (nickName: string) => this.updateState({ nickName }),
+            setCode: (code: string) => this.updateState({ code }),
+
             resetOptions: () => this.resetOptions(),
           })
         : null,
@@ -302,7 +306,7 @@ const TournamentStartState = defineComponent<
   ) {
     try {
       const response = await enhancedFetch.fetch(
-        `https://www.meedivo.me/api/tournament/${this.state.id}/join?code=6785`,
+        `https://www.meedivo.me/api/tournament/${this.state.id}/join?code=${this.state.code}`,
         {
           method: "POST",
           headers: {
@@ -337,6 +341,7 @@ const TournamentStartState = defineComponent<
 interface TournamentSelectedProps {
   GoToTournament: () => void;
   setNickName: (nickName: string) => void;
+  setCode: (code: string) => void;
   resetOptions: () => void;
 }
 
@@ -391,7 +396,6 @@ const TournamentSelected = defineComponent<void, TournamentSelectedProps>({
             "md:px-4",
             "py-2",
             "md:py-3",
-            // "focus:border-[#828c3a]",
             "text-[#878787]",
             "focus:outline-none",
             "text-sm",
@@ -421,6 +425,33 @@ const TournamentSelected = defineComponent<void, TournamentSelectedProps>({
             }),
           ]
         ),
+        createElement("input", {
+          on: {
+            input: (e: any) => {
+              this.props.setCode(e.target.value);
+            },
+          },
+          placeholder: "Enter Your Code",
+          class: [
+            "border-2",
+            "bg-[var(--dark-black)]",
+            "w-full",
+            "max-w-full",
+            "md:max-w-[80%]",
+            "rounded-3xl",
+            "outline-none",
+            "border-[var(--dark-black)]",
+            "border-opacity-[30%]",
+            "px-3",
+            "md:px-4",
+            "py-2",
+            "md:py-3",
+            "text-[#878787]",
+            "focus:outline-none",
+            "text-sm",
+            "md:text-base",
+          ],
+        }),
       ]
     );
   },
