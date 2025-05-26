@@ -64,7 +64,7 @@ interface GameInterfaceMethods {
   disconnectFromGame(): void;
   togglePauseResume(): void;
   cancelGame(): void;
-  handlePlayAgain(): void;
+  handleGoToDashboard(): void;
   startCountdown(seconds: number): void;
   setupOnlineGame(): Promise<void>;
   setupLocalGame(): Promise<void>;
@@ -320,15 +320,16 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     };
 
     handlers.onGameFinish = (data: GameFinishData) => {
-      const gameState = socketManager.getGameState();
       const playerPosition = socketManager.getPlayerPosition();
-      const userWon = gameState?.winner === playerPosition;
+      const userWon = data.gameState?.winner === playerPosition;
 
       console.log(
-        `[GameInterface] Game finished. Winner: ${gameState?.winner}`,
+        `[GameInterface] Game finished. Winner: ${data.gameState?.winner}`,
         {
           userPosition: playerPosition,
           didWin: userWon,
+          receivedWinner: data.gameState?.winner,
+          receivedMessage: data.message
         }
       );
 
@@ -504,20 +505,21 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     }
   },
 
-  handlePlayAgain(
+  handleGoToDashboard(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods
   ) {
-    console.log("[GameInterface] Play again requested");
-
+    console.log("[GameInterface] Go to dashboard requested");
+    
+    // Clean up the current game state
     this.updateState({
       currentOverlay: OverlayType.NONE,
     });
 
-    const { socketManager } = this.state;
-    if (socketManager && !socketManager.getIsConnected()) {
-      console.log("[GameInterface] Reconnecting for a new game");
-      this.connectToGame();
+    // Get router from app context and navigate to dashboard
+    const router = this.getAppContext?.router;
+    if (router) {
+      router.navigateTo("/dashboard");
     }
   },
 
@@ -614,13 +616,16 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
         visible: currentOverlay === OverlayType.VICTORY,
         props: { 
           score: score,
-          onPlayAgain: this.handlePlayAgain.bind(this)
+          onGoToDashboard: this.handleGoToDashboard.bind(this)
         }
       },
       {
         component: GameOverLossOverlay,
         visible: currentOverlay === OverlayType.DEFEAT,
-        props: { score: score }
+        props: { 
+          score: score,
+          onGoToDashboard: this.handleGoToDashboard.bind(this)
+        }
       },
       {
         component: GamePausedOverlay,

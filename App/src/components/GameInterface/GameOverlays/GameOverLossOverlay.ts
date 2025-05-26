@@ -3,6 +3,7 @@ import {
   defineComponent,
   type IComponent,
 } from "@/uccello/Uccello.js";
+import { router } from "@/router/Router.js";
 
 interface GameOverLossOverlayProps {
   visible: boolean;
@@ -21,6 +22,10 @@ export const GameOverLossOverlay = defineComponent<void, GameOverLossOverlayProp
     if (!visible) {
       return createElement("div", { style: { display: "none" } });
     }
+
+    const handleGoToDashboard = () => {
+      router.navigateTo("/dashboard");
+    };
 
     return createElement(
       "div",
@@ -55,7 +60,7 @@ export const GameOverLossOverlay = defineComponent<void, GameOverLossOverlayProp
               alignItems: "center",
               justifyContent: "center",
               gap: "clamp(15px, 4%, 28px)",
-              width: "clamp(280px, 50%, 400px)",
+              width: "clamp(350px, 60%, 500px)",
               maxWidth: "90%",
               transform: "translateY(-10px)"
             }
@@ -126,7 +131,39 @@ export const GameOverLossOverlay = defineComponent<void, GameOverLossOverlayProp
                 }
               },
               ["Better luck next time. Practice makes perfect!"]
-            )
+            ),
+
+            // Go to Dashboard button
+            createElement(
+              "button",
+              {
+                style: {
+                  backgroundColor: "#ff4242",
+                  color: "white",
+                  fontWeight: "bold",
+                  padding: "12px 24px",
+                  borderRadius: "8px",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "1rem",
+                  transition: "background-color 0.3s, transform 0.3s",
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+                  marginTop: "10px",
+                  textAlign: "center",
+                  display: "inline-block",
+                  textDecoration: "none",
+                  width: "100%",
+                  maxWidth: "250px",
+                  marginLeft: "auto",
+                  marginRight: "auto",
+                  transform: "translateY(0)",
+                },
+                on: {
+                  click: handleGoToDashboard,
+                },
+              },
+              ["GO TO DASHBOARD"]
+            ),
           ]
         )
       ]
