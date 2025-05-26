@@ -18,10 +18,12 @@ const Messages = defineComponent<void, MessagesProps>({
   onMounted(this: IComponent<void, MessagesProps>) {
     const el = this.getHtmlElement;
 
-    el.scrollTop = el.scrollHeight;
     eventBus.on("scroll:height", () => {
       el.scrollTop = el.scrollHeight;
     });
+    setTimeout(() => {
+      if (this.getIsMounted) el.scrollTop = el.scrollHeight;
+    }, 50);
   },
   state() {},
   render(this: IComponent<void, MessagesProps>) {
