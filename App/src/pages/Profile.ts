@@ -3,6 +3,7 @@ import enhancedFetch from "@/Hooks/fetch.js";
 import {
   createElement,
   defineComponent,
+  eventBus,
   type IComponent,
 } from "@/uccello/Uccello.js";
 import ProfileInterface from "@/components/ProfileInterface/ProfileInterface.js";
@@ -14,18 +15,29 @@ interface ProfileState {
 }
 
 const Profile = defineComponent<ProfileState>({
-  async onMounted(this: IComponent<ProfileState>) {
-    document.title = "Profile";
-    try {
-      const res = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/account/whoami/"
-      );
-      const data = await res.json();
-      const username = (router.getParams as any).username;
-      this.updateState({ username, whoami: data.username, isLoading: false });
-    } catch (err) {
-      console.log(err);
+  async onMounted(
+    this: IComponent<ProfileState> & {
+      handleChangeParam: () => void;
+      getUser: () => Promise<void>;
     }
+  ) {
+    document.title = "Profile";
+    await this.getUser();
+    window.addEventListener("hashchange", this.handleChangeParam);
+    eventBus.on("change:profile", () => {
+      if (this.getIsMounted) {
+        this.updateState({ isLoading: true });
+        this.updateState({
+          username: (router.getParams as any).username!,
+          isLoading: false,
+        });
+      }
+    });
+  },
+  onUnMounted(
+    this: IComponent<ProfileState> & { handleChangeParam: () => void }
+  ) {
+    window.removeEventListener("hashchange", this.handleChangeParam);
   },
   state() {
     return { whoami: "", username: "", isLoading: true };
@@ -38,7 +50,7 @@ const Profile = defineComponent<ProfileState>({
       },
       [
         this.state.isLoading
-          ? "Nothing"
+          ? ""
           : createElement(ProfileInterface, {
               username: this.state.username,
               whoami: this.state.whoami,
@@ -46,6 +58,27 @@ const Profile = defineComponent<ProfileState>({
             }),
       ]
     );
+  },
+  handleChangeParam(
+    this: IComponent<ProfileState> & { handleChangeParam: () => void }
+  ) {
+    if (router.getMatchedRoute?.path === "/profile/:username")
+      eventBus.emit("change:profile");
+  },
+  async getUser(
+    this: IComponent<ProfileState> & { handleChangeParam: () => void }
+  ) {
+    try {
+      const res = await enhancedFetch.fetch(
+        "https://www.meedivo.me/api/account/whoami/"
+      );
+      const data = await res.json();
+      const username = (router.getParams as any).username;
+      if (this.getIsMounted)
+        this.updateState({ username, whoami: data.username, isLoading: false });
+    } catch (err) {
+      console.log(err);
+    }
   },
 });
 

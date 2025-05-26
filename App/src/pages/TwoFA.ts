@@ -18,7 +18,7 @@ const TwoFA = defineComponent<TwoFAState>({
   async onMounted() {
     try {
       if (authState.getState().isAuthenticated) {
-        router.navigateTo("/dashboard");
+        await router.navigateTo("/dashboard");
         return;
       }
 
@@ -38,7 +38,7 @@ const TwoFA = defineComponent<TwoFAState>({
       if (res.status == 401) throw "Unauthorized";
       this.updateState({ isLoading: false });
     } catch (err) {
-      router.navigateTo("/login");
+      await router.navigateTo("/login");
       authState.setState({
         isAuthenticated: false,
         user: null,
@@ -184,7 +184,7 @@ const TwoFA = defineComponent<TwoFAState>({
           avatar: userdata.avatar_url,
         },
       });
-      router.navigateTo("/dashboard");
+      await router.navigateTo("/dashboard");
     } catch (err) {
       authState.setState({
         isAuthenticated: false,

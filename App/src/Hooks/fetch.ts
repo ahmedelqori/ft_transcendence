@@ -24,7 +24,7 @@ enhancedFetch.addRequestInterceptor((request) => {
 enhancedFetch.addResponseInterceptor(async (response) => {
   if (!response.ok && response.status == 401) {
     authState.setState({ isAuthenticated: false, user: null });
-    router.navigateTo("/login");
+    await router.navigateTo("/login");
   }
   return response;
 });

@@ -148,9 +148,10 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
         src: this.props.avatar || "/assets/default.webp",
         class: ["w-[40px]", "h-[40px]", "rounded-full"],
         on: {
-          click: () => {
-            router.navigateTo(`/profile/${this.props.username}`);
+          click: async () => {
+            await router.navigateTo(`/profile/${this.props.username}`);
             eventBus.emit("reset:notif");
+            eventBus.emit("change:profile");
           },
         },
       }),
@@ -255,9 +256,10 @@ export const InviteToMatch = defineComponent<void, InviteToMatchProps>({
         src: this.props.avatar || "/assets/default.webp",
         class: ["w-[40px]", "h-[40px]", "rounded-full"],
         on: {
-          click: () => {
-            router.navigateTo(`/profile/${this.props.username}`);
+          click: async () => {
+            await router.navigateTo(`/profile/${this.props.username}`);
             eventBus.emit("reset:notif");
+            eventBus.emit("change:profile");
           },
         },
       }),
@@ -322,7 +324,7 @@ export const InviteToMatch = defineComponent<void, InviteToMatchProps>({
         }
       );
       eventBus.emit("reset:notif");
-      router.navigateTo(`/game/${this.props.gameId}`);
+      await router.navigateTo(`/game/${this.props.gameId}`);
     } catch (err) {
       console.log(err);
     }
@@ -339,5 +341,78 @@ export const InviteToMatch = defineComponent<void, InviteToMatchProps>({
     }
   },
 });
+
+// =================================================================== //
+
+interface inviteToTournamentPorps {}
+
+export const inviteToTournament = defineComponent({
+  render() {
+    return createElement("div", { class: ["flex-row", "gap-[20px]"] }, [
+      createElement("img", {
+        width: "40px",
+        height: "40px",
+        src: "/assets/default.webp",
+        class: ["w-[40px]", "h-[40px]", "rounded-full"],
+        on: {
+          click: () => {
+            // router.navigateTo(`/profile/${this.props.username}`);
+            eventBus.emit("reset:notif");
+          },
+        },
+      }),
+      createElement("div", { class: ["mr-auto", "items-start"] }, [
+        createElement("p", { class: ["text-xs"] }, ["Cup 1337"]),
+        createElement(
+          "span",
+          { class: ["text-[var(--light-grey)]", "text-[10px]"] },
+          ["Tournament Invite"]
+        ),
+      ]),
+      createElement("div", { class: ["flex-row", "gap-2"] }, [
+        createElement(
+          "button",
+          {
+            class: [
+              "rounded-[16px]",
+              "bg-[var(--light-yellow)]",
+              "text-[var(--dark-black)]",
+              "px-2",
+              "py-1",
+              "text-[10px]",
+              "font-medium",
+              "hover:scale-[104%]",
+            ],
+            on: {
+              // click: this.handleAcceptRequest,
+            },
+          },
+          ["Accept"]
+        ),
+        createElement(
+          "button",
+          {
+            class: [
+              "rounded-[16px]",
+              "bg-[var(--red-color)]",
+              "text-[var(--dark-black)]",
+              "text-[10px]",
+              "px-2",
+              "py-1",
+              "font-medium",
+              "hover:scale-[104%]",
+            ],
+            on: {
+              // click: this.handleDeclineRequest,
+            },
+          },
+          ["Decline"]
+        ),
+      ]),
+    ]);
+  },
+});
+
+// =================================================================== //
 
 export default Toast;

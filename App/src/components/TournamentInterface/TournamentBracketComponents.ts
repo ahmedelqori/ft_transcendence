@@ -1,5 +1,10 @@
 import { router } from "@/router/Router";
-import { createElement, defineComponent, IComponent } from "@/uccello/Uccello";
+import {
+  createElement,
+  defineComponent,
+  eventBus,
+  IComponent,
+} from "@/uccello/Uccello";
 
 interface InviteUserProps {
   updateInviteUsers: () => void;
@@ -60,8 +65,9 @@ export const UserCompo = defineComponent<void, UserCompoProps>({
           this.props.invert ? "scale-x-[-1]" : "w-full",
         ],
         on: {
-          click: () => {
-            router.navigateTo(`/profile/${this.props.username}`);
+          click: async () => {
+            await router.navigateTo(`/profile/${this.props.username}`);
+            eventBus.emit("change:profile");
           },
         },
       },

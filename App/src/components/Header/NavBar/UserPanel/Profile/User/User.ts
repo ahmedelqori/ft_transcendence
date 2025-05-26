@@ -1,6 +1,7 @@
 import {
   createElement,
   defineComponent,
+  eventBus,
   type IComponent,
 } from "@/uccello/Uccello.js";
 import { router } from "@/router/Router.js";
@@ -30,8 +31,9 @@ const User = defineComponent<UserState, UserProps>({
           "z-10",
         ],
         on: {
-          click: () => {
-            router.navigateTo(`/profile/${this.props.username}`);
+          click: async () => {
+            await router.navigateTo(`/profile/${this.props.username}`);
+            eventBus.emit("change:profile");
           },
         },
       },

@@ -61,11 +61,12 @@ const Friend = defineComponent<FriendState, FriendProps>({
         on: {
           contextmenu: (e) => {
             e.preventDefault();
-            this.updateState({
-              showContextMenu: true,
-              xPosition: e.pageX,
-              yPosition: e.pageY,
-            });
+            if (this.getIsMounted)
+              this.updateState({
+                showContextMenu: true,
+                xPosition: e.pageX,
+                yPosition: e.pageY,
+              });
           },
         },
       },
@@ -164,11 +165,15 @@ const Friend = defineComponent<FriendState, FriendProps>({
                   "w-full",
                 ],
                 on: {
-                  click: () => {
-                    router.navigateTo(`/profile/${this.props.username}`);
+                  click: async () => {
+                    await router.navigateTo(`/profile/${this.props.username}`);
+                    eventBus.emit("change:profile");
                     this.props.setOption("vprofile");
                     this.props.setUser(this.props.username);
-                    this.updateState({ showContextMenu: false });
+                    if (this.getIsMounted)
+                      this.updateState({
+                        showContextMenu: false,
+                      });
                   },
                 },
               },
@@ -194,9 +199,10 @@ const Friend = defineComponent<FriendState, FriendProps>({
                   click: () => {
                     this.props.setOption("unfriend");
                     this.props.setUser(this.props.username);
-                    this.updateState({
-                      showContextMenu: false,
-                    });
+                    if (this.getIsMounted)
+                      this.updateState({
+                        showContextMenu: false,
+                      });
                   },
                 },
               },
@@ -222,9 +228,10 @@ const Friend = defineComponent<FriendState, FriendProps>({
                   click: () => {
                     this.props.setOption("block");
                     this.props.setUser(this.props.username);
-                    this.updateState({
-                      showContextMenu: false,
-                    });
+                    if (this.getIsMounted)
+                      this.updateState({
+                        showContextMenu: false,
+                      });
                   },
                 },
               },
@@ -248,9 +255,10 @@ const Friend = defineComponent<FriendState, FriendProps>({
     if (this.state.showContextMenu) {
       const element = this.getHtmlElement;
       if (element && !element.contains(e.target as Node)) {
-        this.updateState({
-          showContextMenu: false,
-        });
+        if (this.getIsMounted)
+          this.updateState({
+            showContextMenu: false,
+          });
       }
     }
   },

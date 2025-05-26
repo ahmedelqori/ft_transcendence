@@ -1,7 +1,7 @@
 import {
   createElement,
-  createString,
   defineComponent,
+  eventBus,
   IComponent,
 } from "@/uccello/Uccello";
 import TournamentInvite from "./TournamentInvite";
@@ -9,6 +9,7 @@ import enhancedFetch from "@/Hooks/fetch";
 import { router } from "@/router/Router";
 import { authState } from "@/Hooks/Auth";
 import { InviteUserComp, UserCompo } from "./TournamentBracketComponents";
+import Loader from "../Loader/Loader";
 
 interface TournamentBracketProps {
   number: number;
@@ -29,33 +30,16 @@ const TournamentBracket = defineComponent<
   TournamentBracketProps
 >({
   async onMounted(
-    this: IComponent<TournamentBracketState, TournamentBracketProps>
-  ) {
-    try {
-      const settingResponse = await enhancedFetch.fetch(
-        `https://www.meedivo.me/api/tournament/${(router.getParams as any).id}`
-      );
-      const setting = await settingResponse.json();
-      const resultResponse = await enhancedFetch.fetch(
-        `https://www.meedivo.me/api/tournament/${
-          (router.getParams as any).id
-        }/results`
-      );
-      const result = await resultResponse.json();
-      if (this.getIsMounted) {
-        this.updateState({
-          numberOfPlayers: setting.total_places,
-          firstRound: result.first_round,
-          players: result.players,
-          isLoading: false,
-          status: setting.status,
-          code: setting.settings.code,
-        });
-      }
-      console.log(this.state.players, setting);
-    } catch (err) {
-      console.log(err);
+    this: IComponent<TournamentBracketState, TournamentBracketProps> & {
+      handleGetTournament: () => Promise<void>;
+      handleChangeParamTournament: () => void;
     }
+  ) {
+    await this.handleGetTournament();
+    window.addEventListener("hashchange", this.handleChangeParamTournament);
+    eventBus.on("change:tournament", async () => {
+      await this.handleGetTournament();
+    });
   },
   state() {
     return {
@@ -994,32 +978,37 @@ const TournamentBracket = defineComponent<
             }),
           ]
         )
-      : createElement(
-          "div",
-          {
-            class: [
-              "flex",
-              "items-center",
-              "justify-center",
-              "h-full",
-              "w-full",
-              "bg-transparent",
-            ],
-          },
-          [
-            createElement("div", {
-              class: [
-                "animate-spin",
-                "rounded-full",
-                "h-16",
-                "w-16",
-                "border-4",
-                "border-[var(--light-yellow)]",
-                "border-t-transparent",
-              ],
-            }),
-          ]
-        );
+      : createElement(Loader);
+  },
+  handleChangeParamTournament() {
+    if (router.getMatchedRoute?.path === "/tournament/:id")
+      eventBus.emit("change:tournament");
+  },
+  async handleGetTournament() {
+    try {
+      const settingResponse = await enhancedFetch.fetch(
+        `https://www.meedivo.me/api/tournament/${(router.getParams as any).id}`
+      );
+      const setting = await settingResponse.json();
+      const resultResponse = await enhancedFetch.fetch(
+        `https://www.meedivo.me/api/tournament/${
+          (router.getParams as any).id
+        }/results`
+      );
+      const result = await resultResponse.json();
+      if (this.getIsMounted) {
+        this.updateState({
+          numberOfPlayers: setting.total_places,
+          firstRound: result.first_round,
+          players: result.players,
+          isLoading: false,
+          status: setting.status,
+          code: setting.settings.code,
+        });
+      }
+    } catch (err) {
+      console.log(err);
+    }
   },
 });
 

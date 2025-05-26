@@ -50,7 +50,6 @@ const ProfileInterface = defineComponent<
       if (!res.ok) throw res;
       const data = await response.json();
       this.extractData(data);
-      console.log(this.state);
       const isoDate = user.created_at;
       const date = new Date(isoDate);
       const day = date.getUTCDate();
@@ -62,31 +61,34 @@ const ProfileInterface = defineComponent<
       const formattedDate = `${day}-${month}-${year}`;
 
       setTimeout(() => {
-        this.updateState({
-          avatar: user.avatar_url,
-          found: true,
-          isLoading: false,
-          createdAt: formattedDate,
-          animationComplete: false,
-          id: user.id,
-        });
+        if (this.getIsMounted)
+          this.updateState({
+            avatar: user.avatar_url,
+            found: true,
+            isLoading: false,
+            createdAt: formattedDate,
+            animationComplete: false,
+            id: user.id,
+          });
 
         setTimeout(() => {
-          this.updateState({
-            animationComplete: true,
-          });
+          if (this.getIsMounted)
+            this.updateState({
+              animationComplete: true,
+            });
         }, 800);
       }, 1000);
     } catch (err: any) {
       if (err.status === 404)
-        this.updateState({
-          avatar: null,
-          found: false,
-          isLoading: false,
-          createdAt: null,
-          animationComplete: false,
-          id: -1,
-        });
+        if (this.getIsMounted)
+          this.updateState({
+            avatar: null,
+            found: false,
+            isLoading: false,
+            createdAt: null,
+            animationComplete: false,
+            id: -1,
+          });
     }
   },
   state() {
@@ -678,11 +680,12 @@ const ProfileInterface = defineComponent<
           : e.playerTwoScore - e.playerOneScore;
     });
     const xp = 50 * winnerGames - 20 * loseGames + 2 * currentXp;
-    this.updateState({
-      gameWin: winnerGames,
-      gameLose: loseGames,
-      scoreDiffrence: xp >= 0 ? xp : 0,
-    });
+    if (this.getIsMounted)
+      this.updateState({
+        gameWin: winnerGames,
+        gameLose: loseGames,
+        scoreDiffrence: xp >= 0 ? xp : 0,
+      });
   },
 });
 

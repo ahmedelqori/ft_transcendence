@@ -9,6 +9,7 @@ import Messages from "./Messages.js";
 import SendMessage from "./SendMessage.js";
 import enhancedFetch from "@/Hooks/fetch.js";
 import { authState } from "@/Hooks/Auth.js";
+import Loader from "../Loader/Loader.js";
 
 export interface MessageInterface {
   received: number;
@@ -94,7 +95,7 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
             }),
             !this.state.isLoading
               ? createElement(Messages, { messages: this.state.messages })
-              : createElement("div", {}, ["is loading"]),
+              : createElement(Loader),
             createElement(SendMessage, {
               messages: this.state.messages,
               id: this.props.userId,

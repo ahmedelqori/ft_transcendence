@@ -84,8 +84,8 @@ class NotifSystem {
     }
   }
 
-  handleGameAccepted(data: any) {
-    router.navigateTo(`/game/${data.payload.id}`);
+  async handleGameAccepted(data: any) {
+    await router.navigateTo(`/game/${data.payload.id}`);
   }
 
   handleGameDecline(data: any) {

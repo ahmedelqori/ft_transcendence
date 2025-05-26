@@ -3,6 +3,7 @@ import enhancedFetch from "@/Hooks/fetch.js";
 import {
   createElement,
   defineComponent,
+  eventBus,
   type IComponent,
 } from "@/uccello/Uccello.js";
 import { authState } from "@/Hooks/Auth";
@@ -207,13 +208,16 @@ const Searchbar = defineComponent<SearchBarState>({
                             "justify-start",
                           ],
                           on: {
-                            click: () => {
+                            click: async () => {
                               this.updateState({
                                 inputValue: "",
                                 suggestions: [],
                                 showSuggestions: false,
                               });
-                              router.navigateTo(`/profile/${user.username}`);
+                              await router.navigateTo(
+                                `/profile/${user.username}`
+                              );
+                              eventBus.emit("change:profile");
                             },
                           },
                         },
