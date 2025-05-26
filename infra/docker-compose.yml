@@ -43,12 +43,12 @@ volumes:
       type: none
       device: ./infra/volumes/chatlive_database
       o: bind
-  # game_database:
-  #   driver: local
-  #   driver_opts:
-  #     type: none
-  #     device: ./infra/volumes/game_database
-  #     o: bind
+  game_database:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./infra/volumes/game_database
+      o: bind
 
 networks:
   appNet:
@@ -73,7 +73,6 @@ services:
   #     - IPC_LOCK
     
   nginx-modsecurity:
-    image: "nginx-modsecurity:app"
     container_name: nginx-modsecurity
     build: ./nginx-modsecurity/.
     ports:
@@ -171,14 +170,14 @@ services:
     depends_on:
       - user_managment
 
-  # game:
-  #   build:
-  #     context: ./backend_services/game
-  #     dockerfile: Dockerfile
-  #   container_name: game
-  #   networks:
-  #     - appNet
-  #   volumes:
-  #     - game_database:/app/
-  #   depends_on:
-  #     - user_managment
+  game:
+    build:
+      context: ./backend_services/game
+      dockerfile: Dockerfile
+    container_name: game
+    networks:
+      - appNet
+    volumes:
+      - game_database:/app/database
+    depends_on:
+      - user_managment

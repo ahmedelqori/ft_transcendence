@@ -3,7 +3,7 @@ import axios from 'axios';
 
 export default async (req, to, type, payload) => {
 
-  const token = req.headers.authorization;
+  const token = req.headers?.authorization;
   if (!token) {
     throw new Error('No token provided');
   }

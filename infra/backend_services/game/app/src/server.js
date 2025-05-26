@@ -9,7 +9,6 @@ import cors from "@fastify/cors";
 import swagger from "@fastify/swagger";
 import swaggerUI from "@fastify/swagger-ui";
 
-
 export const gameConnections = new Map();
 
 export const fastify = Fastify({
@@ -20,69 +19,68 @@ export const fastify = Fastify({
         colorize: true,
         translateTime: "HH:MM:ss Z",
         ignore: "pid,hostname",
-      }
-    }
-  }
+      },
+    },
+  },
 });
 
 fastify.register(cors, {
   credentials: true,
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'userid'],
-  exposedHeaders: ['Authorization']
+  origin: ["http://localhost:5500"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization", "userid"],
+  exposedHeaders: ["Authorization"],
 });
 
 fastify.register(fastifyWebsocket, {
   cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
-  }
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
 });
 
 fastify.register(swagger, {
   openapi: {
     info: {
-      title: 'Pong Game API',
-      description: 'API documentation for the multiplayer Pong game',
-      version: '1.0.0'
+      title: "Pong Game API",
+      description: "API documentation for the multiplayer Pong game",
+      version: "1.0.0",
     },
     servers: [
       {
-        url: 'http://localhost:3000'
-      }
+        url: "http://localhost:3000",
+      },
     ],
-    tags: [
-      { name: 'games', description: 'Game related endpoints' }
-    ],
-  }
+    tags: [{ name: "games", description: "Game related endpoints" }],
+  },
 });
 
 fastify.register(swaggerUI, {
-  routePrefix: 'docs',
+  routePrefix: "docs",
   uiConfig: {
-    docExpansion: 'list',
-  }
+    docExpansion: "list",
+  },
 });
 fastify.register(prismaPlugin);
 fastify.register(gameRoutes, {
-   prefix: "/api/games",
-  });
-
+  prefix: "/api/games",
+});
 
 fastify.register(setupWebSocketHandlers, {
-  prefix: "/ws/game/"
+  prefix: "/ws/game/",
 });
 
 fastify.register(setupLocalWebSocketHandlers, {
-  prefix: "/ws/local/"
+  prefix: "/ws/local/",
 });
 
-const start = async function() {
-  const port = process.env.PORT || 3001;
+const start = async function () {
+  const port = process.env.PORT || 3000;
   try {
     fastify.listen({ port, host: "0.0.0.0" });
-    fastify.log.info(`Documentation available at http://localhost:${port}/docs`);
+    fastify.log.info(
+      `Documentation available at http://localhost:${port}/docs`
+    );
   } catch (error) {
     fastify.log.error(error);
     process.exit(1);

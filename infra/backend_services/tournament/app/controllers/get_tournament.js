@@ -18,8 +18,7 @@ export default async function get_tournament(req, res) {
         let settings, invite_link;
         if (req.user && t.owner_id === req.user.id) {
             settings = await tournament_settings.query().where({ tournament_id: id }).select('code').first();
-            invite_link =  `http://localhost:3001/api/tournament/${t.id}/join?code=${settings.code}`;
-            // invite_link =  `${process.env.DOMAIN}/api/tournament/${t.id}/join?code=${settings.code}`;
+            invite_link =  `${process.env.DOMAIN}/api/tournament/${t.id}/join?code=${settings.code}`;
         }
 
         const n = (await tournament_players.query().where('tournament_id', t.id)).length;

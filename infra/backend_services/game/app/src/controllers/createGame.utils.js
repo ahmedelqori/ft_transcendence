@@ -1,6 +1,6 @@
 import { fastify } from "../server.js";
 import axios from 'axios';
-
+import { Agent } from "https";
 export async function handleLocalGame(req, reply, playerOneId) {
   fastify.log.info(`Creating a local game for player ${playerOneId}`);
   
@@ -77,23 +77,23 @@ export async function handleTournamentGame(req, reply, playerOneId, playerTwoId,
   }
 }
 
-export async function handleRegularGame(req, reply, playerOneId, playerTwoId) {
+export async function handleRegularGame(req, reply, playerTwoId) {
+  const playerOneId = req.user.id
   fastify.log.info(`Creating regular game between players ${playerOneId} and ${playerTwoId}`);
-  
-  // try {
-  //   const areFriends = await checkFriendship(playerOneId, playerTwoId);
-  //   if (!areFriends) {
-  //     fastify.log.warn(`Players ${playerOneId} and ${playerTwoId} are not friends`);
-  //     return reply.code(403).send({ 
-  //       error: "You can only invite friends to play non-tournament games" 
-  //     });
-  //   }
-  // } catch (error) {
-  //   fastify.log.error(`Error checking friendship: ${error.message}`);
-  //   return reply.code(500).send({ 
-  //     error: "Failed to validate friendship status" 
-  //   });
-  // }
+  try {
+    const areFriends = await checkFriendship(req, playerTwoId);
+    if (areFriends.data.status != "friend") {
+      fastify.log.warn(`Players ${playerOneId} and ${playerTwoId} are not friends`);
+      return reply.code(403).send({ 
+        error: "You can only invite friends to play non-tournament games" 
+      });
+    }
+  } catch (error) {
+    fastify.log.error(`Error checking friendship: ${error.message}`);
+    return reply.code(500).send({ 
+      error: "Failed to validate friendship status" 
+    });
+  }
 
   try {
     const game = await req.server.prisma.game.create({
@@ -105,6 +105,7 @@ export async function handleRegularGame(req, reply, playerOneId, playerTwoId) {
       }
     });
     reply.code(201).send(game)
+    sendGameInvitation(req, game)
   } catch (error) {
     fastify.log.error(`Error creating pending game: ${error.message}`);
     return reply.code(500).send({ 
@@ -130,43 +131,78 @@ async function validateTournament(tournamentId, req) {
       response.message = "you can not create the Game without permissions"
     return response
   } catch (error) {
-    console.error('Tournament validation error:', error.message);
+    fastify.log.error(`Tournament validation error: ${error.message}`);
     throw new Error('Tournament service unavailable');
   }
 }
 
-async function checkFriendship(playerOneId, playerTwoId) {
+async function checkFriendship(req, playerTwoId) {
   try {
-    const response = await axios.post(`${process.env.USER_SERVICE_URL}/friendship`, { 
-      userOneId: playerOneId, 
-      userTwoId: playerTwoId 
-    });
-    
-    return response.data;
+    const response = await axios.get(
+      `https://64.23.191.17/api/friends/${playerTwoId}`,
+      {
+        headers: {
+          Authorization: `${req.token}`,
+        },
+        httpsAgent: new Agent({
+          rejectUnauthorized: false,
+        }),
+      }
+    );
+    return response;
   } catch (error) {
-    console.error('Friendship check error:', error.message);
+    fastify.log.error(`Friendship check error: ${error.message}`);
     throw new Error('Friendship service unavailable');
   }
 }
 
-// async function sendGameInvitation(gameId, senderId, recipientId) {
-//   fastify.log.info(`Sending regular game invitation for game ${gameId} from ${senderId} to ${recipientId}`);
-  
-//   try {
-//     await axios.post(`${process.env.NOTIFICATION_SERVICE_URL}/notifications`, {
-//       type: 'GAME_INVITATION',
-//       gameId,
-//       senderId,
-//       recipientId,
-//       message: 'You have been invited to a game'
-//     });
-    
-//     return true;
-//   } catch (error) {
-//     fastify.log.error(`Error sending regular game invitation notification: ${error.message}`);
-//     throw error;
+// export default async (req, to, type, payload) => {
+
+//   const token = req.headers.authorization;
+//   if (!token) {
+//     throw new Error('No token provided');
 //   }
-// }
+
+//   try {
+//     await axios.post(process.env.NOTIFICATION_URL, {
+//         to,
+//         type,
+//         payload
+//     }, {
+//       headers: {
+//         Authorization: token
+//       }
+//     });
+//   } catch (err) {
+//     console.error(`Error sending notification: ${err.message}`);
+//   }
+// };
+
+async function sendGameInvitation(req, game) {
+  fastify.log.info(`Sending regular game invitation for game ${game.id} from ${game.playerOneId} to ${game.playerTwoId}`);
+  try {
+    await axios.post(
+      `https://64.23.191.17/api/notif/`,
+      {
+        to: game.playerTwoId,
+        type: "inviteToMatch",
+        payload: game,
+      },
+      {
+        headers: {
+          Authorization: `${req.token}`,
+        },
+        httpsAgent: new Agent({
+          rejectUnauthorized: false,
+        }),
+      }
+    );
+    return true;
+  } catch (error) {
+    fastify.log.error(`Error sending regular send game invitation notification: ${error.message}`);
+    throw error;
+  }
+}
 
 // async function sendTournamentGameInvitation(gameId, senderId, playerOneId, playerTwoId, tournamentId) {
 //   fastify.log.info(`Sending tournament game invitation for game ${gameId} from admin ${senderId} to players ${playerOneId} and ${playerTwoId}`);
@@ -215,3 +251,119 @@ async function checkFriendship(playerOneId, playerTwoId) {
 //       throw error;
 //     }
 // }
+
+export const acceptGameInvitation = async function(req, reply) {
+  const { id } = req.params;
+  const userId = req.user.id;
+  
+  try {
+    const gameId = parseInt(id);
+    const game = await req.server.prisma.game.findUnique({
+      where: { id: gameId }
+    });
+    
+    if (!game) {
+      return reply.code(404).send({ error: "Game not found" });
+    }
+    
+    if (game.playerTwoId !== userId) {
+      return reply.code(403).send({ error: "You can only accept games you are invited to" });
+    }
+    
+    if (game.status !== "PENDING") {
+      return reply.code(400).send({ error: "This game is not pending acceptance" });
+    }
+    
+    const updatedGame = await req.server.prisma.game.update({
+      where: { id: game.id },
+      data: {
+        status: "ACCEPTED",
+        startedAt: new Date()
+      }
+    });
+    try {
+    await axios.post(
+      `https://64.23.191.17/api/notif/`,
+      {
+        to: updatedGame.playerOneId,
+        type: "gameAccepted",
+        payload: updatedGame,
+      },
+      {
+        headers: {
+          Authorization: `${req.token}`,
+        },
+        httpsAgent: new Agent({
+          rejectUnauthorized: false,
+        }),
+      }
+    );
+    } catch (error) {
+      fastify.log.error(`Error sending regular game Accept invitation notification: ${error.message}`);
+      throw error;
+    }
+    return reply.code(200).send({
+      ...updatedGame,
+      message: "Game accepted successfully"
+    });
+  } catch (error) {
+    fastify.log.error(`Error accepting game: ${error.message}`);
+    return reply.code(500).send({ error: "Error accepting game" });
+  }
+};
+
+export const declineGameInvitation = async function(req, reply) {
+  const { id } = req.params;
+  const userId = req.user.id;
+  
+  try {
+    const gameId = parseInt(id);
+    const game = await req.server.prisma.game.findUnique({
+      where: { id: gameId }
+    });
+    
+    if (!game) {
+      return reply.code(404).send({ error: "Game not found" });
+    }
+    
+    if (game.playerTwoId !== userId) {
+      return reply.code(403).send({ error: "You can only decline games you are invited to" });
+    }
+    
+    if (game.status !== "PENDING") {
+      return reply.code(400).send({ error: "This game is not pending acceptance" });
+    }
+    
+    await req.server.prisma.game.delete({
+      where: { id: game.id }
+    });
+    try {
+          await axios.post(
+            `https://64.23.191.17/api/notif/`,
+            {
+              to: game.playerOneId,
+              type: "gameDeclined",
+              payload: game,
+            },
+            {
+              headers: {
+                Authorization: `${req.token}`,
+              },
+              httpsAgent: new Agent({
+                rejectUnauthorized: false,
+              }),
+            }
+          );
+    } catch (error) {
+      fastify.log.error(`Error sending regular game decline invitation notification: ${error.message}`);
+      throw error;
+    }
+    return reply.code(200).send({
+      game,
+      message: "Game invitation declined successfully"
+    });
+  } catch (error) {
+    fastify.log.error(`Error declining game: ${error.message}`);
+    return reply.code(500).send({ error: "Error declining game" });
+  }
+};

@@ -756,11 +756,14 @@ paths:
         }
         ```
         Possible values for `type`:
-          - `friendRequest` (friendship service)
-          - `directMessage` (chat service)
-          - `inviteToMatch` (game service)
-          - `tournamentInvite` (tournament service)
-          - `info` (other services)
+            - `friendRequest` (friendship service)
+            - `directMessage` (chat service)
+            - `inviteToMatch` (game service)
+            - `gameAccepted` (game service)
+            - `gameDeclined` (game service)
+            - `tournamentInvite` (tournament service)
+            - `reloadTournament` (tournament service)
+            - `info` (other services)
       security:
         - bearerAuth: []
       operationId: notificationsWebSocket
@@ -1995,6 +1998,45 @@ paths:
                   error:
                     type: string
                     example: not joined
+
+
+
+  /api/tournament/{tournament_id}/start:
+    post:
+      tags:
+        - tournaments
+      summary: start a tournament
+      description: start a tournament by its ID.
+      operationId: startTournament
+      parameters:
+        - name: tournament_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully strat the tournament
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: started
+        '400':
+          description: bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: bad request
+
+
   /api/tournament/{tournament_id}/results:
     get:
       tags:

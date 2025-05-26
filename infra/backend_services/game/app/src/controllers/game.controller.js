@@ -47,7 +47,8 @@ export const getUserGames = async function(req, reply) {
         OR: [
           { playerOneId: id },
           { playerTwoId: id }
-        ]
+        ],
+        status: "FINISHED"
       },
       orderBy: { startedAt: 'desc' }
     });
@@ -59,10 +60,11 @@ export const getUserGames = async function(req, reply) {
 };
 
 export const createGame = async function(req, reply) {
-  const { playerOneId, playerTwoId = 0, tournementId = 0 } = req.body;
+  const {playerTwoId = 0, tournementId = 0 } = req.body;
   // const adminId = req.user?.id;
   // const token = req.token
-  
+  console.log(req.user)
+  const playerOneId = req.user.id
   try {
     if (tournementId != 0)
       return await handleTournamentGame(req, reply, playerOneId, playerTwoId, tournementId);
@@ -75,7 +77,8 @@ export const createGame = async function(req, reply) {
           error: "Player cannot play against themselves" 
         });
       }
-      return await handleRegularGame(req, reply, playerOneId, playerTwoId);
+      console.log("------", playerOneId)
+      return await handleRegularGame(req, reply, playerTwoId);
     }
   } catch (error) {
     fastify.log.error(`Error in game creation process: ${error.message}`);
@@ -243,110 +246,3 @@ export const deleteGame = async function(req, reply) {
   }
 };
 
-export const acceptGameInvitation = async function(req, reply) {
-  const { id } = req.params;
-  const userId = req?.user.id;
-  
-  try {
-    const gameId = parseInt(id);
-    if (isNaN(gameId)) {
-      return reply.code(400).send({ error: "Invalid game ID" });
-    }
-    
-    const game = await req.server.prisma.game.findUnique({
-      where: { id: gameId }
-    });
-    
-    if (!game) {
-      return reply.code(404).send({ error: "Game not found" });
-    }
-    
-    if (game.playerTwoId !== userId) {
-      return reply.code(403).send({ error: "You can only accept games you are invited to" });
-    }
-    
-    if (game.status !== "PENDING") {
-      return reply.code(400).send({ error: "This game is not pending acceptance" });
-    }
-    
-    const updatedGame = await req.server.prisma.game.update({
-      where: { id: game.id },
-      data: {
-        status: "ACCEPTED",
-        startedAt: new Date()
-      }
-    });
-    
-    // try {
-    //   await notifyGameStatus(
-    //     game.id,
-    //     game.playerOneId,
-    //     userId,
-    //     true
-    //   );
-      
-    //   fastify.log.info(`Game ${game.id} accepted by player ${userId}, notified player ${game.playerOneId}`);
-    // } catch (notifError) {
-    //   fastify.log.error(`Failed to send game acceptance notification: ${notifError.message}`);
-    // }
-    
-    return reply.code(200).send({
-      ...updatedGame,
-      message: "Game accepted successfully"
-    });
-  } catch (error) {
-    fastify.log.error(`Error accepting game: ${error.message}`);
-    return reply.code(500).send({ error: "Error accepting game" });
-  }
-};
-
-export const declineGameInvitation = async function(req, reply) {
-  const { id } = req.params;
-  const userId = req?.user.id;
-  
-  try {
-    const gameId = parseInt(id);
-    if (isNaN(gameId)) {
-      return reply.code(400).send({ error: "Invalid game ID" });
-    }
-    
-    const game = await req.server.prisma.game.findUnique({
-      where: { id: gameId }
-    });
-    
-    if (!game) {
-      return reply.code(404).send({ error: "Game not found" });
-    }
-    
-    if (game.playerTwoId !== userId) {
-      return reply.code(403).send({ error: "You can only decline games you are invited to" });
-    }
-    
-    if (game.status !== "PENDING") {
-      return reply.code(400).send({ error: "This game is not pending acceptance" });
-    }
-    
-    await req.server.prisma.game.delete({
-      where: { id: game.id }
-    });
-    
-    // try {
-    //   await notifyGameStatus(
-    //     game.id,
-    //     game.playerOneId,
-    //     userId,
-    //     false
-    //   );
-      
-    //   fastify.log.info(`Game ${game.id} declined by player ${userId}, notified player ${game.playerOneId}`);
-    // } catch (notifError) {
-    //   fastify.log.error(`Failed to send game decline notification: ${notifError.message}`);
-    // }
-    return reply.code(200).send({
-      message: "Game invitation declined successfully"
-    });
-  } catch (error) {
-    fastify.log.error(`Error declining game: ${error.message}`);
-    return reply.code(500).send({ error: "Error declining game" });
-  }
-};

@@ -27,6 +27,7 @@ export async function handleGetHistory(data, userId, connection, app) {
     return;
   }
 
+  // 2) check first msg from memory map
   const rawMessages = await prisma.message.findMany({
     where: { conversationId: conversation.id },
     orderBy: { createdAt: "desc" },

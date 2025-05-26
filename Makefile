@@ -84,8 +84,8 @@ shell:
 	$(CMD) exec $(c) bash
 
 restart:
-	docker container stop $(c)
-	docker container rm $(c)
+	docker stop $(c)
+	docker  rm $(c)
 	docker image rm app_$(c)
 	$(CMD) up -d
 # docker container ls | grep $(c) | awk '{print $$1}' | xargs docker container stop

@@ -145,21 +145,32 @@ server {
  		tcp_nodelay on;
 	}
 
-	# location /api/game/ {
-    #     proxy_pass http://game:3001/;
+	location /api/games/ {
+        proxy_pass http://game:3000/;
 
-	# 	proxy_http_version 1.1;
-	# 	proxy_set_header Upgrade $http_upgrade;
-	# 	proxy_set_header Connection "upgrade";
-	# 	proxy_set_header Host $host;
+		# WebSocket-specific headers
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection "upgrade";
 
-	# 	# Optional but important
-	# 	proxy_read_timeout 3600;
-	# 	proxy_send_timeout 3600;
-	# 	proxy_connect_timeout 60;
+		access_log /var/log/nginx/ws3_debug.log;
+		# Client IP headers
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
 
-	# 	proxy_buffering off;
-	# }
+		# These settings allow the connection to remain open indefinitely
+		proxy_read_timeout     86400s;
+		proxy_send_timeout     86400s;
+		proxy_connect_timeout  60s;
+
+		# Optimize real-time handling
+		proxy_buffering off;
+		#this for no wait time for transfer data
+ 		tcp_nodelay on;
+
+	}
 
 }
 

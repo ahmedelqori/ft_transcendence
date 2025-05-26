@@ -1,5 +1,18 @@
 import { tournament , tournament_players, tournament_settings} from '../models.js'
+import notif from '../utils/send_notif.js';
 
+async function reload_tournament(req, id) {
+    const players = await tournament_players.query()
+        .where('tournament_id', id)
+        .select('player_id');
+    console.log("Joined player: ", req.user.id);
+    players.forEach(async (e) => {
+        if (e.player_id != req.user.id) {
+            console.log(`Reloading tournament for player ${e.player_id}`);
+            await notif(req, e.player_id, 'reloadTournament', {});
+        }
+    });
+}
 
 export default async function join_tournament(req, res) {
     const id = Number(req.params.id);
@@ -78,9 +91,9 @@ export default async function join_tournament(req, res) {
         if (t.players_number == n){
             await tournament.query().findById(id).patch({ status: 'READY' });
         }
+        console.log(`Player ${req.user.id} joined tournament ${id}`);
+        reload_tournament(req, id);
+        res.send(t);
     }
 
-    console.log(`Player ${req.user.id} joined tournament ${id}`);
-
-    res.send({message: "joined"});
 }

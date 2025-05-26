@@ -8,6 +8,7 @@ const TYPE = [
     'gameAccepted', // game service
     'gameDeclined', // game service
     'tournamentInvite', // tournament service
+    'reloadTournament', // tournament service
     'info', // others service
 ];
 

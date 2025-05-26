@@ -10,6 +10,7 @@ import start_tournament from './controllers/start_tournament.js';
 import next_round from './controllers/start_next_round.js';
 import results_tournament from './controllers/results_tournament.js';
 import player_won from './controllers/player_won.js';
+import invite_player from './controllers/invite_player.js';
 
 
 export default function routes(fastify) {
@@ -18,6 +19,7 @@ export default function routes(fastify) {
     fastify.get('/list', { preHandler: auth }, list_tournaments);
     fastify.post('/:id/join', { preHandler: auth }, join_tournament);
     fastify.post('/:id/leave', { preHandler: auth }, leave_tournament);
+    fastify.post('/:id/invite', { preHandler: auth }, invite_player);
     fastify.post('/:id/start', { preHandler: auth }, start_tournament);
     fastify.get('/:id', { preHandler: auth }, get_tournament);
     fastify.post('/next-round', { preHandler: auth }, next_round);
