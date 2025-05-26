@@ -972,6 +972,7 @@ const TournamentBracket = defineComponent<
             createElement(TournamentInvite, {
               class: [],
               inviteUsers: this.state.inviteUsers,
+              tournamentId: (router.getParams as any).id,
               setInviteUsers: () => {
                 this.updateState({ inviteUsers: !this.state.inviteUsers });
               },

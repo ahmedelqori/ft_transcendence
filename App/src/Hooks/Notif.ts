@@ -33,6 +33,12 @@ class NotifSystem {
         case "gameDeclined":
           this.handleGameDecline(data);
           break;
+        case "tournamentInvite":
+          this.handleTournamentInvite(data);
+          break;
+        case "reloadTournament":
+          this.handleReloadTournament();
+          break;
         default:
           break;
       }
@@ -91,23 +97,22 @@ class NotifSystem {
   handleGameDecline(data: any) {
     console.log("Canceled", data);
   }
+
+  private handleTournamentInvite(data: any) {
+    eventBus.emit("notif:inviteToTournament", {
+      avatar_url: data.Sender.avatar_url,
+      username: data.Sender.username,
+      id: data.Sender.id,
+      link: data.payload.invite_link,
+      tournamentId: data.payload.tournament_id,
+    });
+  }
+  private handleReloadTournament() {
+    eventBus.emit("change:tournament");
+  }
   public destroy() {
     this.socket.close();
   }
 }
 
 export default NotifSystem;
-
-// const notifSystem = new NotifSystem("3333");
-
-// export default notifSystem;
-
-// click invite button -> send notif to target -> (accept | decline)
-// accept => notif to sender => POST /game =>(res=[gameId]) redirect => notif to target with gameId to join the game redirect
-// decline => notif decline
-
-/* click invite button -> post to game --> return game object {
-gameId}
-  send notif to other player inviteToMatch GameId
-
-*/

@@ -3,6 +3,7 @@ import { createElement, defineComponent, IComponent } from "@/uccello/Uccello";
 
 interface TournamentInviteProps {
   inviteUsers: boolean;
+  tournamentId: string;
   setInviteUsers: () => void;
 }
 interface TournamentInviteStat {
@@ -76,6 +77,7 @@ const TournamentInvite = defineComponent<
           id: e.id,
           username: e.username,
           avatar_url: e.avatar_url,
+          tournamentId: this.props.tournamentId,
         })
       )
     );
@@ -100,11 +102,12 @@ interface TournamentInviteUserProps {
   id: number;
   username: string;
   avatar_url: string;
+  tournamentId: string;
 }
 interface TournamentInviteUserState {
   icon: string;
 }
-// ph-check-circle
+
 const TournamentInviteUser = defineComponent<
   TournamentInviteUserState,
   TournamentInviteUserProps
@@ -113,7 +116,9 @@ const TournamentInviteUser = defineComponent<
     return { icon: "ph-user-plus" };
   },
   render(
-    this: IComponent<TournamentInviteUserState, TournamentInviteUserProps>
+    this: IComponent<TournamentInviteUserState, TournamentInviteUserProps> & {
+      handleInviteTournamentButton: () => Promise<void>;
+    }
   ) {
     return createElement(
       "div",
@@ -133,13 +138,29 @@ const TournamentInviteUser = defineComponent<
         createElement("i", {
           class: ["ph", "ml-auto", this.state.icon, "text-xl"],
           on: {
-            click: () => {
-              this.updateState({ icon: "ph-check-circle" });
-              // invite to tournament APi
-            },
+            click: () => this.handleInviteTournamentButton(),
           },
         }),
       ]
     );
+  },
+  async handleInviteTournamentButton(
+    this: IComponent<TournamentInviteUserState, TournamentInviteUserProps>
+  ) {
+    try {
+      const res = await enhancedFetch.fetch(
+        `https://www.meedivo.me/api/tournament/${this.props.tournamentId}/invite`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ player_id: this.props.id }),
+        }
+      );
+      const data = await res.json();
+      console.log(data);
+      if (this.getIsMounted) this.updateState({ icon: "ph-check-circle" });
+    } catch (err) {}
   },
 });
