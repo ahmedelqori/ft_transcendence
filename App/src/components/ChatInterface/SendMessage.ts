@@ -108,7 +108,7 @@ const SendMessage = defineComponent<SendState, SendProps>({
       );
       try {
         // await enhancedFetch.fetch(
-        //   `http://localhost:3000/api/messages/send/${this.props.id}`,
+        //   `http://192.168.137.118:3000/api/messages/send/${this.props.id}`,
         //   {
         //     method: "POST",
         //     body: JSON.stringify({ message: valueOfInput }),

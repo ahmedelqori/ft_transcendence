@@ -42,7 +42,7 @@ const ProfileInterface = defineComponent<
       const user = await res.json();
 
       const response = await enhancedFetch.fetch(
-        `http://localhost:3000/api/games/user/${user.id}`,
+        `http://192.168.137.118:3000/api/games/user/${user.id}`,
         {
           mode: "no-cors",
         }

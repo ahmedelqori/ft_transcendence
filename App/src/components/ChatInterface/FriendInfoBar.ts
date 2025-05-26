@@ -260,7 +260,7 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
     this: IComponent<FriendInfoBarState, FriendInfoBarProps>
   ) {
     try {
-      await enhancedFetch.fetch(`http://localhost:3000/api/games`, {
+      await enhancedFetch.fetch(`http://192.168.137.118:3000/api/games`, {
         method: "POST",
         body: JSON.stringify({ playerTwoId: this.props.friendId }),
         headers: {

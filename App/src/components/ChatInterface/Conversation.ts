@@ -198,7 +198,7 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
     try {
       this.updateState({ isLoading: true });
       const res = await enhancedFetch.fetch(
-        `http://localhost:3000/api/messages/${this.props.userId}`,
+        `http://192.168.137.118:3000/api/messages/${this.props.userId}`,
         {
           mode: "cors",
           credentials: "include",
