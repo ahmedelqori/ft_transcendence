@@ -149,11 +149,11 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       const socketManager = new SocketManager();
       socketManager.init(gameId, user);
       socketManager.setLocalGameMode(isLocal);
-
-      this.updateState({
-        socketManager,
-        currentOverlay: OverlayType.WAITING_CONFIG
-      });
+      if (this.getIsMounted)
+        this.updateState({
+          socketManager,
+          currentOverlay: OverlayType.WAITING_CONFIG
+        });
       this.setupSocketListeners();
       await socketManager.connect();
       console.log(`[GameInterface] ${isLocal ? "Local" : "Online"} connection established`);      
@@ -182,21 +182,21 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     
     handlers.onConnect = () => {
       console.log("[GameInterface] Connected to server");
-      this.updateState({
-        isConnected: true,
-      });
+      if (this.getIsMounted)
+        this.updateState({
+          isConnected: true,
+        });
     };
 
     handlers.onDisconnect = (data: DisconnectData) => {
       console.log(
         `[GameInterface] Disconnected from server, code: ${data.code}, reason: ${data.reason}`
       );
-      this.updateState({
-        isConnected: false,
-        // When YOU disconnect, don't show the opponent disconnect overlay
-        // Show reconnecting or none overlay instead
-        currentOverlay: OverlayType.NONE,
-      });
+      if (this.getIsMounted)
+        this.updateState({
+          isConnected: false,
+          currentOverlay: OverlayType.NONE,
+        });
     };
 
     handlers.onError = (data: ErrorData) => {
@@ -210,11 +210,11 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       );
 
       const isPaused = data.gameState?.state === GameStates.PAUSED;
-      
-      this.updateState({
-        gameState: data.gameState,
-        currentOverlay: isPaused ? OverlayType.PAUSED : OverlayType.NONE,
-      });
+      if (this.getIsMounted)
+        this.updateState({
+          gameState: data.gameState,
+          currentOverlay: isPaused ? OverlayType.PAUSED : OverlayType.NONE,
+        });
 
       if (data.state === "readyToStart") {
         console.log(
@@ -231,53 +231,57 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
         console.log(
           `[GameInterface] Joined as ${data.position} player (${playersCount}/2 players)`
         );
-        this.updateState({
-          playerPosition: data.position,
-          currentOverlay: playersCount < 2 ? OverlayType.WAITING_OPPONENT : OverlayType.NONE,
-        });
+        if (this.getIsMounted)
+          this.updateState({
+            playerPosition: data.position,
+            currentOverlay: playersCount < 2 ? OverlayType.WAITING_OPPONENT : OverlayType.NONE,
+          });
       } else {
         console.log(
           `[GameInterface] Another player joined (${playersCount}/2 players)`
         );
 
         if (playersCount >= 2) {
-          this.updateState({
-            currentOverlay: OverlayType.NONE,
-            readyToStart: true,
-          });
+          if (this.getIsMounted)
+            this.updateState({
+              currentOverlay: OverlayType.NONE,
+              readyToStart: true,
+            });
         }
       }
     };
 
     handlers.onPlayerLeft = (data: { message: string; userId: string }) => {
       console.log(`[GameInterface] Player left: ${data.message}`);
-      this.updateState({
-        currentOverlay: OverlayType.WAITING_OPPONENT,
-      });
+      if (this.getIsMounted)
+        this.updateState({
+          currentOverlay: OverlayType.WAITING_OPPONENT,
+        });
     };
 
     handlers.onPlayerAbandoned = (data: { position: string; userId: string }) => {
       console.log(`[GameInterface] Player abandoned game (position: ${data.position})`);
-      // Player abandoned during active game - show victory overlay
-      this.updateState({
-        currentOverlay: OverlayType.VICTORY,
-      });
+      if (this.getIsMounted)
+        this.updateState({
+          currentOverlay: OverlayType.VICTORY,
+        });
     };
 
     handlers.onReconnectionExpired = (data: { gameId: string; message: string; gameState: GameState }) => {
       console.log(`[GameInterface] Reconnection expired: ${data.message}`);
-      // Handle reconnection timeout - could show disconnected overlay or redirect
-      this.updateState({
-        currentOverlay: OverlayType.DISCONNECTED,
-      });
+      if (this.getIsMounted)
+        this.updateState({
+          currentOverlay: OverlayType.DISCONNECTED,
+        });
     };
 
     handlers.onJoinedOfflineGame = (data: { gameId: string; userId: string; gameState: GameState }) => {
       console.log(`[GameInterface] Joined offline game: ${data.gameId}`);
-      this.updateState({
-        gameState: data.gameState,
-        currentOverlay: OverlayType.NONE,
-      });
+      if (this.getIsMounted)
+        this.updateState({
+          gameState: data.gameState,
+          currentOverlay: OverlayType.NONE,
+        });
     };
 
     handlers.onGameStart = (data: GameStartData) => {
@@ -286,13 +290,13 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       if (this.state.countdownTimerId !== null) {
         clearInterval(this.state.countdownTimerId);
       }
-
-      this.updateState({
-        gameState: data.gameState,
-        currentOverlay: OverlayType.NONE,
-        opponentDisconnected: false,
-        countdownTimerId: null,
-      });
+      if (this.getIsMounted)
+        this.updateState({
+          gameState: data.gameState,
+          currentOverlay: OverlayType.NONE,
+          opponentDisconnected: false,
+          countdownTimerId: null,
+        });
     };
 
     handlers.onGamePause = (data: GamePauseResumeData) => {
@@ -301,22 +305,24 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       // Check if this is a pause due to opponent disconnection
       if (data.reason === "playerDisconnected") {
         console.log("[GameInterface] Opponent disconnected, showing disconnect overlay");
-        this.updateState({ 
-          currentOverlay: OverlayType.DISCONNECTED,
-          opponentDisconnected: true 
-        });
+        if (this.getIsMounted)
+          this.updateState({ 
+            currentOverlay: OverlayType.DISCONNECTED,
+            opponentDisconnected: true 
+          });
       } else {
-        // Regular pause (user requested)
-        this.updateState({ currentOverlay: OverlayType.PAUSED });
+        if (this.getIsMounted)
+          this.updateState({ currentOverlay: OverlayType.PAUSED });
       }
     };
 
     handlers.onGameResume = (data: GamePauseResumeData) => {
       console.log(`[GameInterface] Game resumed: ${data.message}`);
-      this.updateState({ 
-        currentOverlay: OverlayType.NONE,
-        opponentDisconnected: false 
-      });
+      if (this.getIsMounted)
+        this.updateState({ 
+          currentOverlay: OverlayType.NONE,
+          opponentDisconnected: false 
+        });
     };
 
     handlers.onGameFinish = (data: GameFinishData) => {
@@ -332,11 +338,11 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
           receivedMessage: data.message
         }
       );
-
-      this.updateState({
-        gameState: data.gameState,
-        currentOverlay: userWon ? OverlayType.VICTORY : OverlayType.DEFEAT,
-      });
+      if (this.getIsMounted)
+        this.updateState({
+          gameState: data.gameState,
+          currentOverlay: userWon ? OverlayType.VICTORY : OverlayType.DEFEAT,
+        });
     };
 
     handlers.onReconnect = (data: ReconnectData) => {
@@ -347,12 +353,13 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
         console.log(
           `[GameInterface] Fully reconnected as ${playerPosition} player`
         );
-        this.updateState({
-          gameState: data.gameState,
-          playerPosition: playerPosition,
-          opponentDisconnected: false,
-          currentOverlay: isPaused ? OverlayType.PAUSED : OverlayType.NONE,
-        });
+        if (this.getIsMounted)
+          this.updateState({
+            gameState: data.gameState,
+            playerPosition: playerPosition,
+            opponentDisconnected: false,
+            currentOverlay: isPaused ? OverlayType.PAUSED : OverlayType.NONE,
+          });
       } else {
         console.log(
           `[GameInterface] Player reconnected (position: ${data.position})`
@@ -366,10 +373,11 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
           );
           
           const isPaused = this.state.gameState?.state === GameStates.PAUSED;
-          this.updateState({
-            opponentDisconnected: false,
-            currentOverlay: isPaused ? OverlayType.PAUSED : OverlayType.NONE,
-          });
+          if (this.getIsMounted)
+            this.updateState({
+              opponentDisconnected: false,
+              currentOverlay: isPaused ? OverlayType.PAUSED : OverlayType.NONE,
+            });
         }
       }
     };
@@ -378,10 +386,11 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       console.log(
         "[GameInterface] Opponent disconnected, showing disconnect overlay"
       );
-      this.updateState({
-        opponentDisconnected: true,
-        currentOverlay: OverlayType.DISCONNECTED,
-      });
+      if (this.getIsMounted)
+        this.updateState({
+          opponentDisconnected: true,
+          currentOverlay: OverlayType.DISCONNECTED,
+        });
     };
 
     Object.entries(handlers).forEach(([event, handler]) => {
@@ -390,25 +399,26 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
         handler as any
       );
     });
-
-    this.updateState({ socketEventHandlers: handlers });
+    if (this.getIsMounted)
+      this.updateState({ socketEventHandlers: handlers });
 
     setTimeout(() => {
       const { gameState } = this.state;
 
       if (gameState?.state === GameStates.PAUSED) {
         console.log("[GameInterface] Initial state: Game is paused");
-        this.updateState({ currentOverlay: OverlayType.PAUSED });
+        if (this.getIsMounted)
+          this.updateState({ currentOverlay: OverlayType.PAUSED });
       }
 
       if (socketManager.getGameConfig()) {
-        // If we have a game config, we're no longer waiting for configuration
         if (this.state.currentOverlay === OverlayType.WAITING_CONFIG) {
-          this.updateState({ 
-            currentOverlay: gameState?.state === GameStates.START 
-              ? OverlayType.WAITING_OPPONENT 
-              : OverlayType.NONE 
-          });
+          if (this.getIsMounted)
+            this.updateState({ 
+              currentOverlay: gameState?.state === GameStates.START 
+                ? OverlayType.WAITING_OPPONENT 
+                : OverlayType.NONE 
+            });
         }
       }
     }, 500);
@@ -510,13 +520,11 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       GameInterfaceMethods
   ) {
     console.log("[GameInterface] Go to dashboard requested");
-    
-    // Clean up the current game state
-    this.updateState({
-      currentOverlay: OverlayType.NONE,
-    });
+    if (this.getIsMounted)    
+      this.updateState({
+        currentOverlay: OverlayType.NONE,
+      });
 
-    // Get router from app context and navigate to dashboard
     const router = this.getAppContext?.router;
     if (router) {
       await router.navigateTo("/dashboard");
@@ -533,12 +541,11 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     if (this.state.countdownTimerId !== null) {
       clearInterval(this.state.countdownTimerId);
     }
-
-    this.updateState({
-      countdownValue: seconds,
-      currentOverlay: OverlayType.COUNTDOWN,
-      // showWaitingOpponentOverlay: false,
-    });
+    if (this.getIsMounted)
+      this.updateState({
+        countdownValue: seconds,
+        currentOverlay: OverlayType.COUNTDOWN,
+      });
 
     const timerId = window.setInterval(() => {
       const { countdownValue } = this.state;
@@ -546,16 +553,18 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       if (countdownValue <= 1) {
         clearInterval(timerId);
         console.log("[GameInterface] Countdown finished");
-        this.updateState({
-          countdownTimerId: null,
-          currentOverlay: OverlayType.NONE,
-        });
+        if (this.getIsMounted)
+          this.updateState({
+            countdownTimerId: null,
+            currentOverlay: OverlayType.NONE,
+          });
       } else {
-        this.updateState({ countdownValue: countdownValue - 1 });
+        if (this.getIsMounted)
+          this.updateState({ countdownValue: countdownValue - 1 });
       }
     }, 1000);
-
-    this.updateState({ countdownTimerId: timerId });
+    if (this.getIsMounted)
+      this.updateState({ countdownTimerId: timerId });
   },
 
   render(

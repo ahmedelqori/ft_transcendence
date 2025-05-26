@@ -120,7 +120,8 @@ export const GameRenderer = defineComponent<
       const canvasManager = CanvasManager.getInstance();      
       canvasManager.init(containerElement);      
       canvasManager.setGameConfig(this.props.gameConfig);
-      this.updateState({ canvasManager });
+      if (this.getIsMounted)
+        this.updateState({ canvasManager });
       return true;
     } catch (error) {
       console.error("[GameRenderer] Error initializing canvas:", error);
@@ -137,11 +138,13 @@ export const GameRenderer = defineComponent<
     const animate = () => {
       this.renderGame();
       const nextFrameId = requestAnimationFrame(animate);
-      this.updateState({ animationFrameId: nextFrameId });
+      if (this.getIsMounted)
+        this.updateState({ animationFrameId: nextFrameId });
     };
 
     const initialFrameId = requestAnimationFrame(animate);
-    this.updateState({ animationFrameId: initialFrameId });
+    if (this.getIsMounted)
+      this.updateState({ animationFrameId: initialFrameId });
   },
 
   renderGame(
@@ -468,7 +471,7 @@ export const GameRenderer = defineComponent<
         ctx.fill();
       }
     }
-
-    this.updateState({ ballPositionHistory: this.state.ballPositionHistory });
+    if (this.getIsMounted)
+      this.updateState({ ballPositionHistory: this.state.ballPositionHistory });
   },
 });

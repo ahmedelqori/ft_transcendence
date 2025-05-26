@@ -64,15 +64,15 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     const keyUpHandler = this.handleKeyUp.bind(this);
     // const mouseMoveHandler = this.handleMouseMove.bind(this);
     const contextMenuHandler = this.handleContextMenu.bind(this);
-    
-    this.updateState({
-      boundHandlers: {
-        keyDown: keyDownHandler,
-        keyUp: keyUpHandler,
-        // mouseMove: mouseMoveHandler,
-        contextMenu: contextMenuHandler
-      }
-    });    
+    if (this.getIsMounted)
+      this.updateState({
+        boundHandlers: {
+          keyDown: keyDownHandler,
+          keyUp: keyUpHandler,
+          // mouseMove: mouseMoveHandler,
+          contextMenu: contextMenuHandler
+        }
+      });    
     window.addEventListener("keydown", keyDownHandler);
     window.addEventListener("keyup", keyUpHandler);    
     this.startKeyboardControlLoop();    
@@ -162,9 +162,10 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     const { socketManager } = this.props;
     const { keysPressed } = this.state;
     if (!socketManager?.getIsConnected() || !socketManager.getGameState()) return;
-    this.updateState({
-      keysPressed: { ...keysPressed, [e.key]: true }
-    });
+    if (this.getIsMounted)
+      this.updateState({
+        keysPressed: { ...keysPressed, [e.key]: true }
+      });
     const gamePlayingState = socketManager.getGameState()?.state === GameStates.IN_PLAY;
     const isControlKey = e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "w" || e.key === "s";
     if (gamePlayingState && isControlKey) {
@@ -177,8 +178,8 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
     const { keysPressed } = this.state;
     const updatedKeys = { ...keysPressed };
     delete updatedKeys[e.key];
-    
-    this.updateState({ keysPressed: updatedKeys });
+    if (this.getIsMounted)
+      this.updateState({ keysPressed: updatedKeys });
   },
 
   startKeyboardControlLoop(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods) {
@@ -198,8 +199,8 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
 
       this.processKeyboardInput();
     }, 1000/60);
-    
-    this.updateState({ keyboardIntervalId: intervalId });
+    if (this.getIsMounted)
+      this.updateState({ keyboardIntervalId: intervalId });
   },
 
   processLocalGameInput(this: IComponent<GameCanvasState, GameCanvasProps> & GameCanvasMethods) {
