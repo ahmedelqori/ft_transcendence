@@ -17,7 +17,7 @@ const EditSecurity = defineComponent<EditSecurityState>({
   async onMounted(this: IComponent<EditSecurityState>) {
     try {
       const res = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/2fa/is-enable"
+        `${import.meta.env.VITE_URL_DEV}/api/2fa/is-enable`
       );
 
       const data = await res.json();
@@ -380,9 +380,12 @@ const EditSecurity = defineComponent<EditSecurityState>({
   async activateTwoFA(this: IComponent<EditSecurityState>) {
     if (this.state.isEnable) {
       try {
-        await enhancedFetch.fetch("https://www.meedivo.me/api/2fa/disable", {
-          method: "DELETE",
-        });
+        await enhancedFetch.fetch(
+          `${import.meta.env.VITE_URL_DEV}/api/2fa/disable`,
+          {
+            method: "DELETE",
+          }
+        );
         this.updateState({ isEnable: false, isAlreadyEnable: false });
       } catch (err) {}
 
@@ -390,7 +393,7 @@ const EditSecurity = defineComponent<EditSecurityState>({
     }
     try {
       const res = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/2fa/enable",
+        `${import.meta.env.VITE_URL_DEV}/api/2fa/enable`,
         {
           method: "POST",
         }
@@ -409,7 +412,7 @@ const EditSecurity = defineComponent<EditSecurityState>({
   async verifyTwoFA(this: IComponent<EditSecurityState>) {
     try {
       const res = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/2fa/verify",
+        `${import.meta.env.VITE_URL_DEV}/api/2fa/verify`,
         {
           method: "POST",
           headers: {
@@ -421,7 +424,7 @@ const EditSecurity = defineComponent<EditSecurityState>({
 
       if (!res.ok) throw "incorrect code";
       const response = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/2fa/is-enable"
+        `${import.meta.env.VITE_URL_DEV}/api/2fa/is-enable`
       );
 
       const data = await response.json();

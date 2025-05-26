@@ -35,7 +35,7 @@ const ProfileInterface = defineComponent<
     try {
       document.title = this.props.username;
       const res = await enhancedFetch.fetch(
-        `https://www.meedivo.me/api/account/${this.props.username}`
+        `${import.meta.env.VITE_URL_DEV}/api/account/${this.props.username}`
       );
       if (!res.ok) throw res;
 

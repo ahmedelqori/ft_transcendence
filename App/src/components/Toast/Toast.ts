@@ -24,6 +24,14 @@ interface DirectMessageParams {
   id: number;
 }
 
+interface InviteToTournamentParams {
+  id: string;
+  username: string;
+  link: string;
+  avatar_url: string;
+  tournamentId: string;
+}
+
 const Toast = defineComponent<ToastState>({
   onMounted(this: IComponent<ToastState>) {
     eventBus.on("notif:requestReceived", (data: RequestReceivedParams) => {
@@ -71,6 +79,23 @@ const Toast = defineComponent<ToastState>({
         this.updateState({ NotifComponent: null });
       }, 6000);
     });
+    eventBus.on(
+      "notif:inviteToTournament",
+      (data: InviteToTournamentParams) => {
+        this.updateState({
+          NotifComponent: createElement(inviteToTournament, {
+            avatar_url: data.avatar_url,
+            username: data.username,
+            id: data.id,
+            link: data.link,
+            tournamentId: data.tournamentId,
+          }),
+        });
+        setTimeout(() => {
+          this.updateState({ NotifComponent: null });
+        }, 6000);
+      }
+    );
   },
   state() {
     return { NotifComponent: null };
@@ -210,7 +235,9 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
   async handleAcceptRequest(this: IComponent<void, FriendRequestProps>) {
     try {
       await enhancedFetch.fetch(
-        `https://www.meedivo.me/api/friends/${this.props.id}/request/accept`,
+        `${import.meta.env.VITE_URL_DEV}/api/friends/${
+          this.props.id
+        }/request/accept`,
         { method: "POST" }
       );
       eventBus.emit("update:friends");
@@ -223,7 +250,9 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
     console.log(this.props);
     try {
       await enhancedFetch.fetch(
-        `https://www.meedivo.me/api/friends/${this.props.id}/request/reject`,
+        `${import.meta.env.VITE_URL_DEV}/api/friends/${
+          this.props.id
+        }/request/reject`,
         { method: "POST" }
       );
       eventBus.emit("reset:notif");
@@ -344,10 +373,20 @@ export const InviteToMatch = defineComponent<void, InviteToMatchProps>({
 
 // =================================================================== //
 
-interface inviteToTournamentPorps {}
+interface inviteToTournamentPorps {
+  id: string;
+  username: string;
+  link: string;
+  avatar_url: string;
+  tournamentId: string;
+}
 
 export const inviteToTournament = defineComponent({
-  render() {
+  render(
+    this: IComponent<void, inviteToTournamentPorps> & {
+      handleJoinTournament: () => Promise<void>;
+    }
+  ) {
     return createElement("div", { class: ["flex-row", "gap-[20px]"] }, [
       createElement("img", {
         width: "40px",
@@ -356,13 +395,15 @@ export const inviteToTournament = defineComponent({
         class: ["w-[40px]", "h-[40px]", "rounded-full"],
         on: {
           click: () => {
-            // router.navigateTo(`/profile/${this.props.username}`);
+            router.navigateTo(`/profile/${this.props.username}`);
             eventBus.emit("reset:notif");
           },
         },
       }),
       createElement("div", { class: ["mr-auto", "items-start"] }, [
-        createElement("p", { class: ["text-xs"] }, ["Cup 1337"]),
+        createElement("p", { class: ["text-xs"] }, [
+          this.props.username || "unknown",
+        ]),
         createElement(
           "span",
           { class: ["text-[var(--light-grey)]", "text-[10px]"] },
@@ -384,32 +425,27 @@ export const inviteToTournament = defineComponent({
               "hover:scale-[104%]",
             ],
             on: {
-              // click: this.handleAcceptRequest,
+              click: async () => await this.handleJoinTournament(),
             },
           },
-          ["Accept"]
-        ),
-        createElement(
-          "button",
-          {
-            class: [
-              "rounded-[16px]",
-              "bg-[var(--red-color)]",
-              "text-[var(--dark-black)]",
-              "text-[10px]",
-              "px-2",
-              "py-1",
-              "font-medium",
-              "hover:scale-[104%]",
-            ],
-            on: {
-              // click: this.handleDeclineRequest,
-            },
-          },
-          ["Decline"]
+          ["Join"]
         ),
       ]),
     ]);
+  },
+  async handleJoinTournament(this: IComponent<void, inviteToTournamentPorps>) {
+    try {
+      await enhancedFetch.fetch(this.props.link, {
+        method: "POST",
+        body: JSON.stringify({ nickname: "TMP16" }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      await router.navigateTo(`/tournament/${this.props.tournamentId}`);
+    } catch (err) {
+      console.log(err);
+    }
   },
 });
 

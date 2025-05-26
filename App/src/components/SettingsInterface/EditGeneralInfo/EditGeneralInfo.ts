@@ -16,7 +16,7 @@ const EditGeneralInfo = defineComponent<EditGeneralInfoState>({
   async onMounted(this: IComponent<EditGeneralInfoState>) {
     try {
       const response = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/account/whoami/"
+        `${import.meta.env.VITE_URL_DEV}/api/account/whoami/`
       );
       const data = await response.json();
       this.updateState({
@@ -253,7 +253,7 @@ const EditGeneralInfo = defineComponent<EditGeneralInfoState>({
     try {
       if (this.state.firstName.length > 3 && this.state.lastName.length > 3) {
         await enhancedFetch.fetch(
-          "https://www.meedivo.me/api/account/update-profile/",
+          `${import.meta.env.VITE_URL_DEV}/api/account/update-profile/`,
           {
             method: "PATCH",
             headers: {
@@ -267,7 +267,7 @@ const EditGeneralInfo = defineComponent<EditGeneralInfoState>({
         );
       } else if (this.state.firstName.length > 3) {
         await enhancedFetch.fetch(
-          "https://www.meedivo.me/api/account/update-profile/",
+          `${import.meta.env.VITE_URL_DEV}/api/account/update-profile/`,
           {
             method: "PATCH",
             headers: {
@@ -280,7 +280,7 @@ const EditGeneralInfo = defineComponent<EditGeneralInfoState>({
         );
       } else if (this.state.lastName.length > 3) {
         await enhancedFetch.fetch(
-          "https://www.meedivo.me/api/account/update-profile/",
+          `${import.meta.env.VITE_URL_DEV}/api/account/update-profile/`,
           {
             method: "PATCH",
             headers: {

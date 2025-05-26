@@ -70,7 +70,7 @@ const Profile = defineComponent<ProfileState>({
   ) {
     try {
       const res = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/account/whoami/"
+        `${import.meta.env.VITE_URL_DEV}/api/account/whoami/`
       );
       const data = await res.json();
       const username = (router.getParams as any).username;

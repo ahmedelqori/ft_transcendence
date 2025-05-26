@@ -18,7 +18,7 @@ const FriendsInterface = defineComponent<FriendsInterfaceState>({
   async onMounted(this: IComponent<FriendsInterfaceState>) {
     try {
       const res = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/friends/"
+        `${import.meta.env.VITE_URL_DEV}/api/friends/`
       );
       const data = await res.json();
       if (this.getIsMounted)

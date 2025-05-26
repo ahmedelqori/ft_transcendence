@@ -26,15 +26,18 @@ const TwoFA = defineComponent<TwoFAState>({
         "access_token",
         (router.getParams as any).accessToken!
       );
-      const res = await fetch("https://www.meedivo.me/api/2fa/verify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const res = await fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/2fa/verify`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
 
-          Authorization: `Bearer ${(router.getParams as any).accessToken!}`,
-        },
-        body: JSON.stringify({ code: "" }),
-      });
+            Authorization: `Bearer ${(router.getParams as any).accessToken!}`,
+          },
+          body: JSON.stringify({ code: "" }),
+        }
+      );
       if (res.status == 401) throw "Unauthorized";
       this.updateState({ isLoading: false });
     } catch (err) {
@@ -159,21 +162,24 @@ const TwoFA = defineComponent<TwoFAState>({
   async verifyToken(this: IComponent<TwoFAState>) {
     try {
       this.updateState({ isLoading: true });
-      const res = await fetch("https://www.meedivo.me/api/2fa/verify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const res = await fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/2fa/verify`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
 
-          Authorization: `Bearer ${(router.getParams as any).accessToken!}`,
-        },
-        body: JSON.stringify({ code: this.state.code.join("") }),
-      });
+            Authorization: `Bearer ${(router.getParams as any).accessToken!}`,
+          },
+          body: JSON.stringify({ code: this.state.code.join("") }),
+        }
+      );
       if (res.status == 400) throw "invalid input";
       const data = await res.json();
       console.log("--Data", data);
       localStorage.setItem("access_token", data.access_token);
       const response = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/account/whoami/"
+        `${import.meta.env.VITE_URL_DEV}/api/account/whoami/`
       );
       let userdata = await response.json();
       authState.setState({

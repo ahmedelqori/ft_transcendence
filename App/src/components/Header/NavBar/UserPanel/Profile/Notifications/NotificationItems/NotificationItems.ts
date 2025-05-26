@@ -16,7 +16,7 @@ const NotificationItems = defineComponent<NotificationItemsState>({
   async onMounted(this: IComponent<NotificationItemsState>) {
     try {
       // const res = await enhancedFetch.fetch(
-      //   "https://www.meedivo.me/api/notif/"
+      //   `${import.meta.env.VITE_URL_DEV}/api/notif/`
       // );
       // const data = await res.json();
       // this.updateState({ Notifications: data.result });

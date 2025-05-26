@@ -159,9 +159,9 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
   ) {
     this.updateState({
       socket: new WebSocket(
-        `wss://www.meedivo.me/api/chat/ws?token=${localStorage.getItem(
-          "access_token"
-        )}`
+        `wss://${
+          import.meta.env.VITE_DOMAIN_DEV
+        }/api/chat/ws?token=${localStorage.getItem("access_token")}`
       ),
       isLoading: true,
     });

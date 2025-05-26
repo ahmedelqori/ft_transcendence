@@ -195,7 +195,7 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
   async handleGetAllFriends(this: IComponent<FriendsState, FriendsProps>) {
     try {
       const response = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/friends/"
+        `${import.meta.env.VITE_URL_DEV}/api/friends/`
       );
       const data = await response.json();
 
