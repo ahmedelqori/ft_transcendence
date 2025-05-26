@@ -1,0 +1,19 @@
+{
+  "tailwindCSS.includeLanguages": {
+    "typescript": "html",
+    "javascript": "html"
+  },
+  "tailwindCSS.experimental.classRegex": [
+    // Matches: class: ["text-white", "bg-black"]
+    ["class:\\s*\\[([^\\]]*)\\]", "[\"'`]([^\"'`]*)[\"'`]"]
+  ],
+  "tailwindCSS.mode": "content",
+  "tailwindCSS.validate": true,
+  "github.copilot.enable": {
+    "*": false,
+    "plaintext": false,
+    "markdown": false,
+    "scminput": false
+  },
+  "liveServer.settings.port": 5501
+}
