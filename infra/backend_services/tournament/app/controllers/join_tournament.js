@@ -67,7 +67,7 @@ export default async function join_tournament(req, res) {
             res.status(400).send({error: "nickname must be between 3 and 20 characters"});
             return;
         }
-        const tp = await tournament_players.query().where({'nickname': nickname});
+        const tp = await tournament_players.query().where({'nickname': nickname, 'tournament_id': id});
         if (tp.length > 0){
             res.status(400).send({error: "nickname already taken"});
             return;

@@ -1,7 +1,6 @@
 import { tournament, tournament_games, tournament_players } from "../models.js";
 import axios from "axios";
 import get_user from "../utils/whoThisGuy.js";
-import { stat } from "fs";
 
 
 export default async function results_tournament(req, res) {
@@ -38,18 +37,14 @@ export default async function results_tournament(req, res) {
             });
 
             if (games[i].round == 2){
-                winner = get_user(req, game.data.winnerId);
-                // winner = 23;
-                // winner = await get_user(req, 23);
+                winner = get_user(req, game.data.winnerId, id);
             }
 
             if (games[i].round == 2){
                 round2.push(
                         {
-                            // playerOne:  game.data.playerOneId,
-                            playerOne: await get_user(req, game.data.playerOneId),
-                            // playerTwo:  game.data.playerTwoId
-                            playerTwo: await get_user(req, game.data.playerTwoId)
+                            playerOne: await get_user(req, game.data.playerOneId, id),
+                            playerTwo: await get_user(req, game.data.playerTwoId, id)
                         }
                 );
             }
@@ -57,10 +52,8 @@ export default async function results_tournament(req, res) {
             if (games[i].round == 4){
                 round4.push(
                     {
-                        // playerOne:  game.data.playerOneId,
-                        playerOne: await get_user(req, game.data.playerOneId),
-                        // playerTwo:  game.data.playerTwoId
-                        playerTwo: await get_user(req, game.data.playerTwoId)
+                        playerOne: await get_user(req, game.data.playerOneId, id),
+                        playerTwo: await get_user(req, game.data.playerTwoId, id)
                     }
                 );
             }
@@ -68,10 +61,8 @@ export default async function results_tournament(req, res) {
             if (games[i].round == 8){
                 round8.push(
                     {
-                        // playerOne:  game.data.playerOneId,
-                        playerOne: await get_user(req, game.data.playerOneId),
-                        // playerTwo:  game.data.playerTwoId
-                        playerTwo: await get_user(req, game.data.playerTwoId)
+                        playerOne: await get_user(req, game.data.playerOneId, id),
+                        playerTwo: await get_user(req, game.data.playerTwoId, id)
                     }
                 );
             }
@@ -79,10 +70,8 @@ export default async function results_tournament(req, res) {
             if (games[i].round == 16){
                 round16.push(
                     {
-                        // playerOne:  game.data.playerOneId,
-                        playerOne: await get_user(req, game.data.playerOneId),
-                        // playerTwo:  game.data.playerTwoId
-                        playerTwo: await get_user(req, game.data.playerTwoId)
+                        playerOne: await get_user(req, game.data.playerOneId, id),
+                        playerTwo: await get_user(req, game.data.playerTwoId, id)
                     }
                 );
             }
@@ -95,11 +84,9 @@ export default async function results_tournament(req, res) {
     
     
     const aaa = await tournament_players.query().where({tournament_id: id}).select('player_id');
-    // res.status(200).send(aaa);
     const players = [];
     for (let i = 0; i < aaa.length; i++) {
-        // const user = aaa[i].player_id;
-        const user = await get_user(req, aaa[i].player_id);
+        const user = await get_user(req, aaa[i].player_id, id);
         if (user) {
             players.push(user);
         }

@@ -1,6 +1,24 @@
 import { tournament, tournament_settings, tournament_players } from "../models.js";
 import get_user from "../utils/whoThisGuy.js";
 
+
+async function player_are_joined(req, tournament_id) {
+    console.log("user", req.user)
+    console.log("Checking if player is joined to tournament:", tournament_id);
+    try{
+        const r = await tournament_players.query()
+            .where({ tournament_id, player_id: req.user.id })
+        if (r.length > 0) {
+            return true;
+        }
+        return false;
+    }
+    catch (error) {
+        console.error("Error checking if player is joined:", error);
+        return false;
+    }
+}
+
 export default async function get_tournament(req, res) {
     const id = Number(req.params.id);
 
@@ -16,13 +34,13 @@ export default async function get_tournament(req, res) {
         }
 
         let settings, invite_link;
-        if (req.user && t.owner_id === req.user.id) {
+        if (req.user && player_are_joined(req, id)) {
             settings = await tournament_settings.query().where({ tournament_id: id }).select('code').first();
             invite_link =  `${process.env.DOMAIN}/api/tournament/${t.id}/join?code=${settings.code}`;
         }
 
         const n = (await tournament_players.query().where('tournament_id', t.id)).length;
-        const owner_user = await get_user(req, t.owner_id);
+        const owner_user = await get_user(req, t.owner_id, id);
         const tr = {
             id: t.id,
             name: t.tournament_name,
