@@ -21,11 +21,6 @@ const TournamentInterface = defineComponent<TournamentInterfaceState>({
     if ((router.getParams as any).id) {
       if (this.state.state != "bracket") this.updateState({ state: "bracket" });
     } else this.updateState({ state: "start" });
-
-    // eventBus.on("tournament:bracket", (data: any) => {
-    //   // console.log(id);
-    //   router.navigateTo(`/tournament/${data.id}`);
-    // });
   },
   state() {
     return { state: "null", number: 4, nickName: "", title: "" };

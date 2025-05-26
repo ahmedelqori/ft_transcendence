@@ -1,28 +1,46 @@
+import enhancedFetch from "@/Hooks/fetch";
 import { createElement, defineComponent, IComponent } from "@/uccello/Uccello";
 
 interface TournamentInviteProps {
   inviteUsers: boolean;
   setInviteUsers: () => void;
 }
-
-const TournamentInvite = defineComponent<void, TournamentInviteProps>({
+interface TournamentInviteStat {
+  friends: any[];
+}
+const TournamentInvite = defineComponent<
+  TournamentInviteStat,
+  TournamentInviteProps
+>({
   async onMounted(
-    this: IComponent<void, TournamentInviteProps> & {
+    this: IComponent<TournamentInviteStat, TournamentInviteProps> & {
       handleClickOutSide: (e: MouseEvent) => void;
     }
   ) {
     this.handleClickOutSide = this.handleClickOutSide.bind(this);
     document.addEventListener("mousedown", this.handleClickOutSide);
+    try {
+      const response = await enhancedFetch.fetch(
+        "https://www.meedivo.me/api/account/users/?n=20&sort=newest"
+      );
+      const data = await response.json();
+      if (this.getIsMounted) this.updateState({ friends: data });
+    } catch (err) {
+      console.log(err);
+    }
   },
   onUnmounted(
-    this: IComponent<void, TournamentInviteProps> & {
+    this: IComponent<TournamentInviteStat, TournamentInviteProps> & {
       handleShowNotification: (e: MouseEvent) => void;
       handleClickOutSide: (e: MouseEvent) => void;
     }
   ) {
     document.removeEventListener("mousedown", this.handleClickOutSide);
   },
-  render(this: IComponent<void, TournamentInviteProps>) {
+  state() {
+    return { friends: [] };
+  },
+  render(this: IComponent<TournamentInviteStat, TournamentInviteProps>) {
     return createElement(
       "div",
       {
@@ -53,40 +71,13 @@ const TournamentInvite = defineComponent<void, TournamentInviteProps>({
           "dark:[&::-webkit-scrollbar-thumb]:bg-opacity-[70%]",
         ],
       },
-      [
-        ...Array(100)
-          .fill(0)
-          .map((e) =>
-            createElement(
-              "div",
-              {
-                class: [
-                  "flex-row",
-                  "justify-start",
-                  "w-full",
-                  "h-full",
-                  "gap-6",
-                ],
-              },
-              [
-                createElement("img", {
-                  src: "/assets/default.webp",
-                  width: "40",
-                  height: "40",
-                  class: ["rounded-full"],
-                }),
-                createElement(
-                  "p",
-                  { class: ["text-lg", "text-[var(--light-grey)]"] },
-                  ["ael-qori"]
-                ),
-                createElement("i", {
-                  class: ["ph", "ml-auto", "ph-user-plus", "text-xl"],
-                }),
-              ]
-            )
-          ),
-      ]
+      this.state.friends.map((e: any) =>
+        createElement(TournamentInviteUser, {
+          id: e.id,
+          username: e.username,
+          avatar_url: e.avatar_url,
+        })
+      )
     );
   },
 
@@ -104,3 +95,51 @@ const TournamentInvite = defineComponent<void, TournamentInviteProps>({
 });
 
 export default TournamentInvite;
+
+interface TournamentInviteUserProps {
+  id: number;
+  username: string;
+  avatar_url: string;
+}
+interface TournamentInviteUserState {
+  icon: string;
+}
+// ph-check-circle
+const TournamentInviteUser = defineComponent<
+  TournamentInviteUserState,
+  TournamentInviteUserProps
+>({
+  state() {
+    return { icon: "ph-user-plus" };
+  },
+  render(
+    this: IComponent<TournamentInviteUserState, TournamentInviteUserProps>
+  ) {
+    return createElement(
+      "div",
+      {
+        class: ["flex-row", "justify-start", "w-full", "h-full", "gap-6"],
+      },
+      [
+        createElement("img", {
+          src: this.props.avatar_url || "/assets/default.webp",
+          width: "40",
+          height: "40",
+          class: ["rounded-full"],
+        }),
+        createElement("p", { class: ["text-lg", "text-[var(--light-grey)]"] }, [
+          this.props.username.substring(0, 8),
+        ]),
+        createElement("i", {
+          class: ["ph", "ml-auto", this.state.icon, "text-xl"],
+          on: {
+            click: () => {
+              this.updateState({ icon: "ph-check-circle" });
+              // invite to tournament APi
+            },
+          },
+        }),
+      ]
+    );
+  },
+});

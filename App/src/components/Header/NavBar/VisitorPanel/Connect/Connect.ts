@@ -20,8 +20,8 @@ const Connect = defineComponent<void>({
           "bg-[var(--main-color)]",
         ],
         on: {
-          click: () => {
-            router.navigateTo("/login");
+          click: async () => {
+            await router.navigateTo("/login");
           },
         },
       },

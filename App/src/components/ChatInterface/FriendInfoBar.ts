@@ -153,8 +153,11 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
                     "hover:text-[var(--light-yellow)]",
                   ],
                   on: {
-                    click: () => {
-                      router.navigateTo(`/profile/${this.props.username}`);
+                    click: async () => {
+                      await router.navigateTo(
+                        `/profile/${this.props.username}`
+                      );
+                      eventBus.emit("change:profile");
                     },
                   },
                 },

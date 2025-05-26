@@ -34,9 +34,9 @@ const AccessToken = defineComponent({
           createdAt: userdata.created_at,
         },
       });
-      router.navigateTo("/dashboard");
+      await router.navigateTo("/dashboard");
     } catch (err) {
-      router.navigateTo("/login");
+      await router.navigateTo("/login");
       authState.setState({
         isAuthenticated: false,
         user: null,
