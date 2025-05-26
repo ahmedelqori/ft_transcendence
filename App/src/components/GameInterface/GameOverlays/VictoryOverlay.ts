@@ -21,11 +21,11 @@ export const VictoryOverlay = defineComponent<void, VictoryOverlayProps>({
       return createElement("div", { style: { display: "none" } });
     }
 
-    const handleGoToDashboard = () => {
+    const handleGoToDashboard = async () => {
       if (onGoToDashboard) {
         onGoToDashboard();
       }
-      router.navigateTo("/dashboard");
+      await router.navigateTo("/dashboard");
     };
 
     return createElement(

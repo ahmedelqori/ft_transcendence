@@ -74,8 +74,8 @@ const GameSetup = defineComponent<void>({
                   "cursor-pointer",
                 ],
                 on: {
-                  click: () => {
-                    router.navigateTo("/localGame");
+                  click: async () => {
+                    await router.navigateTo("/localGame");
                   },
                 },
               },
@@ -149,8 +149,8 @@ const GameSetup = defineComponent<void>({
                   "cursor-pointer",
                 ],
                 on: {
-                  click: () => {
-                    router.navigateTo("/Game/:gameId");
+                  click: async () => {
+                    await router.navigateTo("/Game/:gameId");
                   },
                 },
               },

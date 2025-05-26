@@ -505,7 +505,7 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     }
   },
 
-  handleGoToDashboard(
+  async handleGoToDashboard(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods
   ) {
@@ -519,7 +519,7 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     // Get router from app context and navigate to dashboard
     const router = this.getAppContext?.router;
     if (router) {
-      router.navigateTo("/dashboard");
+      await router.navigateTo("/dashboard");
     }
   },
 

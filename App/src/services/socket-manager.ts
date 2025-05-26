@@ -169,11 +169,11 @@ export class SocketManager {
 
       let wsUrl;
       if (this.isLocal) {
-        wsUrl = `ws://192.168.137.118:3000/ws/local/${this.gameId}`;
+        wsUrl = `ws://localhost:3000/ws/local/${this.gameId}`;
         console.log("[SocketManager] Connecting to local game:", wsUrl);
       } else {
         const token = `Bearer ${localStorage.getItem("access_token")}`;
-        wsUrl = `ws://192.168.137.118:3000/ws/game/${this.gameId}?token=${token}`;
+        wsUrl = `ws://localhost:3000/ws/game/${this.gameId}?token=${token}`;
         console.log("[SocketManager] Connecting to online game:", wsUrl);
       }
 

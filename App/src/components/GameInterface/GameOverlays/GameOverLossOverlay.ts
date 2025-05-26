@@ -23,8 +23,8 @@ export const GameOverLossOverlay = defineComponent<void, GameOverLossOverlayProp
       return createElement("div", { style: { display: "none" } });
     }
 
-    const handleGoToDashboard = () => {
-      router.navigateTo("/dashboard");
+    const handleGoToDashboard = async () => {
+      await router.navigateTo("/dashboard");
     };
 
     return createElement(
