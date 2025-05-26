@@ -22,7 +22,7 @@ const TournamentInvite = defineComponent<
     document.addEventListener("mousedown", this.handleClickOutSide);
     try {
       const response = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/account/users/?n=20&sort=newest"
+        `${import.meta.env.VITE_URL_DEV}/api/account/users/?n=20&sort=newest`
       );
       const data = await response.json();
       if (this.getIsMounted) this.updateState({ friends: data });
@@ -149,7 +149,9 @@ const TournamentInviteUser = defineComponent<
   ) {
     try {
       const res = await enhancedFetch.fetch(
-        `https://www.meedivo.me/api/tournament/${this.props.tournamentId}/invite`,
+        `${import.meta.env.VITE_URL_DEV}/api/tournament/${
+          this.props.tournamentId
+        }/invite`,
         {
           method: "POST",
           headers: {

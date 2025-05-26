@@ -48,7 +48,7 @@ const TournamentStartState = defineComponent<
   ) {
     try {
       const res = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/tournament/list"
+        `${import.meta.env.VITE_URL_DEV}/api/tournament/list`
       );
       const data = await res.json();
       if (this.getIsMounted)
@@ -362,7 +362,9 @@ const TournamentStartState = defineComponent<
   ) {
     try {
       const response = await enhancedFetch.fetch(
-        `https://www.meedivo.me/api/tournament/${this.state.id}/join?code=${this.state.code}`,
+        `${import.meta.env.VITE_URL_DEV}/api/tournament/${
+          this.state.id
+        }/join?code=${this.state.code}`,
         {
           method: "POST",
           headers: {
@@ -390,7 +392,9 @@ const TournamentStartState = defineComponent<
   ) {
     try {
       const response = await enhancedFetch.fetch(
-        `https://www.meedivo.me/api/tournament/${this.state.joinId}/join?code=${this.state.joindCode}`,
+        `${import.meta.env.VITE_URL_DEV}/api/tournament/${
+          this.state.joinId
+        }/join?code=${this.state.joindCode}`,
         {
           method: "POST",
           headers: {

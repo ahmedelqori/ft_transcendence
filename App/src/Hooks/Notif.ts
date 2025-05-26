@@ -7,9 +7,9 @@ class NotifSystem {
 
   constructor() {
     this.socket = new WebSocket(
-      `wss://www.meedivo.me/api/notif/ws?authorization=${localStorage.getItem(
-        "access_token"
-      )}`
+      `wss://${
+        import.meta.env.VITE_DOMAIN_DEV
+      }/api/notif/ws?authorization=${localStorage.getItem("access_token")}`
     );
     this.socket.onopen = () => {};
     this.socket.onmessage = (event) => {

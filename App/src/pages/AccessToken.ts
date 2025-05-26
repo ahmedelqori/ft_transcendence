@@ -10,19 +10,22 @@ import { authState } from "@/Hooks/Auth.js";
 const AccessToken = defineComponent({
   async onMounted() {
     try {
-      const res = await fetch("https://www.meedivo.me/api/account/set-cookie", {
-        mode: "cors",
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${(router.getParams as any).accessToken!}`,
-        },
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/account/set-cookie`,
+        {
+          mode: "cors",
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${(router.getParams as any).accessToken!}`,
+          },
+        }
+      );
 
       if (res.status === 401) throw "Unauthorized";
       const data = await res.json();
       localStorage.setItem("access_token", data.access_token);
       const response = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/account/whoami/"
+        `${import.meta.env.VITE_URL_DEV}/api/account/whoami/`
       );
       let userdata = await response.json();
       authState.setState({

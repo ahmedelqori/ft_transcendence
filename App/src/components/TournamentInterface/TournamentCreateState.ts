@@ -258,7 +258,7 @@ const TournamentCreateState = defineComponent<
         this.state.title
       );
       const res = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/tournament/",
+        `${import.meta.env.VITE_URL_DEV}/api/tournament/`,
         {
           method: "POST",
           headers: {

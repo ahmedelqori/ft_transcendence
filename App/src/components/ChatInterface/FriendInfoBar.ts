@@ -236,7 +236,9 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
   ) {
     try {
       await enhancedFetch.fetch(
-        `https://www.meedivo.me/api/friends/${this.props.friendId}/friend`,
+        `${import.meta.env.VITE_URL_DEV}/api/friends/${
+          this.props.friendId
+        }/friend`,
         {
           method: "DELETE",
         }
@@ -250,7 +252,9 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
   ) {
     try {
       await enhancedFetch.fetch(
-        `https://www.meedivo.me/api/friends/${this.props.friendId}/block`,
+        `${import.meta.env.VITE_URL_DEV}/api/friends/${
+          this.props.friendId
+        }/block`,
         {
           method: "POST",
         }

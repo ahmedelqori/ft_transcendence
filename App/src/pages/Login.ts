@@ -131,11 +131,15 @@ const Login = defineComponent<void>({
   },
 
   async loginWithFortyTwo() {
-    window.location.href = "https://www.meedivo.me/api/account/login/42/";
+    window.location.href = `${
+      import.meta.env.VITE_URL_DEV
+    }/api/account/login/42/`;
   },
   //
   async loginWithGoogle() {
-    window.location.href = "https://www.meedivo.me/api/account/login/google/";
+    window.location.href = `${
+      import.meta.env.VITE_URL_DEV
+    }/api/account/login/google/`;
   },
 });
 

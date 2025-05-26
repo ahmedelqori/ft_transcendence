@@ -235,7 +235,9 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
   async handleAcceptRequest(this: IComponent<void, FriendRequestProps>) {
     try {
       await enhancedFetch.fetch(
-        `https://www.meedivo.me/api/friends/${this.props.id}/request/accept`,
+        `${import.meta.env.VITE_URL_DEV}/api/friends/${
+          this.props.id
+        }/request/accept`,
         { method: "POST" }
       );
       eventBus.emit("update:friends");
@@ -248,7 +250,9 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
     console.log(this.props);
     try {
       await enhancedFetch.fetch(
-        `https://www.meedivo.me/api/friends/${this.props.id}/request/reject`,
+        `${import.meta.env.VITE_URL_DEV}/api/friends/${
+          this.props.id
+        }/request/reject`,
         { method: "POST" }
       );
       eventBus.emit("reset:notif");

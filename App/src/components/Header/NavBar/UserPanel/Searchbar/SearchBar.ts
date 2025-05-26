@@ -62,7 +62,9 @@ const Searchbar = defineComponent<SearchBarState>({
     this.updateState({ isLoading: true });
 
     try {
-      const url = `https://www.meedivo.me/api/account/search/?q=${encodeURIComponent(
+      const url = `${
+        import.meta.env.VITE_URL_DEV
+      }/api/account/search/?q=${encodeURIComponent(
         query
       )}&limit=${USERS_PER_PAGE}&offset=${offset}`;
       const res = await enhancedFetch.fetch(url);
@@ -245,7 +247,9 @@ const Searchbar = defineComponent<SearchBarState>({
                           on: {
                             click: async () => {
                               await enhancedFetch.fetch(
-                                `https://www.meedivo.me/api/friends/${user.id}/request`,
+                                `${import.meta.env.VITE_URL_DEV}/api/friends/${
+                                  user.id
+                                }/request`,
                                 {
                                   method: "POST",
                                 }

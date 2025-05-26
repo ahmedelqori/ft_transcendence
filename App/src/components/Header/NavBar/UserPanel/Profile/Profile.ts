@@ -68,7 +68,7 @@ const Profile = defineComponent<ProfileState>({
   async loadAvatar(this: IComponent<ProfileState>) {
     try {
       const response = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/account/whoami/"
+        `${import.meta.env.VITE_URL_DEV}/api/account/whoami/`
       );
       const data = await response.json();
       this.updateState({

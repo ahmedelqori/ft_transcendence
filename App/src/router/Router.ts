@@ -123,7 +123,7 @@ export async function isAuth() {
     const isAuthenticated = authState.getState().isAuthenticated;
     if (isAuthenticated) return true;
     const checkIfUserLoggedIn = await fetch(
-      "https://www.meedivo.me/api/account/whoami/",
+      `${import.meta.env.VITE_URL_DEV}/api/account/whoami/`,
       {
         mode: "cors",
         credentials: "include",

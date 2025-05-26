@@ -988,11 +988,13 @@ const TournamentBracket = defineComponent<
   async handleGetTournament() {
     try {
       const settingResponse = await enhancedFetch.fetch(
-        `https://www.meedivo.me/api/tournament/${(router.getParams as any).id}`
+        `${import.meta.env.VITE_URL_DEV}/api/tournament/${
+          (router.getParams as any).id
+        }`
       );
       const setting = await settingResponse.json();
       const resultResponse = await enhancedFetch.fetch(
-        `https://www.meedivo.me/api/tournament/${
+        `${import.meta.env.VITE_URL_DEV}/api/tournament/${
           (router.getParams as any).id
         }/results`
       );

@@ -18,7 +18,7 @@ const EditAvatar = defineComponent<EditAvatarState>({
   async onMounted(this: IComponent<EditAvatarState>) {
     try {
       const res = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/account/whoami/"
+        `${import.meta.env.VITE_URL_DEV}/api/account/whoami/`
       );
       const data = await res.json();
       if (this.getIsMounted)
@@ -214,13 +214,16 @@ const EditAvatar = defineComponent<EditAvatarState>({
       }
       const formData = new FormData();
       formData.append("avatar", this.state.avatarFile);
-      await enhancedFetch.fetch("https://www.meedivo.me/api/account/avatar/", {
-        method: "POST",
-        body: formData,
-      });
+      await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/account/avatar/`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
       // location.reload();
       // const res = await enhancedFetch.fetch(
-      //   "https://www.meedivo.me/api/account/whoami/"
+      //   `${import.meta.env.VITE_URL_DEV}/api/account/whoami/`
       // );
       // const data = await res.json();
       eventBus.emit("load:avatar", {
