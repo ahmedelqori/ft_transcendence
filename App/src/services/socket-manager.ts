@@ -169,14 +169,13 @@ export class SocketManager {
 
       let wsUrl;
       if (this.isLocal) {
-        wsUrl = `ws://localhost:3000/ws/local/${this.gameId}`;
+        wsUrl = `wss://localhost/api/games/local/${this.gameId}`;
         console.log("[SocketManager] Connecting to local game:", wsUrl);
       } else {
         const token = `Bearer ${localStorage.getItem("access_token")}`;
-        wsUrl = `ws://localhost:3000/ws/game/${this.gameId}?token=${token}`;
+        wsUrl = `wss://localhost/api/games/online${this.gameId}?token=${token}`;
         console.log("[SocketManager] Connecting to online game:", wsUrl);
       }
-
       this.socket = new WebSocket(wsUrl);
 
       const connectionTimeout = setTimeout(() => {
