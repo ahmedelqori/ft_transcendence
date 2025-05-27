@@ -63,15 +63,15 @@ fastify.register(swaggerUI, {
 });
 fastify.register(prismaPlugin);
 fastify.register(gameRoutes, {
-  prefix: "/api/games",
+  prefix: "/",
 });
 
 fastify.register(setupWebSocketHandlers, {
-  prefix: "/ws/game/",
+  prefix: "/online/",
 });
 
 fastify.register(setupLocalWebSocketHandlers, {
-  prefix: "/ws/local/",
+  prefix: "/local/",
 });
 
 const start = async function () {

@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
-// import {secrets} from '../server.js';
 import Player from '../models.js';
 
 

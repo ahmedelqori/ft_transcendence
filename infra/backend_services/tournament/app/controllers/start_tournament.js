@@ -26,18 +26,24 @@ export default async function start_tournament(req, res) {
     }
     for (let i = 0; i < players.length; i+=2) {
         console.log("Create game: ", players[i].player_id, "Vs", players[i+ 1].player_id);
-        const r = await axios.post(process.env.GAME_URL, {
-            playerOneId: players[i].player_id,
-            playerTwoId: players[i + 1].player_id,
-            // tournamentId: id
-            tournementId: id
-            }, {
-            headers: {
-                Authorization: req.headers.authorization
-            }
-            }
-        );
+        let r;
         try {
+            try{
+                    r = await axios.post(process.env.GAME_URL, {
+                    playerOneId: players[i].player_id,
+                    playerTwoId: players[i + 1].player_id,
+                    // tournamentId: id
+                    tournementId: id
+                    }, {
+                    headers: {
+                        Authorization: req.headers.authorization
+                    },
+                }
+                );
+            } catch (error) {
+                console.log("Error creating game: ", error.data);
+                return res.status(500).send({error: 'Error creating game'});
+            }
             await tournament_games.query().insert({
                 tournament_id: id,
                 round: t.players_number,

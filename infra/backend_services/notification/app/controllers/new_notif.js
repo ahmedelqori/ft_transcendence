@@ -7,6 +7,7 @@ const TYPE = [
     'inviteToMatch', // game service
     'gameAccepted', // game service
     'gameDeclined', // game service
+    'joinTournamentGame', // game service
     'tournamentInvite', // tournament service
     'reloadTournament', // tournament service
     'info', // others service
@@ -15,10 +16,10 @@ const TYPE = [
 export default async function new_notif(req, res) {
     const {to, type, payload} = req.body;
 
-    if (!TYPE.includes(type)) {
-        res.status(400).send({message: 'Invalid level'});
-        return;
-    };
+    // if (!TYPE.includes(type)) {
+    //     res.status(400).send({message: 'Invalid level'});
+    //     return;
+    // };
 
     try{
         notif.query().insert({

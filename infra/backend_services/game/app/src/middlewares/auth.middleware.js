@@ -22,7 +22,7 @@ export async function authenticate(req, reply) {
 
   try {
     fastify.log.info(`Validating token with auth service`);
-    const response = await axios.get("https://64.23.191.17/api/account/whoami/", {
+    const response = await axios.get("https://www.meedivo.me/api/account/whoami/", {
       headers: { Authorization: `${token}` },
       httpsAgent: new Agent({
         rejectUnauthorized: false

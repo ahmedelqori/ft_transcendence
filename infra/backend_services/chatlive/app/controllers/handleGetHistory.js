@@ -5,12 +5,13 @@ export async function handleGetHistory(data, userId, connection, app) {
   const skip = (page - 1) * limit;
 
   // 1) Récupération de la conversation (id)
-  const conversation = await prisma.conversation.findFirst({
+  const  conversation = await prisma.conversation.findFirst({
     where: {
-      AND: [
-        { participants: { some: { userId: userId } } },
-        { participants: { some: { userId: receiverId } } },
-      ],
+      participants: {
+        every: {
+          userId: { in: [userId, receiverId] }
+        }
+      }
     },
     select: { id: true },
   });

@@ -1,0 +1,146 @@
+nohup: ignoring input
+:white_check_mark: **Docker Crash Monitor Started** 
+
+**** Container: notification *** 
+at AxiosError.from (file:///app/node_modules/axios/lib/core/AxiosError.js:92:14)
+
+**** Container: notification *** 
+at RedirectableRequest.handleRequestError (file:///app/node_modules/axios/lib/adapters/http.js:620:25)
+
+**** Container: notification *** 
+at RedirectableRequest.emit (node:events:518:28)
+
+**** Container: notification *** 
+at eventHandlers.<computed> (/app/node_modules/follow-redirects/index.js:49:24)
+
+**** Container: notification *** 
+at ClientRequest.emit (node:events:518:28)
+
+**** Container: notification *** 
+at emitErrorEvent (node:_http_client:104:11)
+
+**** Container: notification *** 
+at Socket.socketErrorListener (node:_http_client:518:5)
+
+**** Container: notification *** 
+at Socket.emit (node:events:518:28)
+
+**** Container: notification *** 
+at emitErrorNT (node:internal/streams/destroy:170:8)
+
+**** Container: notification *** 
+at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+
+**** Container: notification *** 
+at Axios.request (file:///app/node_modules/axios/lib/core/Axios.js:45:41)
+
+**** Container: notification *** 
+at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+**** Container: notification *** 
+at AxiosError.from (file:///app/node_modules/axios/lib/core/AxiosError.js:92:14)
+
+**** Container: notification *** 
+at RedirectableRequest.handleRequestError (file:///app/node_modules/axios/lib/adapters/http.js:620:25)
+
+**** Container: notification *** 
+at RedirectableRequest.emit (node:events:518:28)
+
+**** Container: notification *** 
+at eventHandlers.<computed> (/app/node_modules/follow-redirects/index.js:49:24)
+
+**** Container: notification *** 
+at ClientRequest.emit (node:events:518:28)
+
+**** Container: notification *** 
+at emitErrorEvent (node:_http_client:104:11)
+
+**** Container: notification *** 
+at Socket.socketErrorListener (node:_http_client:518:5)
+
+**** Container: notification *** 
+at Socket.emit (node:events:518:28)
+
+**** Container: notification *** 
+at emitErrorNT (node:internal/streams/destroy:170:8)
+
+**** Container: notification *** 
+at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+
+**** Container: notification *** 
+at Axios.request (file:///app/node_modules/axios/lib/core/Axios.js:45:41)
+
+**** Container: notification *** 
+at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+**** Container: notification *** 
+at AxiosError.from (file:///app/node_modules/axios/lib/core/AxiosError.js:92:14)
+
+**** Container: notification *** 
+at RedirectableRequest.handleRequestError (file:///app/node_modules/axios/lib/adapters/http.js:620:25)
+
+**** Container: notification *** 
+at RedirectableRequest.emit (node:events:518:28)
+
+**** Container: notification *** 
+at eventHandlers.<computed> (/app/node_modules/follow-redirects/index.js:49:24)
+
+**** Container: notification *** 
+at ClientRequest.emit (node:events:518:28)
+
+**** Container: notification *** 
+at emitErrorEvent (node:_http_client:104:11)
+
+**** Container: notification *** 
+at Socket.socketErrorListener (node:_http_client:518:5)
+
+**** Container: notification *** 
+at Socket.emit (node:events:518:28)
+
+**** Container: notification *** 
+at emitErrorNT (node:internal/streams/destroy:170:8)
+
+**** Container: notification *** 
+at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+
+**** Container: notification *** 
+at Axios.request (file:///app/node_modules/axios/lib/core/Axios.js:45:41)
+
+**** Container: notification *** 
+at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+**** Container: notification *** 
+at AxiosError.from (file:///app/node_modules/axios/lib/core/AxiosError.js:92:14)
+
+**** Container: notification *** 
+at RedirectableRequest.handleRequestError (file:///app/node_modules/axios/lib/adapters/http.js:620:25)
+
+**** Container: notification *** 
+at RedirectableRequest.emit (node:events:518:28)
+
+**** Container: notification *** 
+at eventHandlers.<computed> (/app/node_modules/follow-redirects/index.js:49:24)
+
+**** Container: notification *** 
+at ClientRequest.emit (node:events:518:28)
+
+**** Container: notification *** 
+at emitErrorEvent (node:_http_client:104:11)
+
+**** Container: notification *** 
+at Socket.socketErrorListener (node:_http_client:518:5)
+
+**** Container: notification *** 
+at Socket.emit (node:events:518:28)
+
+**** Container: notification *** 
+at emitErrorNT (node:internal/streams/destroy:170:8)
+
+**** Container: notification *** 
+at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+
+**** Container: notification *** 
+at Axios.request (file:///app/node_modules/axios/lib/core/Axios.js:45:41)
+
+**** Container: notification *** 
+at process.processTicksAndRejections (node:internal/process/task_queues:105:5)

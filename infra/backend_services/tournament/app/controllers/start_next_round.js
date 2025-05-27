@@ -1,6 +1,20 @@
 import { tournament, tournament_games, tournament_players } from "../models.js";
+import notif from '../utils/send_notif.js';
 import axios from "axios";
 
+
+async function reload_tournament(req, id) {
+    const players = await tournament_players.query()
+        .where('tournament_id', id)
+        .select('player_id');
+    console.log("Joined player: ", req.user.id);
+    players.forEach(async (e) => {
+        if (e.player_id != req.user.id) {
+            console.log(`Reloading tournament for player ${e.player_id}`);
+            await notif(req, e.player_id, 'reloadTournament', {});
+        }
+    });
+}
 
 export default async function start_next_round(req, res) {
     // if (req.headers.origin !== process.env.ORIGIN) {
@@ -33,9 +47,10 @@ export default async function start_next_round(req, res) {
 
     if (r.round / 2 == 1) {
         await tournament.query().patchAndFetchById(tournementId, {
-            status: 'COMPLETE'
-            // status: 'FINISHED'
+            // status: 'COMPLETE'
+            status: 'FINISHED'
         });
+        reload_tournament(req, tournementId);
         res.status(200);
         return;
     }

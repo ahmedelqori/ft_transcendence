@@ -81,7 +81,7 @@ fclean: down
 #!!!!!!!!!!!!!!!!! rules for devlopment !!!!!!!!!!!!!!!!!!#
 
 shell:
-	$(CMD) exec $(c) bash
+	$(CMD) exec $(c) sh
 
 restart:
 	docker stop $(c)

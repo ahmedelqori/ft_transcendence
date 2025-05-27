@@ -10,14 +10,15 @@ export async function handleSendMessage(
 ) {
   const prisma = app.prisma;
   const { content, receiverId } = data;
-
+  let conversation = null;
   // 1) Récupération de la conversation (id)
-  let conversation = await prisma.conversation.findFirst({
+  conversation = await prisma.conversation.findFirst({
     where: {
-      AND: [
-        { participants: { some: { userId: userId } } },
-        { participants: { some: { userId: receiverId } } },
-      ],
+      participants: {
+        every: {
+          userId: { in: [userId, receiverId] }
+        }
+      }
     },
     select: { id: true },
   });
@@ -31,6 +32,11 @@ export async function handleSendMessage(
       },
     });
   }
+  console.log("Conversation ID:", conversation.id);
+  console.log("User ID:", userId);
+  console.log("Receiver ID:", receiverId);
+  console.log("Content:", content);
+
 
   if (!messageBatches.has(conversation.id))
     messageBatches.set(conversation.id, []);

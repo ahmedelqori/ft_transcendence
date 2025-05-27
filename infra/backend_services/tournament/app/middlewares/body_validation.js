@@ -6,7 +6,7 @@ export default async function body_validation(req, res) {
     const players_number = req.body.players_number;
     const nickname = req.body.nickname;
     if (!tournament_name || !nickname || !players_number) {
-        res.status(400).send({ message: 'Bad Request1' });
+        res.status(400).send({ message: 'Bad Request' });
         return;
     }
 

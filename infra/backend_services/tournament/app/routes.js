@@ -25,8 +25,6 @@ export default function routes(fastify) {
     fastify.post('/next-round', { preHandler: auth }, next_round);
     fastify.get('/:id/results', { preHandler: auth }, results_tournament);
     fastify.get('/:id/wons', player_won);
-
-
 }
 
 
