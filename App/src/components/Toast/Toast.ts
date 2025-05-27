@@ -1,3 +1,4 @@
+import { authState } from "@/Hooks/Auth";
 import enhancedFetch from "@/Hooks/fetch";
 import { router } from "@/router/Router";
 import {
@@ -378,7 +379,9 @@ export const InviteToMatch = defineComponent<void, InviteToMatchProps>({
     try {
       await enhancedFetch.fetch(
         // `http://localhost:3000/decline/${this.props.gameId}`,
-        `${import.meta.env.VITE_URL_DEV}/api/games/decline/${this.props.gameId}`,
+        `${import.meta.env.VITE_URL_DEV}/api/games/decline/${
+          this.props.gameId
+        }`,
         { method: "PUT" }
       );
       eventBus.emit("reset:notif");
@@ -458,7 +461,7 @@ export const inviteToTournament = defineComponent({
     try {
       await enhancedFetch.fetch(this.props.link, {
         method: "POST",
-        body: JSON.stringify({ nickname: "12345" }),
+        body: JSON.stringify({ nickname: authState.getState().user?.username }),
         headers: {
           "Content-Type": "application/json",
         },
