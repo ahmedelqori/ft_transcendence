@@ -347,6 +347,7 @@ export const InviteToMatch = defineComponent<void, InviteToMatchProps>({
   async handleAcceptRequest(this: IComponent<void, InviteToMatchProps>) {
     try {
       await enhancedFetch.fetch(
+        // `http://localhost:3000/accept/${this.props.gameId}`,
         `${import.meta.env.VITE_URL_DEV}/api/games/accept/${this.props.gameId}`,
         {
           method: "PUT",
@@ -361,6 +362,7 @@ export const InviteToMatch = defineComponent<void, InviteToMatchProps>({
   async handleDeclineRequest(this: IComponent<void, InviteToMatchProps>) {
     try {
       await enhancedFetch.fetch(
+        // `http://localhost:3000/decline/${this.props.gameId}`,
         `${import.meta.env.VITE_URL_DEV}/api/games/decline/${this.props.gameId}`,
         { method: "PUT" }
       );

@@ -143,7 +143,7 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
   ): Promise<void> {
     try {
       const response = await enhancedFetch.fetch(
-        "https://www.meedivo.me/api/account/whoami/"
+        `${import.meta.env.VITE_URL_DEV}/api/account/whoami/`
       );
       const user = await response.json();      
       const socketManager = new SocketManager();
