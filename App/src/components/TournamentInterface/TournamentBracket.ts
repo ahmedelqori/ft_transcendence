@@ -23,6 +23,7 @@ interface TournamentBracketState {
   players: any[];
   status: string;
   code: string;
+  owner: number;
 }
 
 const TournamentBracket = defineComponent<
@@ -51,6 +52,7 @@ const TournamentBracket = defineComponent<
       players: [authState.getState().user?.id!],
       status: "CREATED",
       code: "",
+      owner: -1,
     };
   },
   render(
@@ -182,7 +184,11 @@ const TournamentBracket = defineComponent<
                       "h-12",
                     ],
                   },
-                  [`Leave`]
+                  [
+                    this.state.owner === authState.getState().user?.id!
+                      ? `Delete`
+                      : "Leave",
+                  ]
                 ),
               ]
             ),
@@ -1144,6 +1150,7 @@ const TournamentBracket = defineComponent<
           isLoading: false,
           status: setting.status,
           code: setting.settings.code,
+          owner: setting.owner.id,
         });
       }
     } catch (err: any) {

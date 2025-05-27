@@ -39,6 +39,9 @@ class NotifSystem {
         case "reloadTournament":
           this.handleReloadTournament();
           break;
+        case "joinTournamentGame":
+          console.log(data);
+          break;
         default:
           break;
       }
