@@ -15,18 +15,18 @@ interface NotificationItemsState {
 const NotificationItems = defineComponent<NotificationItemsState>({
   async onMounted(this: IComponent<NotificationItemsState>) {
     try {
-      // const res = await enhancedFetch.fetch(
-      //   `${import.meta.env.VITE_URL_DEV}/api/notif/`
-      // );
-      // const data = await res.json();
-      // this.updateState({ Notifications: data.result });
-      // console.log(data);
+      const res = await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/notif/`
+      );
+      const data = await res.json();
+      console.log(data.result);
+      if (this.getIsMounted) this.updateState({ Notifications: data.result });
     } catch (err) {}
     eventBus.on("add:notif", (data: any) => {
-      console.log(this.state.Notifications);
-      this.updateState({
-        Notifications: [...this.state.Notifications, { data }],
-      });
+      if (this.getIsMounted)
+        this.updateState({
+          Notifications: [...this.state.Notifications, { data }],
+        });
     });
   },
   state() {
@@ -61,17 +61,17 @@ const NotificationItems = defineComponent<NotificationItemsState>({
             ]),
           ]
         : this.state.Notifications.map((e: any) => {
-            console.log(e);
-            const info = e.data;
+            const info = e;
             switch (info.type) {
               case "friendRequest":
                 return createElement(FriendRequestNotif, {
-                  username: info.data.username,
-                  id: info.data.id,
-                  avatar: info.data.avatar,
+                  username: info.Sender.username,
+                  id: info.Sender.id,
+                  avatar: info.Sender.avatar_url,
+                  notifId: info.id,
                 });
             }
-            return createFragment([]);
+            // return createFragment([]);
           })
     );
   },

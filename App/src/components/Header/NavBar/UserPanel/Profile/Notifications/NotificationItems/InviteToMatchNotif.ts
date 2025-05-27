@@ -1,40 +1,54 @@
 import enhancedFetch from "@/Hooks/fetch";
-import { createElement, defineComponent, IComponent } from "@/uccello/Uccello";
+import { router } from "@/router/Router";
+import {
+  createElement,
+  defineComponent,
+  eventBus,
+  IComponent,
+} from "@/uccello/Uccello";
 
-interface FriendRequestNotifProps {
-  username: string;
-  avatar: string;
+interface InviteToMatchProps {
   id: number;
+  avatar: any;
+  gameId: number;
   notifId: number;
+  username: string;
 }
 
-const FriendRequestNotif = defineComponent<void, FriendRequestNotifProps>({
+export const InviteToMatchNotif = defineComponent<void, InviteToMatchProps>({
   render(
-    this: IComponent<void, FriendRequestNotifProps> & {
-      handleAcceptButton: () => Promise<void>;
-      handleDeclineButton: () => Promise<void>;
+    this: IComponent<void, InviteToMatchProps> & {
+      handleAcceptRequest: () => Promise<void>;
+      handleDeclineRequest: () => Promise<void>;
     }
   ) {
     return createElement("div", { class: ["flex-row", "gap-[20px]"] }, [
       createElement("img", {
-        src: this.props.avatar,
-        class: ["w-[40px]", "rounded-full"],
+        width: "40px",
+        height: "40px",
+        src: this.props.avatar || "/assets/default.webp",
+        class: ["w-[40px]", "h-[40px]", "rounded-full"],
+        on: {
+          click: async () => {
+            await router.navigateTo(`/profile/${this.props.username}`);
+            eventBus.emit("change:profile");
+          },
+        },
       }),
       createElement("div", { class: ["mr-auto", "items-start"] }, [
-        createElement("p", { class: ["text-[14px]"] }, [this.props.username]),
+        createElement("p", { class: ["text-xs"] }, [
+          this.props.username || "unknown",
+        ]),
         createElement(
           "span",
           { class: ["text-[var(--light-grey)]", "text-[10px]"] },
-          ["Send Request"]
+          ["Game Invite"]
         ),
       ]),
       createElement("div", { class: ["flex-row", "gap-2"] }, [
         createElement(
           "button",
           {
-            on: {
-              click: async () => await this.handleAcceptButton(),
-            },
             class: [
               "rounded-[16px]",
               "bg-[var(--light-yellow)]",
@@ -45,15 +59,15 @@ const FriendRequestNotif = defineComponent<void, FriendRequestNotifProps>({
               "font-medium",
               "hover:scale-[104%]",
             ],
+            on: {
+              click: this.handleAcceptRequest,
+            },
           },
           ["Accept"]
         ),
         createElement(
           "button",
           {
-            on: {
-              click: async () => await this.handleDeclineButton(),
-            },
             class: [
               "rounded-[16px]",
               "bg-[var(--red-color)]",
@@ -64,47 +78,51 @@ const FriendRequestNotif = defineComponent<void, FriendRequestNotifProps>({
               "font-medium",
               "hover:scale-[104%]",
             ],
+            on: {
+              click: this.handleDeclineRequest,
+            },
           },
           ["Decline"]
         ),
       ]),
     ]);
   },
-  async handleAcceptButton(
-    this: IComponent<void, FriendRequestNotifProps> & {
+  async handleAcceptRequest(
+    this: IComponent<void, InviteToMatchProps> & {
       removeNotif: () => Promise<void>;
     }
   ) {
     try {
       await enhancedFetch.fetch(
-        `${import.meta.env.VITE_URL_DEV}/api/friends/${
-          this.props.id
-        }/request/accept`,
-        { method: "POST" }
+        `${import.meta.env.VITE_URL_DEV}/api/games/accept/${this.props.gameId}`,
+        {
+          method: "PUT",
+        }
+      );
+      await router.navigateTo(`/game/${this.props.gameId}`);
+      await this.removeNotif();
+    } catch (err) {
+      console.log(err);
+    }
+  },
+  async handleDeclineRequest(
+    this: IComponent<void, InviteToMatchProps> & {
+      removeNotif: () => Promise<void>;
+    }
+  ) {
+    try {
+      await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/games/decline/${
+          this.props.gameId
+        }`,
+        { method: "PUT" }
       );
       await this.removeNotif();
     } catch (err) {
       console.log(err);
     }
   },
-  async handleDeclineButton(
-    this: IComponent<void, FriendRequestNotifProps> & {
-      removeNotif: () => Promise<void>;
-    }
-  ) {
-    try {
-      await enhancedFetch.fetch(
-        `${import.meta.env.VITE_URL_DEV}/api/friends/${
-          this.props.id
-        }/request/reject`,
-        { method: "POST" }
-      );
-      await this.removeNotif();
-    } catch (err) {
-      console.log(err);
-    }
-  },
-  async removeNotif(this: IComponent<void, FriendRequestNotifProps>) {
+  async removeNotif(this: IComponent<void, InviteToMatchProps>) {
     try {
       await enhancedFetch.fetch(
         `${import.meta.env.VITE_URL_DEV}/api/notif/${this.props.notifId}`,
@@ -115,5 +133,3 @@ const FriendRequestNotif = defineComponent<void, FriendRequestNotifProps>({
     }
   },
 });
-
-export default FriendRequestNotif;

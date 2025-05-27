@@ -33,6 +33,7 @@ const TournamentBracket = defineComponent<
     this: IComponent<TournamentBracketState, TournamentBracketProps> & {
       handleGetTournament: () => Promise<void>;
       handleChangeParamTournament: () => void;
+      handleStartTournament: () => Promise<void>;
     }
   ) {
     await this.handleGetTournament();
@@ -52,34 +53,138 @@ const TournamentBracket = defineComponent<
       code: "",
     };
   },
-  render(this: IComponent<TournamentBracketState, TournamentBracketProps>) {
+  render(
+    this: IComponent<TournamentBracketState, TournamentBracketProps> & {
+      handleLeaveTournament: () => Promise<void>;
+      handleStartTournament: () => Promise<void>;
+    }
+  ) {
     let index = 0;
     return this.state.isLoading == false
       ? createElement(
           "div",
           { class: ["w-full", "h-full", "flex-row", "relative"] },
           [
+            this.state.status === "READY"
+              ? createElement(
+                  "div",
+                  {
+                    class: [
+                      "absolute",
+                      "left-1/2",
+                      "top-1/2",
+                      "bg-opacity-1",
+                      "-translate-x-1/2",
+                      "-translate-y-1/2",
+                      "py-2",
+                      "text-black",
+                      "font-medium",
+                      "text-lg",
+                      "flex-row",
+                    ],
+                    on: {
+                      click: async () => await this.handleStartTournament(),
+                    },
+                  },
+                  [
+                    createElement(
+                      "button",
+                      {
+                        class: [
+                          "border-4",
+                          "border-[var(--light-yellow)]",
+                          "w-[120px]",
+                          "bg-[var(--light-yellow)]",
+                          "rounded-[33px]",
+                          "tracking-wide",
+                          "h-12",
+                        ],
+                      },
+                      ["Start"]
+                    ),
+                  ]
+                )
+              : null,
             createElement(
               "div",
               {
                 class: [
                   "absolute",
-                  "top-[-32px]",
-                  "left-1/2",
-                  "w-[160px]",
-                  "bg-[var(--light-yellow)]",
+                  "left-[-26px]",
+                  "top-[-41px]",
                   "bg-opacity-1",
-                  "-translate-x-1/2",
                   "py-2",
                   "text-black",
                   "font-medium",
-                  "rounded-bl-[33px]",
-                  "rounded-br-[33px]",
-                  "tracking-wide",
                   "text-lg",
+                  "flex-row",
                 ],
               },
-              [`#${this.state.code}`]
+              [
+                createElement(
+                  "button",
+                  {
+                    class: [
+                      "rounded-bl-none",
+                      "rounded-tr-none",
+
+                      "border-2",
+                      "text-[var(--dark-black)]",
+                      "w-[120px]",
+                      "bg-[var(--main-color)]",
+                      "border-[#878787]",
+                      "border-opacity-[30%]",
+                      "rounded-[33px]",
+                      "tracking-wide",
+                      "h-12",
+                    ],
+                  },
+                  [`#${this.state.code}`]
+                ),
+              ]
+            ),
+            createElement(
+              "div",
+              {
+                class: [
+                  "absolute",
+                  "right-[-26px]",
+                  "top-[-41px]",
+                  "bg-opacity-1",
+                  "py-2",
+                  "text-black",
+                  "font-medium",
+                  "text-lg",
+                  "flex-row",
+                ],
+                on: {
+                  click: async () => {
+                    await this.handleLeaveTournament();
+                    await router.navigateTo("/dashboard");
+                  },
+                },
+              },
+              [
+                createElement(
+                  "button",
+                  {
+                    class: [
+                      "rounded-br-none",
+                      "rounded-tl-none",
+                      "border-2",
+                      "text-[var(--main-color)]",
+                      "w-[120px]",
+                      "bg-[var(--red-color)]",
+                      "border-[#878787]",
+                      "border-opacity-[30%]",
+                      "rounded-[33px]",
+                      "tracking-wide",
+                      "h-12",
+                    ],
+                  },
+                  [`Leave`]
+                ),
+              ]
             ),
             createElement(
               "div",
@@ -981,24 +1086,56 @@ const TournamentBracket = defineComponent<
         )
       : createElement(Loader);
   },
+  async handleStartTournament() {
+    try {
+      await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/tournament/${
+          (router.getParams as any).id
+        }/start`,
+        {
+          method: "POST",
+        }
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  },
+  async handleLeaveTournament() {
+    try {
+      await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/tournament/${
+          (router.getParams as any).id
+        }/leave`,
+        {
+          method: "POST",
+        }
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  },
   handleChangeParamTournament() {
     if (router.getMatchedRoute?.path === "/tournament/:id")
       eventBus.emit("change:tournament");
   },
   async handleGetTournament() {
     try {
+      console.log(router);
       const settingResponse = await enhancedFetch.fetch(
         `${import.meta.env.VITE_URL_DEV}/api/tournament/${
           (router.getParams as any).id
         }`
       );
       const setting = await settingResponse.json();
+      if (!settingResponse.ok) throw setting;
       const resultResponse = await enhancedFetch.fetch(
         `${import.meta.env.VITE_URL_DEV}/api/tournament/${
           (router.getParams as any).id
         }/results`
       );
+
       const result = await resultResponse.json();
+      if (!resultResponse.ok) throw result;
       if (this.getIsMounted) {
         this.updateState({
           numberOfPlayers: setting.total_places,
@@ -1009,8 +1146,9 @@ const TournamentBracket = defineComponent<
           code: setting.settings.code,
         });
       }
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      eventBus.emit("notif:error", err.error || err.message);
+      await router.navigateTo("/dashboard");
     }
   },
 });
