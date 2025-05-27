@@ -347,7 +347,9 @@ export const InviteToMatch = defineComponent<void, InviteToMatchProps>({
   async handleAcceptRequest(this: IComponent<void, InviteToMatchProps>) {
     try {
       await enhancedFetch.fetch(
-        `http://localhost:3000/api/games/accept/${this.props.gameId}`,
+        `${import.meta.env.VITE_URL_DEV}/api/games/api/games/accept/${
+          this.props.gameId
+        }`,
         {
           method: "PUT",
         }
@@ -361,7 +363,9 @@ export const InviteToMatch = defineComponent<void, InviteToMatchProps>({
   async handleDeclineRequest(this: IComponent<void, InviteToMatchProps>) {
     try {
       await enhancedFetch.fetch(
-        `http://localhost:3000/api/games/decline/${this.props.gameId}`,
+        `${import.meta.env.VITE_URL_DEV}/api/games/api/games/decline/${
+          this.props.gameId
+        }`,
         { method: "PUT" }
       );
       eventBus.emit("reset:notif");
@@ -437,7 +441,7 @@ export const inviteToTournament = defineComponent({
     try {
       await enhancedFetch.fetch(this.props.link, {
         method: "POST",
-        body: JSON.stringify({ nickname: "TMP16" }),
+        body: JSON.stringify({ nickname: "12345" }),
         headers: {
           "Content-Type": "application/json",
         },

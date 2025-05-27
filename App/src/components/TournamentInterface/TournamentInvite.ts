@@ -161,6 +161,7 @@ const TournamentInviteUser = defineComponent<
         }
       );
       const data = await res.json();
+      if (this.getIsMounted) this.updateState({ icon: "ph-user-plus" });
       console.log(data);
       if (this.getIsMounted) this.updateState({ icon: "ph-check-circle" });
     } catch (err) {}
