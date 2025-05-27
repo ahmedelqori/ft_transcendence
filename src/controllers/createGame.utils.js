@@ -100,24 +100,29 @@ export async function handleRegularGame(req, reply, playerTwoId) {
   }
 }
 
-async function validateTournament(tournamentId, req) {
+async function validateTournament(req, tournamentId) {
   try {
-    fastify.log.warn(`in handle tournamenet game`)
-    const response = await axios.get(`http://tournament:3000/api/tournament/${tournamentId}`, {
-      "Authorization": `Bearer ${req.token}`,
-        httpsAgent: new Agent({
-          rejectUnauthorized: false,
-        }),
+    const response = await axios.get(`https://www.meedivo.me/api/tournament/${tournamentId}`, {
+      headers: {
+        Authorization: `${req.token}`,
+      },
+      httpsAgent: new Agent({
+        rejectUnauthorized: false,
+      }),
     });
     if (!response) {
       return reply.code(403).send({ 
         error: "you can not create the Game without permissions" 
       });
     }
-    if (response.id == tournamentId && req.user.id == response.owner.id)
+    fastify.log.warn(response.data)
+    if (response.data.id == tournamentId && req.user.id == response.data.owner.id){
       response.ok = true
+      console.log(response.ok)
+
+    }
     else
-      response.message = "you can not create the Game without permissions"
+    response.message = "you can not create the Game without permissions"
     return response
   } catch (error) {
     fastify.log.error(`Tournament validation error: ${error.message}`);
@@ -196,7 +201,7 @@ async function sendGameInvitation(req, game) {
 async function sendTournamentGameInvitation(req, game) {
   try {
     await axios.post(
-      `http://notification:3000/api/notif/`,
+      `https://www.meedivo.me/api/notif/`,
       {
         to: game.playerOneId,
         type: "joinTournamentGame",
@@ -212,7 +217,7 @@ async function sendTournamentGameInvitation(req, game) {
       }
     );
     await axios.post(
-      `http://notification:3000/api/notif/`,
+      `https://www.meedivo.me/api/notif/`,
       {
         to: game.playerTwoId,
         type: "joinTournamentGame", // to change
