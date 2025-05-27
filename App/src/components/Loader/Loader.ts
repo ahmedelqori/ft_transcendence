@@ -1,6 +1,10 @@
 import { createElement, defineComponent } from "@/uccello/Uccello";
 
 const Loader = defineComponent({
+  // onMouned(this:IComponent<>)
+  // {
+
+  // },
   render() {
     return createElement(
       "div",

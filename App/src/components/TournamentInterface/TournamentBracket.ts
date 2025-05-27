@@ -1120,18 +1120,22 @@ const TournamentBracket = defineComponent<
   },
   async handleGetTournament() {
     try {
+      console.log(router);
       const settingResponse = await enhancedFetch.fetch(
         `${import.meta.env.VITE_URL_DEV}/api/tournament/${
           (router.getParams as any).id
         }`
       );
       const setting = await settingResponse.json();
+      if (!settingResponse.ok) throw setting;
       const resultResponse = await enhancedFetch.fetch(
         `${import.meta.env.VITE_URL_DEV}/api/tournament/${
           (router.getParams as any).id
         }/results`
       );
+
       const result = await resultResponse.json();
+      if (!resultResponse.ok) throw result;
       if (this.getIsMounted) {
         this.updateState({
           numberOfPlayers: setting.total_places,
@@ -1142,9 +1146,9 @@ const TournamentBracket = defineComponent<
           code: setting.settings.code,
         });
       }
-      console.log(setting, result);
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      eventBus.emit("notif:error", err.error || err.message);
+      await router.navigateTo("/dashboard");
     }
   },
 });

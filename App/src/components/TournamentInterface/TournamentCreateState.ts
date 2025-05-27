@@ -1,5 +1,11 @@
 import enhancedFetch from "@/Hooks/fetch";
-import { createElement, defineComponent, IComponent } from "@/uccello/Uccello";
+import { router } from "@/router/Router";
+import {
+  createElement,
+  defineComponent,
+  eventBus,
+  IComponent,
+} from "@/uccello/Uccello";
 
 interface TournamentCreateStateSt {
   number: number;
@@ -251,12 +257,6 @@ const TournamentCreateState = defineComponent<
     this: IComponent<TournamentCreateStateSt, TournamentCreateStateProps>
   ) {
     try {
-      this.props.setData(
-        "bracket",
-        this.state.number,
-        this.state.nickName,
-        this.state.title
-      );
       const res = await enhancedFetch.fetch(
         `${import.meta.env.VITE_URL_DEV}/api/tournament/`,
         {
@@ -272,7 +272,14 @@ const TournamentCreateState = defineComponent<
         }
       );
       const data = await res.json();
-      console.log(data);
+      await router.navigateTo(`/tournament/${data.id}`);
+      eventBus.emit("change:tournament");
+      this.props.setData(
+        "bracket",
+        this.state.number,
+        this.state.nickName,
+        this.state.title
+      );
     } catch (err) {
       console.log(err);
     }

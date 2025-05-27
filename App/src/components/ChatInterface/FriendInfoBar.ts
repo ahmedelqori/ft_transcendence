@@ -267,16 +267,13 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
     this: IComponent<FriendInfoBarState, FriendInfoBarProps>
   ) {
     try {
-      await enhancedFetch.fetch(
-        `${import.meta.env.VITE_URL_DEV}/api/games/api/games`,
-        {
-          method: "POST",
-          body: JSON.stringify({ playerTwoId: this.props.friendId }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      await enhancedFetch.fetch(`${import.meta.env.VITE_URL_DEV}/api/games`, {
+        method: "POST",
+        body: JSON.stringify({ playerTwoId: this.props.friendId }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
     } catch (err) {
       console.log(err);
     }

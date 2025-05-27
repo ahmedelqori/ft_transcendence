@@ -96,11 +96,20 @@ const Toast = defineComponent<ToastState>({
         }, 6000);
       }
     );
+    eventBus.on("notif:error", (error: string) => {
+      this.updateState({
+        NotifComponent: createElement(ErrorComponent, { message: error }),
+      });
+      setTimeout(() => {
+        this.updateState({ NotifComponent: null });
+      }, 6000);
+    });
   },
   state() {
     return { NotifComponent: null };
   },
   render(this: IComponent<ToastState>) {
+    console.log(this.state.NotifComponent);
     return this.state.NotifComponent
       ? createElement(
           "div",
@@ -111,8 +120,6 @@ const Toast = defineComponent<ToastState>({
               "right-4",
               "bottom-16",
               "w-fit",
-              "px-4",
-              "py-2",
               "bg-[var(--dark-black)]",
               "rounded-[30px]",
             ],
@@ -166,71 +173,75 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
       handleDeclineRequest: () => Promise<void>;
     }
   ) {
-    return createElement("div", { class: ["flex-row", "gap-[20px]"] }, [
-      createElement("img", {
-        width: "40px",
-        height: "40px",
-        src: this.props.avatar || "/assets/default.webp",
-        class: ["w-[40px]", "h-[40px]", "rounded-full"],
-        on: {
-          click: async () => {
-            await router.navigateTo(`/profile/${this.props.username}`);
-            eventBus.emit("reset:notif");
-            eventBus.emit("change:profile");
+    return createElement(
+      "div",
+      { class: ["flex-row", "gap-[20px]", "px-4", "py-2"] },
+      [
+        createElement("img", {
+          width: "40px",
+          height: "40px",
+          src: this.props.avatar || "/assets/default.webp",
+          class: ["w-[40px]", "h-[40px]", "rounded-full"],
+          on: {
+            click: async () => {
+              await router.navigateTo(`/profile/${this.props.username}`);
+              eventBus.emit("reset:notif");
+              eventBus.emit("change:profile");
+            },
           },
-        },
-      }),
-      createElement("div", { class: ["mr-auto", "items-start"] }, [
-        createElement("p", { class: ["text-xs"] }, [
-          this.props.username || "unknown",
+        }),
+        createElement("div", { class: ["mr-auto", "items-start"] }, [
+          createElement("p", { class: ["text-xs"] }, [
+            this.props.username || "unknown",
+          ]),
+          createElement(
+            "span",
+            { class: ["text-[var(--light-grey)]", "text-[10px]"] },
+            ["Send Request"]
+          ),
         ]),
-        createElement(
-          "span",
-          { class: ["text-[var(--light-grey)]", "text-[10px]"] },
-          ["Send Request"]
-        ),
-      ]),
-      createElement("div", { class: ["flex-row", "gap-2"] }, [
-        createElement(
-          "button",
-          {
-            class: [
-              "rounded-[16px]",
-              "bg-[var(--light-yellow)]",
-              "text-[var(--dark-black)]",
-              "px-2",
-              "py-1",
-              "text-[10px]",
-              "font-medium",
-              "hover:scale-[104%]",
-            ],
-            on: {
-              click: this.handleAcceptRequest,
+        createElement("div", { class: ["flex-row", "gap-2"] }, [
+          createElement(
+            "button",
+            {
+              class: [
+                "rounded-[16px]",
+                "bg-[var(--light-yellow)]",
+                "text-[var(--dark-black)]",
+                "px-2",
+                "py-1",
+                "text-[10px]",
+                "font-medium",
+                "hover:scale-[104%]",
+              ],
+              on: {
+                click: this.handleAcceptRequest,
+              },
             },
-          },
-          ["Accept"]
-        ),
-        createElement(
-          "button",
-          {
-            class: [
-              "rounded-[16px]",
-              "bg-[var(--red-color)]",
-              "text-[var(--dark-black)]",
-              "text-[10px]",
-              "px-2",
-              "py-1",
-              "font-medium",
-              "hover:scale-[104%]",
-            ],
-            on: {
-              click: this.handleDeclineRequest,
+            ["Accept"]
+          ),
+          createElement(
+            "button",
+            {
+              class: [
+                "rounded-[16px]",
+                "bg-[var(--red-color)]",
+                "text-[var(--dark-black)]",
+                "text-[10px]",
+                "px-2",
+                "py-1",
+                "font-medium",
+                "hover:scale-[104%]",
+              ],
+              on: {
+                click: this.handleDeclineRequest,
+              },
             },
-          },
-          ["Decline"]
-        ),
-      ]),
-    ]);
+            ["Decline"]
+          ),
+        ]),
+      ]
+    );
   },
   async handleAcceptRequest(this: IComponent<void, FriendRequestProps>) {
     try {
@@ -278,78 +289,80 @@ export const InviteToMatch = defineComponent<void, InviteToMatchProps>({
       handleDeclineRequest: () => Promise<void>;
     }
   ) {
-    return createElement("div", { class: ["flex-row", "gap-[20px]"] }, [
-      createElement("img", {
-        width: "40px",
-        height: "40px",
-        src: this.props.avatar || "/assets/default.webp",
-        class: ["w-[40px]", "h-[40px]", "rounded-full"],
-        on: {
-          click: async () => {
-            await router.navigateTo(`/profile/${this.props.username}`);
-            eventBus.emit("reset:notif");
-            eventBus.emit("change:profile");
+    return createElement(
+      "div",
+      { class: ["flex-row", "gap-[20px]", "px-4", "py-2"] },
+      [
+        createElement("img", {
+          width: "40px",
+          height: "40px",
+          src: this.props.avatar || "/assets/default.webp",
+          class: ["w-[40px]", "h-[40px]", "rounded-full"],
+          on: {
+            click: async () => {
+              await router.navigateTo(`/profile/${this.props.username}`);
+              eventBus.emit("reset:notif");
+              eventBus.emit("change:profile");
+            },
           },
-        },
-      }),
-      createElement("div", { class: ["mr-auto", "items-start"] }, [
-        createElement("p", { class: ["text-xs"] }, [
-          this.props.username || "unknown",
+        }),
+        createElement("div", { class: ["mr-auto", "items-start"] }, [
+          createElement("p", { class: ["text-xs"] }, [
+            this.props.username || "unknown",
+          ]),
+          createElement(
+            "span",
+            { class: ["text-[var(--light-grey)]", "text-[10px]"] },
+            ["Game Invite"]
+          ),
         ]),
-        createElement(
-          "span",
-          { class: ["text-[var(--light-grey)]", "text-[10px]"] },
-          ["Game Invite"]
-        ),
-      ]),
-      createElement("div", { class: ["flex-row", "gap-2"] }, [
-        createElement(
-          "button",
-          {
-            class: [
-              "rounded-[16px]",
-              "bg-[var(--light-yellow)]",
-              "text-[var(--dark-black)]",
-              "px-2",
-              "py-1",
-              "text-[10px]",
-              "font-medium",
-              "hover:scale-[104%]",
-            ],
-            on: {
-              click: this.handleAcceptRequest,
+        createElement("div", { class: ["flex-row", "gap-2"] }, [
+          createElement(
+            "button",
+            {
+              class: [
+                "rounded-[16px]",
+                "bg-[var(--light-yellow)]",
+                "text-[var(--dark-black)]",
+                "px-2",
+                "py-1",
+                "text-[10px]",
+                "font-medium",
+                "hover:scale-[104%]",
+              ],
+              on: {
+                click: this.handleAcceptRequest,
+              },
             },
-          },
-          ["Accept"]
-        ),
-        createElement(
-          "button",
-          {
-            class: [
-              "rounded-[16px]",
-              "bg-[var(--red-color)]",
-              "text-[var(--dark-black)]",
-              "text-[10px]",
-              "px-2",
-              "py-1",
-              "font-medium",
-              "hover:scale-[104%]",
-            ],
-            on: {
-              click: this.handleDeclineRequest,
+            ["Accept"]
+          ),
+          createElement(
+            "button",
+            {
+              class: [
+                "rounded-[16px]",
+                "bg-[var(--red-color)]",
+                "text-[var(--dark-black)]",
+                "text-[10px]",
+                "px-2",
+                "py-1",
+                "font-medium",
+                "hover:scale-[104%]",
+              ],
+              on: {
+                click: this.handleDeclineRequest,
+              },
             },
-          },
-          ["Decline"]
-        ),
-      ]),
-    ]);
+            ["Decline"]
+          ),
+        ]),
+      ]
+    );
   },
   async handleAcceptRequest(this: IComponent<void, InviteToMatchProps>) {
     try {
       await enhancedFetch.fetch(
-        `${import.meta.env.VITE_URL_DEV}/api/games/api/games/accept/${
-          this.props.gameId
-        }`,
+        `${import.meta.env.VITE_URL_DEV}/api/games/accept/${this.props.gameId}`,
         {
           method: "PUT",
         }
@@ -363,7 +376,7 @@ export const InviteToMatch = defineComponent<void, InviteToMatchProps>({
   async handleDeclineRequest(this: IComponent<void, InviteToMatchProps>) {
     try {
       await enhancedFetch.fetch(
-        `${import.meta.env.VITE_URL_DEV}/api/games/api/games/decline/${
+        `${import.meta.env.VITE_URL_DEV}/api/games/decline/${
           this.props.gameId
         }`,
         { method: "PUT" }
@@ -391,51 +404,55 @@ export const inviteToTournament = defineComponent({
       handleJoinTournament: () => Promise<void>;
     }
   ) {
-    return createElement("div", { class: ["flex-row", "gap-[20px]"] }, [
-      createElement("img", {
-        width: "40px",
-        height: "40px",
-        src: "/assets/default.webp",
-        class: ["w-[40px]", "h-[40px]", "rounded-full"],
-        on: {
-          click: () => {
-            router.navigateTo(`/profile/${this.props.username}`);
-            eventBus.emit("reset:notif");
-          },
-        },
-      }),
-      createElement("div", { class: ["mr-auto", "items-start"] }, [
-        createElement("p", { class: ["text-xs"] }, [
-          this.props.username || "unknown",
-        ]),
-        createElement(
-          "span",
-          { class: ["text-[var(--light-grey)]", "text-[10px]"] },
-          ["Tournament Invite"]
-        ),
-      ]),
-      createElement("div", { class: ["flex-row", "gap-2"] }, [
-        createElement(
-          "button",
-          {
-            class: [
-              "rounded-[16px]",
-              "bg-[var(--light-yellow)]",
-              "text-[var(--dark-black)]",
-              "px-2",
-              "py-1",
-              "text-[10px]",
-              "font-medium",
-              "hover:scale-[104%]",
-            ],
-            on: {
-              click: async () => await this.handleJoinTournament(),
+    return createElement(
+      "div",
+      { class: ["flex-row", "gap-[20px]", "px-4", "py-2"] },
+      [
+        createElement("img", {
+          width: "40px",
+          height: "40px",
+          src: "/assets/default.webp",
+          class: ["w-[40px]", "h-[40px]", "rounded-full"],
+          on: {
+            click: () => {
+              router.navigateTo(`/profile/${this.props.username}`);
+              eventBus.emit("reset:notif");
             },
           },
-          ["Join"]
-        ),
-      ]),
-    ]);
+        }),
+        createElement("div", { class: ["mr-auto", "items-start"] }, [
+          createElement("p", { class: ["text-xs"] }, [
+            this.props.username || "unknown",
+          ]),
+          createElement(
+            "span",
+            { class: ["text-[var(--light-grey)]", "text-[10px]"] },
+            ["Tournament Invite"]
+          ),
+        ]),
+        createElement("div", { class: ["flex-row", "gap-2"] }, [
+          createElement(
+            "button",
+            {
+              class: [
+                "rounded-[16px]",
+                "bg-[var(--light-yellow)]",
+                "text-[var(--dark-black)]",
+                "px-2",
+                "py-1",
+                "text-[10px]",
+                "font-medium",
+                "hover:scale-[104%]",
+              ],
+              on: {
+                click: async () => await this.handleJoinTournament(),
+              },
+            },
+            ["Join"]
+          ),
+        ]),
+      ]
+    );
   },
   async handleJoinTournament(this: IComponent<void, inviteToTournamentPorps>) {
     try {
@@ -450,6 +467,32 @@ export const inviteToTournament = defineComponent({
     } catch (err) {
       console.log(err);
     }
+  },
+});
+
+// =================================================================== //
+
+export const ErrorComponent = defineComponent({
+  render(this: IComponent<void, { message: string }>) {
+    return createElement(
+      "div",
+      {
+        class: [
+          "flex-row",
+          "max-w-48",
+          "w-fit",
+          "text-sm",
+          "max-w-56",
+          "h-12",
+          "bg-[var(--red-color)]",
+          "text-[var(--main-color)]",
+          "rounded-xl",
+          "px-4",
+          "py-2",
+        ],
+      },
+      [createElement("div", {}, [this.props.message])]
+    );
   },
 });
 

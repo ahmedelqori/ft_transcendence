@@ -42,7 +42,7 @@ const ProfileInterface = defineComponent<
       const user = await res.json();
 
       const response = await enhancedFetch.fetch(
-        `${import.meta.env.VITE_URL_DEV}/api/games/api/games/user/${user.id}`,
+        `${import.meta.env.VITE_URL_DEV}/api/games/user/${user.id}`,
         {
           mode: "no-cors",
         }

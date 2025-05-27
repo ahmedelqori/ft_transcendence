@@ -94,9 +94,7 @@ export const InviteToMatchNotif = defineComponent<void, InviteToMatchProps>({
   ) {
     try {
       await enhancedFetch.fetch(
-        `${import.meta.env.VITE_URL_DEV}/api/games/api/games/accept/${
-          this.props.gameId
-        }`,
+        `${import.meta.env.VITE_URL_DEV}/api/games/accept/${this.props.gameId}`,
         {
           method: "PUT",
         }
@@ -114,7 +112,7 @@ export const InviteToMatchNotif = defineComponent<void, InviteToMatchProps>({
   ) {
     try {
       await enhancedFetch.fetch(
-        `${import.meta.env.VITE_URL_DEV}/api/games/api/games/decline/${
+        `${import.meta.env.VITE_URL_DEV}/api/games/decline/${
           this.props.gameId
         }`,
         { method: "PUT" }
