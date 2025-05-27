@@ -23,7 +23,11 @@ export default async function invite_player(req, res) {
                 return;
             }
             const invite_link =  `${process.env.DOMAIN}/api/tournament/${tournament_id}/join?code=${settings.code}`;
-            await notif(req, player_id, "tournamentInvite", {invite_link, tournament_id});
+            await notif(req, player_id, "tournamentInvite", {
+                invite_link,
+                tournament_id,
+                senderId: req.user.id,
+            });
         }
         catch (error) {
             console.error(error);
