@@ -177,18 +177,16 @@ export class SocketManager {
 
       let wsUrl;
       if (this.isLocal) {
-        wsUrl = `ws://${import.meta.env.VITE_DOMAIN_DEV}/api/games/ws/local/${
-          this.gameId
-        }`;
+        wsUrl = `wss://${import.meta.env.VITE_DOMAIN_DEV}/api/games/local/${this.gameId}`;
+        // wsUrl = `ws://localhost:3000/local/${this.gameId}`;
+
         console.log("[SocketManager] Connecting to local game:", wsUrl);
       } else {
         const token = `Bearer ${localStorage.getItem("access_token")}`;
-        wsUrl = `wss://${import.meta.env.VITE_DOMAIN_DEV}/api/games/ws/game/${
-          this.gameId
-        }?token=${token}`;
+        wsUrl = `wss://${import.meta.env.VITE_DOMAIN_DEV}/api/games/online/${this.gameId}?token=${token}`;
+        // wsUrl = `ws://localhost:3000/online/${this.gameId}?token=${token}`;
         console.log("[SocketManager] Connecting to online game:", wsUrl);
       }
-
       this.socket = new WebSocket(wsUrl);
 
       const connectionTimeout = setTimeout(() => {
