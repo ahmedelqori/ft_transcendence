@@ -22,9 +22,9 @@ export async function handleLocalGame(req, reply, playerOneId) {
   }
 }
 
-export async function handleTournamentGame(req, reply, playerOneId, playerTwoId, tournementId) {
+export async function handleTournamentGame(req, reply) {
+  const {playerOneId,  playerTwoId, tournementId} = req.body;
   fastify.log.info(`Creating tournament game for players ${playerOneId} and ${playerTwoId} in tournament ${tournementId}`);
-  
   const tournamentValid = await validateTournament(req, tournementId);
   if (!tournamentValid.ok) {
     fastify.log.warn(`Tournament validation failed: ${tournamentValid.message}`);

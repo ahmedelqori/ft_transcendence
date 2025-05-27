@@ -386,7 +386,7 @@ async function notifyGameFinished(token, game) {
   //   throw error;
   // }
   try {
-    await axios.post(`https://www.meedivo.me/api/tournament/${game.tournementId}/results`,
+    await axios.post(`https://www.meedivo.me/api/tournament/${game.tournementId}/next-round`,
       {game:game},
       {
         headers: {

@@ -4,7 +4,9 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "migrate": "prisma migrate dev --name init",
+    "generate": "prisma generate"
   },
   "keywords": [],
   "author": "sajaite",
