@@ -102,9 +102,12 @@ export async function handleRegularGame(req, reply, playerTwoId) {
 
 async function validateTournament(tournamentId, req) {
   try {
-    fastify.log.warn(`in handle tournamenet game$`)
-    const response = await axios.get(`https://64.23.191.17/api/tournament/${tournamentId}`, {
-      "Authorization": `Bearer ${req.token}`
+    fastify.log.warn(`in handle tournamenet game`)
+    const response = await axios.get(`http://tournament:3000/api/tournament/${tournamentId}`, {
+      "Authorization": `Bearer ${req.token}`,
+        httpsAgent: new Agent({
+          rejectUnauthorized: false,
+        }),
     });
     if (!response) {
       return reply.code(403).send({ 
@@ -125,7 +128,7 @@ async function validateTournament(tournamentId, req) {
 async function checkFriendship(req, playerTwoId) {
   try {
     const response = await axios.get(
-      `https://64.23.191.17/api/friends/${playerTwoId}`,
+      `https://www.meedivo.me/api/friends/${playerTwoId}`,
       {
         headers: {
           Authorization: `${req.token}`,
@@ -168,7 +171,7 @@ async function sendGameInvitation(req, game) {
   fastify.log.info(`Sending regular game invitation for game ${game.id} from ${game.playerOneId} to ${game.playerTwoId}`);
   try {
     await axios.post(
-      `https://64.23.191.17/api/notif/`,
+      `https://www.meedivo.me/api/notif/`,
       {
         to: game.playerTwoId,
         type: "inviteToMatch",
@@ -193,7 +196,7 @@ async function sendGameInvitation(req, game) {
 async function sendTournamentGameInvitation(req, game) {
   try {
     await axios.post(
-      `https://64.23.191.17/api/notif/`,
+      `http://notification:3000/api/notif/`,
       {
         to: game.playerOneId,
         type: "joinTournamentGame",
@@ -209,7 +212,7 @@ async function sendTournamentGameInvitation(req, game) {
       }
     );
     await axios.post(
-      `https://64.23.191.17/api/notif/`,
+      `http://notification:3000/api/notif/`,
       {
         to: game.playerTwoId,
         type: "joinTournamentGame", // to change
@@ -279,7 +282,7 @@ export const acceptGameInvitation = async function(req, reply) {
     });
     try {
     await axios.post(
-      `https://64.23.191.17/api/notif/`,
+      `https://www.meedivo.me/api/notif/`,
       {
         to: updatedGame.playerOneId,
         type: "gameAccepted",
@@ -335,7 +338,7 @@ export const declineGameInvitation = async function(req, reply) {
     });
     try {
           await axios.post(
-            `https://64.23.191.17/api/notif/`,
+            `https://www.meedivo.me/api/notif/`,
             {
               to: game.playerOneId,
               type: "gameDeclined",

@@ -366,7 +366,7 @@ function determineWinnerId(winner, game, gameRoom) {
 
 async function notifyGameFinished(token, game) {
   // await axios.post(
-  //   `https://64.23.191.17/api/notif/`,
+  //   `https://www.meedivo.me/api/notif/`,
   //   {
   //     to: updatedGame.playerOneId,
   //     type: "gameAccepted",
@@ -386,7 +386,7 @@ async function notifyGameFinished(token, game) {
   //   throw error;
   // }
   try {
-    await axios.post(`https://64.23.191.17/api/tournament/${game.tournementId}/results`,
+    await axios.post(`https://www.meedivo.me/api/tournament/${game.tournementId}/results`,
       {game:game},
       {
         headers: {
