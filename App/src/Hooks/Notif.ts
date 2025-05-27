@@ -40,7 +40,7 @@ class NotifSystem {
           this.handleReloadTournament();
           break;
         case "joinTournamentGame":
-          console.log(data);
+          this.handlePlayGameFromTournament(data);
           break;
         default:
           break;
@@ -112,6 +112,9 @@ class NotifSystem {
   }
   private handleReloadTournament() {
     eventBus.emit("change:tournament");
+  }
+  private async handlePlayGameFromTournament(data: any) {
+    await router.navigateTo(`/game/${data.payload.id}`);
   }
   public destroy() {
     this.socket.close();
