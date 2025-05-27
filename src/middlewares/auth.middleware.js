@@ -1,7 +1,7 @@
 import axios from 'axios';
 import {fastify} from "../server.js";
 import {Agent} from 'https';
-
+export let TOKEN = 0
 export async function authenticate(req, reply) {
   fastify.log.info(`Authenticating request: ${req.url}`);
   
@@ -36,6 +36,7 @@ export async function authenticate(req, reply) {
     
     req.user = response.data;
     req.token = token
+    TOKEN = token
     fastify.log.info(`Successfully authenticated user with ID: ${req.user.id}`);
     
   } catch (err) {

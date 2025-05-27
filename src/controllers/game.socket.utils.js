@@ -2,6 +2,7 @@ import { fastify } from "../server.js";
 import { connections } from "../gameLogic/gameConfig.js";
 import { WS_CLOSE, Game } from "../gameLogic/gameConfig.js";
 import axios from 'axios';
+import { TOKEN } from "../middlewares/auth.middleware.js";
 
 export const Message = (messageType, messagePayload) =>
   JSON.stringify({ type: messageType, data: messagePayload });
@@ -321,7 +322,7 @@ export async function updateGameInDatabase(socket, gameRoom, winner) {
     
     if (updatedGame.tournementId) {
       try {
-        await notifyGameFinished(socket.token, {...game, ...updatedGame});
+        await notifyGameFinished(TOKEN, {...game, ...updatedGame});
         fastify.log.info(`Tournament ${updatedGame.tournementId} notified about finished game ${gameId}`);
       } catch (error) {
         fastify.log.error(`Failed to notify tournament service: ${error.message}`);
@@ -365,33 +366,13 @@ function determineWinnerId(winner, game, gameRoom) {
 }
 
 async function notifyGameFinished(token, game) {
-  // await axios.post(
-  //   `https://www.meedivo.me/api/notif/`,
-  //   {
-  //     to: updatedGame.playerOneId,
-  //     type: "gameAccepted",
-  //     payload: updatedGame,
-  //   },
-  //   {
-  //     headers: {
-  //       Authorization: `${req.token}`,
-  //     },
-  //     httpsAgent: new Agent({
-  //       rejectUnauthorized: false,
-  //     }),
-  //   }
-  // );
-  // } catch (error) {
-  //   fastify.log.error(`Error sending regular game invitation notification: ${error.message}`);
-  //   throw error;
-  // }
   try {
     await axios.post(`https://www.meedivo.me/api/tournament/${game.tournementId}/next-round`,
       {game:game},
       {
         headers: {
           Authorization: `${token}`,
-          origin: "A" // to change
+          // origin: "A" // to change
         },
         httpsAgent: new Agent({
           rejectUnauthorized: false,
