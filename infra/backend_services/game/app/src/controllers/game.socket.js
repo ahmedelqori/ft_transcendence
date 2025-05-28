@@ -29,7 +29,8 @@ import {
   broadcastAll,
   sendInitialGameData,
   updateGameInDatabase,
-  checkChangingDevice
+  checkChangingDevice,
+  notifyGameFinished
 } from "./game.socket.utils.js";
 import { authenticate, TOKEN } from "../middlewares/auth.middleware.js";
 

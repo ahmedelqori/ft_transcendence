@@ -365,10 +365,10 @@ function determineWinnerId(winner, game, gameRoom) {
   return -1;
 }
 
-async function notifyGameFinished(token, game) {
+export async function notifyGameFinished(token, game) {
   try {
     await axios.post(
-      `${process.env.TOURNAMENT_URL}${game.tournementId}/next-round`,
+      `${process.env.TOURNAMENT_URL}next-round`,
       { game: game },
       {
         headers: {

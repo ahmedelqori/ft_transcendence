@@ -22,7 +22,9 @@ export default async function start_next_round(req, res) {
         return ;
     }
 
-    const { tournementId, winnerId } = req.body;
+    const { tournementId, winnerId } = req.body.game;
+    console.log('req body :',req.body);
+    
     if (!tournementId || !winnerId) {
         res.status(400).send("Missing required fields");
         return;

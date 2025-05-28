@@ -175,6 +175,8 @@ services:
       context: ./backend_services/game
       dockerfile: Dockerfile
     container_name: game
+    env_file:
+      - ./.global.env
     networks:
       - appNet
     volumes:
