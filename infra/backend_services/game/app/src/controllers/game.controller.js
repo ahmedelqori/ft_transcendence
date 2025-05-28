@@ -33,6 +33,23 @@ export const getGameById = async function(req, reply) {
     return reply.code(500).send({ error: "Error retrieving game" });
   }
 };
+export const getCurrentGame = async function(req, reply) {
+  fastify.log.info(`Fetching the running game`);
+  try {
+    const game = await req.server.prisma.game.findUnique({
+      where: { status: "IN_PROGRESS" }
+    });
+
+    if (!game) {
+      fastify.log.warn(`No game in Progress`);
+      return reply.code(404).send({ error: "Game not found" });
+    }
+    return reply.code(200).send(game);
+  } catch (error) {
+    fastify.log.error(`Error retrieving game : ${error.message}`);
+    return reply.code(500).send({ error: "Error retrieving game" });
+  }
+};
 
 export const getUserGames = async function(req, reply) {
   const { userId } = req.params;

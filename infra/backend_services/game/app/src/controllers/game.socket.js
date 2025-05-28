@@ -225,7 +225,7 @@ function handlePossibleReconnection(socket) {
   }
 }
 
-function handleNewPlayerJoin(socket) {
+async function handleNewPlayerJoin(socket) {
   const gameId = socket.gameId;
   const userId = socket.userId;
   const gameRoom = gameRooms.get(gameId);
@@ -272,7 +272,6 @@ function handleNewPlayerJoin(socket) {
   if (playerKeys.length === 1) { 
     gameRoom.gameState.state = Game.JOINED;
     fastify.log.info(`Game ${gameId} has two players, ready to start`);
-
     broadcastAll(
       gameId,
       Message("readyToStart", {
@@ -287,6 +286,11 @@ function handleNewPlayerJoin(socket) {
         fastify.log.info(`Game ${gameId} auto-started`);
       }
     }, 5000);
+    await fastify.prisma.game.update({
+      data: {
+        status: "IN_PROGRESS",
+      },
+    });
   }
 }
 

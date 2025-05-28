@@ -119,7 +119,22 @@ export const gameRoutes = function (fastify, options, done) {
     },
     getGameById
   );
-
+  fastify.get(
+    "/current_game",
+    {
+      schema: {
+        tags: ["current game"],
+        summary: "Get the active Game",
+        description: "Returns a single game that is Started State",
+        response: {
+          200: responseGameSchema,
+          404: errorSchema,
+          500: errorSchema,
+        },
+      },
+    },
+    getCurrentGame
+  );
   fastify.get(
     "/user/:userId",
     {
