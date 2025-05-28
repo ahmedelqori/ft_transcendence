@@ -367,16 +367,14 @@ function determineWinnerId(winner, game, gameRoom) {
 
 async function notifyGameFinished(token, game) {
   try {
-    await axios.post(`https://www.meedivo.me/api/tournament/${game.tournementId}/next-round`,
-      {game:game},
+    await axios.post(
+      `${process.env.TOURNAMENT_URL}${game.tournementId}/next-round`,
+      { game: game },
       {
         headers: {
           Authorization: `${token}`,
-          // origin: "A" // to change
+          origin: process.env.ORIGIN
         },
-        httpsAgent: new Agent({
-          rejectUnauthorized: false,
-        }),
       }
     );
   } catch (error) {

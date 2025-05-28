@@ -17,10 +17,11 @@ async function reload_tournament(req, id) {
 }
 
 export default async function start_next_round(req, res) {
-    // if (req.headers.origin !== process.env.ORIGIN) {
-    //     res.status(401).send({ message: 'unauthorized' });
-    //     return ;
-    // }
+    if (req.headers.origin !== process.env.ORIGIN) {
+        res.status(401).send({ message: 'unauthorized' });
+        return ;
+    }
+
     const { tournementId, winnerId } = req.body;
     if (!tournementId || !winnerId) {
         res.status(400).send("Missing required fields");

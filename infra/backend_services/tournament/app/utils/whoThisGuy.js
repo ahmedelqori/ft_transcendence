@@ -1,5 +1,4 @@
-import axios from 'axios';
-import https from 'https'; // just temporarily to accept self-signed certificates
+import axios from 'axios'; 
 import { tournament, tournament_games, tournament_players } from "../models.js";
 
 export default async function get_user(req, user_id, tournament_id) {
@@ -8,11 +7,6 @@ export default async function get_user(req, user_id, tournament_id) {
         return null;
     };
 
-    // { just temporarily to accept self-signed certificates
-        const httpsAgent = new https.Agent({
-            rejectUnauthorized: false, // Accept self-signed certificates
-        });
-    // }
 
 
 
@@ -20,8 +14,7 @@ export default async function get_user(req, user_id, tournament_id) {
     try{
         response = await axios.get(process.env.WHO_THIS_GUY_URL + String(user_id), {headers:{
             authorization: authorization
-        },
-        httpsAgent: httpsAgent // just temporarily to accept self-signed certificates
+        }
         });
         if (response.status !== 200) {
             return null;
