@@ -31,7 +31,7 @@ import {
   updateGameInDatabase,
   checkChangingDevice
 } from "./game.socket.utils.js";
-import { authenticate } from "../middlewares/auth.middleware.js";
+import { authenticate, TOKEN } from "../middlewares/auth.middleware.js";
 
 // *************************** WEBSOCKET SETUP ***************************
 
@@ -798,15 +798,8 @@ async function handleLastPlayerDisconnect(gameRoom, socket) {
 
     if (updatedGame.tournementId) {
       try {
-        // Get a valid token from one of the connected players
-        const gameConnections = connections.get(gameId);
-        if (gameConnections) {
-          const firstPlayer = gameConnections.values().next().value;
-          if (firstPlayer?.token) {
-            await notifyGameFinished(firstPlayer.token, {...game, ...updatedGame});
-            fastify.log.info(`Tournament ${updatedGame.tournementId} notified about canceled game ${gameId}`);
-          }
-        }
+        await notifyGameFinished(TOKEN, {...game, ...updatedGame});
+        fastify.log.info(`Tournament ${updatedGame.tournementId} notified about canceled game ${gameId}`);
       } catch (error) {
         fastify.log.error(`Failed to notify tournament service: ${error.message}`);
       }
@@ -918,14 +911,8 @@ async function handleReconnectionTimeout(socket, gameRoom) {
 
       if (updatedGame.tournementId) {
         try {
-          const gameConnections = connections.get(gameId);
-          if (gameConnections) {
-            const firstPlayer = gameConnections.values().next().value;
-            if (firstPlayer?.token) {
-              await notifyGameFinished(firstPlayer.token, {...game, ...updatedGame});
-              fastify.log.info(`Tournament ${updatedGame.tournementId} notified about canceled game ${gameId}`);
-            }
-          }
+          await notifyGameFinished(TOKEN, {...game, ...updatedGame});
+          fastify.log.info(`Tournament ${updatedGame.tournementId} notified about canceled game ${gameId}`);
         } catch (error) {
           fastify.log.error(`Failed to notify tournament service: ${error.message}`);
         }
@@ -1063,15 +1050,8 @@ async function handleGameOver(gameId, finalGameState) {
 
       if (updatedGame.tournementId) {
         try {
-          // Get a valid token from one of the connected players
-          const gameConnections = connections.get(gameId);
-          if (gameConnections) {
-            const firstPlayer = gameConnections.values().next().value;
-            if (firstPlayer?.token) {
-              await notifyGameFinished(firstPlayer.token, {...game, ...updatedGame});
-              fastify.log.info(`Tournament ${updatedGame.tournementId} notified about finished game ${gameId}`);
-            }
-          }
+          await notifyGameFinished(TOKEN, {...game, ...updatedGame});
+          fastify.log.info(`Tournament ${updatedGame.tournementId} notified about canceled game ${gameId}`);
         } catch (error) {
           fastify.log.error(`Failed to notify tournament service: ${error.message}`);
         }
