@@ -1,0 +1,183 @@
+volumes:
+  # vault_database:
+  temp_env:
+  user_managment_database:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./infra/volumes/user_managment_database
+      o: bind
+  profile_images:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./infra/volumes/profile_images
+      o: bind
+  friendship_database:
+      driver: local
+      driver_opts:
+        type: none
+        device: ./infra/volumes/friendship_database
+        o: bind
+  2fa_database:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./infra/volumes/2fa_database
+      o: bind
+  notification_database:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./infra/volumes/notification_database
+      o: bind
+  tournament_database:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./infra/volumes/tournament_database
+      o: bind
+  chatlive_database:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./infra/volumes/chatlive_database
+      o: bind
+  game_database:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./infra/volumes/game_database
+      o: bind
+
+networks:
+  appNet:
+    driver: bridge
+
+services:
+  # vault:
+  #   image: "vault:app"
+  #   container_name: vault
+  #   build: ./vault/.
+  #   hostname: vault 
+  #   env_file:
+  #     - ./.global.env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - vault_database:/vault/data
+  #     - temp_env:/home/vault
+  #   ports:
+  #     - "8200:8200"
+  #   cap_add:
+  #     - IPC_LOCK
+    
+  nginx-modsecurity:
+    container_name: nginx-modsecurity
+    build: ./nginx-modsecurity/.
+    ports:
+      - "443:443"
+    networks:
+      - appNet
+    restart: always
+    volumes:
+      - profile_images:/app/profile_images
+
+
+  user_managment:
+    build:
+      context: ./backend_services/user_managment
+      dockerfile: Dockerfile
+    container_name: user_managment
+    env_file:
+      - ./.global.env
+    networks:
+      - appNet
+    volumes:
+      - profile_images:/app/profile_images
+      - user_managment_database:/app/database
+      - temp_env:/app/temp_env
+
+  2fa:
+    build:
+      context: ./backend_services/2FA
+      dockerfile: Dockerfile
+    container_name: 2fa
+    env_file:
+      - ./.global.env
+    networks:
+      - appNet
+    volumes:
+      - 2fa_database:/app/database
+      - temp_env:/app/temp_env
+    depends_on:
+      - user_managment
+
+  friendship:
+    build:
+      context: ./backend_services/friendship
+      dockerfile: Dockerfile
+    container_name: friendship
+    env_file:
+      - ./.global.env
+    networks:
+      - appNet
+    volumes:
+      - friendship_database:/app/database
+    depends_on:
+      - user_managment
+
+  notification:
+    build:
+      context: ./backend_services/notification
+      dockerfile: Dockerfile
+    container_name: notification
+    env_file:
+      - ./.global.env
+    networks:
+      - appNet
+    volumes:
+      - notification_database:/app/database
+    depends_on:
+      - user_managment
+
+  tournament:
+    build:
+      context: ./backend_services/tournament
+      dockerfile: Dockerfile
+    container_name: tournament
+    env_file:
+      - ./.global.env
+    networks:
+      - appNet
+    volumes:
+      - tournament_database:/app/database
+      - temp_env:/app/temp_env
+    depends_on:
+      - user_managment
+
+  chatlive:
+    build:
+      context: ./backend_services/chatlive
+      dockerfile: Dockerfile
+    container_name: chatlive
+    env_file:
+      - ./.global.env
+    networks:
+      - appNet
+    volumes:
+      - chatlive_database:/app/database
+    depends_on:
+      - user_managment
+
+  game:
+    build:
+      context: ./backend_services/game
+      dockerfile: Dockerfile
+    container_name: game
+    networks:
+      - appNet
+    volumes:
+      - game_database:/app/database
+    depends_on:
+      - user_managment
