@@ -3,12 +3,11 @@ export enum GameStates {
   JOINED = 1,
   IN_PLAY = 2,
   PAUSED = 3,
-  CANCELED = 4, // Fixed: Match backend position
-  FINISHED = 5, // Fixed: Match backend position
-  RECONNECT = 6, // Fixed: Match backend position
+  CANCELED = 4,
+  FINISHED = 5,
+  RECONNECT = 6,
 }
 
-// Game data interfaces
 export interface PaddlePositions {
   left: number;
   right: number;
@@ -22,8 +21,8 @@ export interface Score {
 export interface BallState {
   x: number;
   y: number;
-  xDir?: number; // Add ball direction - matches backend
-  yDir?: number; // Add ball direction - matches backend
+  xDir?: number;
+  yDir?: number;
 }
 
 export interface GameState {
@@ -52,7 +51,6 @@ export interface Players {
   [position: string]: Player;
 }
 
-// Event data interfaces
 export interface ConnectData {
   message: string;
 }
