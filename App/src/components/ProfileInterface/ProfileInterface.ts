@@ -297,39 +297,41 @@ const ProfileInterface = defineComponent<
                             ["Unfriend"]
                           )
                         : null,
-                      createElement(
-                        "button",
-                        {
-                          class: [
-                            "z-10",
-                            "px-6",
-                            "py-2",
-                            "gap-2",
-                            "text-lg",
-                            "flex-row",
-                            "rounded-xl",
-                            "font-medium",
-                            "text-black",
-                            "cursor-pointer",
-                            "bg-[var(--light-yellow)]",
-                            "transition-all",
-                            "duration-300",
-                            "hover:scale-[110%]",
-                            this.state.animationComplete
-                              ? "opacity-100"
-                              : "opacity-0",
-                          ],
+                      this.state.id !== authState.getState().user?.id
+                        ? createElement(
+                            "button",
+                            {
+                              class: [
+                                "z-10",
+                                "px-6",
+                                "py-2",
+                                "gap-2",
+                                "text-lg",
+                                "flex-row",
+                                "rounded-xl",
+                                "font-medium",
+                                "text-black",
+                                "cursor-pointer",
+                                "bg-[var(--light-yellow)]",
+                                "transition-all",
+                                "duration-300",
+                                "hover:scale-[110%]",
+                                this.state.animationComplete
+                                  ? "opacity-100"
+                                  : "opacity-0",
+                              ],
 
-                          on: {
-                            click: () => this.handlePlayButton(),
-                          },
-                        },
-                        [
-                          this.state.relationShip === "friend"
-                            ? "Let's Play"
-                            : "Add Friend",
-                        ]
-                      ),
+                              on: {
+                                click: () => this.handlePlayButton(),
+                              },
+                            },
+                            [
+                              this.state.relationShip === "friend"
+                                ? "Let's Play"
+                                : "Add Friend",
+                            ]
+                          )
+                        : null,
                     ]
                   ),
                   createElement(

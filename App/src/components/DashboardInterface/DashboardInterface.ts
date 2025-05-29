@@ -8,6 +8,9 @@ import {
 } from "@/uccello/Uccello.js";
 import FriendsSideBar from "./FriendsSideBar";
 import Loader from "../Loader/Loader";
+import ProfileDashboard from "./ProfileDashboard";
+import TournamentDashboard from "./TournamentDashboard";
+import FriendDashboard from "./FriendDashboard";
 
 interface IDashboardInterface {
   friends: any[];
@@ -76,13 +79,7 @@ const DashboardInterface = defineComponent<IDashboardInterface>({
                 ],
               },
               [
-                createElement(
-                  "div",
-                  {
-                    class: ["w-[50%]", "h-full", "bg-black", "rounded-[30px]"],
-                  },
-                  ["ProfileInfo"]
-                ),
+                createElement(ProfileDashboard),
                 createElement(
                   "div",
                   {
@@ -92,78 +89,12 @@ const DashboardInterface = defineComponent<IDashboardInterface>({
                       "rounded-[30px]",
                       "flex-row",
                       "relative",
+                      "items-center",
                     ],
                   },
                   [
-                    createElement(
-                      "div",
-                      {
-                        style: {
-                          "clip-path": "polygon(0 0, 95% 0, 85% 100%, 0% 100%)",
-                        },
-                        class: [
-                          "w-2/5",
-                          "h-full",
-                          "absolute",
-                          "top-0",
-                          "left-0",
-                          "rounded-tl-[30px]",
-                          "rounded-bl-[30px]",
-                          "border-2",
-                          "border-[#878787]",
-                          "border-opacity-[30%]",
-                          "cursor-pointer",
-                          this.state.hoverCards[0] ||
-                          this.state.hoverCards.indexOf(1) === -1
-                            ? "blur-none"
-                            : "blur-sm",
-                        ],
-                        on: {
-                          mouseenter: () => {
-                            this.updateState({ hoverCards: [1, 0, 0] });
-                          },
-                          mouseleave: () => {
-                            this.updateState({ hoverCards: [0, 0, 0] });
-                          },
-                        },
-                      },
-                      []
-                    ),
-                    createElement(
-                      "div",
-                      {
-                        style: {
-                          "clip-path":
-                            "polygon(25% 0%, 100% 0%, 75% 100%, 0% 100%)",
-                          transform: "translate(-50%, -50%)",
-                        },
-                        class: [
-                          "w-1/5",
-                          "h-full",
-                          "absolute",
-                          "top-[50%]",
-                          "left-[50%]",
-                          "border-2",
-                          "border-[#878787]",
-                          "border-opacity-[30%]",
-                          "cursor-pointer",
-                          this.state.hoverCards[1] ||
-                          this.state.hoverCards.indexOf(1) === -1
-                            ? "blur-none"
-                            : "blur-sm",
-                          "relative",
-                        ],
-                        on: {
-                          mouseenter: () => {
-                            this.updateState({ hoverCards: [0, 1, 0] });
-                          },
-                          mouseleave: () => {
-                            this.updateState({ hoverCards: [0, 0, 0] });
-                          },
-                        },
-                      },
-                      []
-                    ),
+                    createElement(TournamentDashboard),
+                    createElement(FriendDashboard),
                     createElement(
                       "div",
                       {
@@ -186,6 +117,7 @@ const DashboardInterface = defineComponent<IDashboardInterface>({
                           this.state.hoverCards.indexOf(1) === -1
                             ? "blur-none"
                             : "blur-sm",
+                          "relative",
                         ],
                         on: {
                           mouseenter: () => {
