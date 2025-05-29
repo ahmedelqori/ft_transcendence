@@ -11,11 +11,14 @@ import {
 } from "@/services/socket-manager.js";
 import { GameRenderer } from "../GameRenderer.js";
 import { CanvasManager } from "@/services/canvas-manager.js";
+import { PlayerInfo } from "../PlayerInfo/PlayerInfo.js";
 
 interface GameCanvasProps {
   gameState: GameState | null;
   gameConfig: GameConfig | null;
   socketManager: SocketManager | null;
+  players: any;
+  playerPosition: string;
 }
 
 interface GameCanvasState {
@@ -298,7 +301,7 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
   },
 
   render(this: IComponent<GameCanvasState, GameCanvasProps>) {
-    const { gameState, gameConfig } = this.props;
+    const { gameState, gameConfig, players, playerPosition } = this.props;
     
     if (!gameConfig) {
       return createElement(
@@ -350,7 +353,17 @@ export const GameCanvas = defineComponent<GameCanvasState, GameCanvasProps>({
         createElement(GameRenderer, { 
           gameState, 
           gameConfig: gameConfig
-        }),
+        }),        
+        players && playerPosition ? createElement(PlayerInfo, {
+          players,
+          playerPosition,
+          side: "left"
+        }) : null,
+        players && playerPosition ? createElement(PlayerInfo, {
+          players,
+          playerPosition,
+          side: "right"
+        }) : null,
       ]
     );
   },

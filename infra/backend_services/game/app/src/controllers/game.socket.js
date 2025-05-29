@@ -55,9 +55,7 @@ export const setupWebSocketHandlers = async function (fastify) {
 async function handleWebSocketConnection(socket, req) {
   const gameId = parseInt(req.params.gameId);
   const userId = req.user?.id;
-  fastify.log.info(
-    `WebSocket connection attempt: gameId=${gameId}, userId=${userId}, authenticated through token`
-  );
+  fastify.log.info(`WebSocket connection attempt: gameId=${gameId}, userId=${userId}, authenticated through token`);
 
   try {
     let gameRoom = gameRooms.get(gameId);
@@ -96,7 +94,7 @@ async function handleWebSocketConnection(socket, req) {
   socket.gameId = gameId
   socket.userId = userId;
   socket.token = req.token
-
+  socket.user = req.user
   if (checkChangingDevice(connections, socket, gameRooms, defaultGameConfig, setupSocketEventHandlers)){
     return
   }
@@ -235,13 +233,13 @@ async function handleNewPlayerJoin(socket) {
   players[userId] = {
     id: userId,
     position: playerPosition,
+    player: socket.user
   };
 
   fastify.log.info(
     `Player ${userId} joined game ${gameId} as ${playerPosition} player`
   );
 
-  // Get game data for tournamentId
   const game = gameRoom.gameData || await fastify.prisma.game.findUnique({
     where: { id: gameId },
   });
@@ -408,7 +406,6 @@ function handleTimeOutReconnection(socket, gameRoom) {
     const position = gameRoom.disconnectedPlayers[userId].position;
     delete gameRoom.disconnectedPlayers[userId];
 
-    // Get game data for tournamentId
     const game = gameRoom.gameData;
 
     sendToUser(
@@ -425,7 +422,6 @@ function handleTimeOutReconnection(socket, gameRoom) {
       })
     );
 
-    // If game hasn't started yet, allow player to rejoin
     if (gameRoom.gameState.state === Game.START || gameRoom.gameState.state === Game.JOINED) {
       const playersNum = Object.keys(gameRoom.players).length;
       if (playersNum < 2) {
