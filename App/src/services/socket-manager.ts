@@ -581,7 +581,7 @@ export class SocketManager {
     if (this.socket) {
       try {
         this.pauseGame()
-        this.socket.close(1001, "Client cleanup");
+        this.socket.close(3001, "Client cleanup");
         this.socket = null;
       } catch (err) {
         console.warn("[SocketManager] Error during socket close:", err);

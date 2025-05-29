@@ -1,3 +1,4 @@
+import { authState } from "@/Hooks/Auth";
 import enhancedFetch from "@/Hooks/fetch.js";
 import { router } from "@/router/Router";
 import {
@@ -29,7 +30,7 @@ const ProfileInterface = defineComponent<
 >({
   async onMounted(
     this: IComponent<ProfileInterfaceState, ProfileInterfaceProps> & {
-      extractData: (data: any) => void;
+      extractData: (data: any, userid: string) => void;
     }
   ) {
     try {
@@ -42,15 +43,14 @@ const ProfileInterface = defineComponent<
       const user = await res.json();
 
       const response = await enhancedFetch.fetch(
-        `${import.meta.env.VITE_URL_DEV}/api/games/user/${user.id}/`,
-        // `http://localhost:3000/user/${user.id}`,
+        `${import.meta.env.VITE_URL_DEV}/api/games/user/${user.id}`,
         {
           mode: "no-cors",
         }
       );
       if (!res.ok) throw res;
       const data = await response.json();
-      this.extractData(data);
+      this.extractData(data, user.id);
       const isoDate = user.created_at;
       const date = new Date(isoDate);
       const day = date.getUTCDate();
@@ -664,19 +664,18 @@ const ProfileInterface = defineComponent<
       ]
     );
   },
-  extractData(
+  async extractData(
     this: IComponent<ProfileInterfaceState, ProfileInterfaceProps>,
-    arr: any
+    arr: any,
+    userid: string
   ) {
-    // XP = baseXP + (winXP * gameWin) - (lossPenalty * gameLose) + (scoreBonus * scoreDifference)
-
     let winnerGames: number = 0;
     let loseGames: number = 0;
     let currentXp: number = 0;
     arr.map((e: any) => {
-      e.winnerId === this.state.id ? winnerGames++ : loseGames++;
+      e.winnerId === userid ? winnerGames++ : loseGames++;
       currentXp +=
-        e.playerOneId == this.state.id
+        e.playerOneId == userid
           ? e.playerOneScore - e.playerTwoScore
           : e.playerTwoScore - e.playerOneScore;
     });

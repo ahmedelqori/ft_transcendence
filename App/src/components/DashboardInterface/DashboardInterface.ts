@@ -6,15 +6,31 @@ import {
   defineComponent,
   type IComponent,
 } from "@/uccello/Uccello.js";
+import FriendsSideBar from "./FriendsSideBar";
+import Loader from "../Loader/Loader";
 
 interface IDashboardInterface {
-  showFriend: boolean;
+  friends: any[];
   hoverCards: any[];
+  showFriend: boolean;
+  loadingFriends: boolean;
 }
 
 const DashboardInterface = defineComponent<IDashboardInterface>({
+  async onMounted(
+    this: IComponent<IDashboardInterface> & {
+      handleGetFriends: () => Promise<void>;
+    }
+  ) {
+    await this.handleGetFriends();
+  },
   state() {
-    return { showFriend: false, hoverCards: [0, 0, 0] };
+    return {
+      showFriend: false,
+      hoverCards: [0, 0, 0],
+      friends: [],
+      loadingFriends: true,
+    };
   },
 
   render(
@@ -232,71 +248,37 @@ const DashboardInterface = defineComponent<IDashboardInterface>({
                   "[scrollbar-width:none]",
                 ],
               },
-              [
-                ...Array(53)
-                  .fill(0)
-                  .map((e) =>
-                    createElement("div", { class: ["mb-auto", "w-full"] }, [
-                      createElement(
-                        "div",
-                        { class: ["flex-row", "gap-5", "w-full"] },
-                        [
-                          createElement("img", {
-                            src: "",
-                            class: ["w-[75px]", "rounded-full"],
-                          }),
-                          this.state.showFriend
-                            ? createFragment([
-                                createElement(
-                                  "div",
-                                  {
-                                    class: [
-                                      "items-start",
-                                      "w-full",
-
-                                      "min-w-[200px]",
-                                    ],
-                                  },
-                                  [
-                                    createElement("p", {}, ["Ahmed Elqori"]),
-                                    createElement(
-                                      "span",
-                                      { class: ["text-[var(--light-grey)]"] },
-                                      [`@ael-qori`]
-                                    ),
-                                  ]
-                                ),
-                                createElement(
-                                  "button",
-                                  {
-                                    class: [
-                                      "flex-1",
-                                      "rounded-2xl",
-                                      "bg-[var(--light-yellow)]",
-                                      "text-[var(--dark-black)]",
-                                      "font-medium",
-                                      "px-10",
-                                      "py-2",
-                                      "gap-2",
-                                      "ml-auto",
-                                      "text-lg",
-                                      "text-center",
-                                    ],
-                                  },
-                                  ["Play"]
-                                ),
-                              ])
-                            : null,
-                        ]
-                      ),
-                    ])
-                  ),
-              ]
+              this.state.loadingFriends
+                ? [createElement(Loader)]
+                : this.state.friends.map((e: any) =>
+                    createElement(FriendsSideBar, {
+                      id: e.id,
+                      avatar: e.avatar_url,
+                      username: e.username,
+                      showFriend: this.state.showFriend,
+                      firstname: e.first_name,
+                      lastname: e.last_name,
+                    })
+                  )
             ),
           ]
         ),
       ]
     );
+  },
+  async handleGetFriends(this: IComponent<IDashboardInterface>) {
+    try {
+      const res = await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/friends/`
+      );
+      const data = await res.json();
+      setTimeout(() => {
+        if (this.getIsMounted)
+          this.updateState({ friends: data, loadingFriends: false });
+      }, 500);
+    } catch (err) {
+      console.log(err);
+    }
   },
 });
 
