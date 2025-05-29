@@ -286,7 +286,9 @@ async function handleNewPlayerJoin(socket) {
         fastify.log.info(`Game ${gameId} auto-started`);
       }
     }, 5000);
+
     await fastify.prisma.game.update({
+      where: { id: gameId },
       data: {
         status: "IN_PROGRESS",
       },
