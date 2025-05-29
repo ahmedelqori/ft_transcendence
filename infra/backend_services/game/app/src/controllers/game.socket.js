@@ -704,7 +704,7 @@ function handleActiveGameDisconnect(gameRoom, socket, closeCode) {
   const userId = socket.userId;
   const gameId = socket.gameId;
   const isIntentionalDisconnect =
-    closeCode === WS_CLOSE.NORMAL;
+    closeCode === WS_CLOSE.NORMAL || closeCode === WS_CLOSE.GOING_AWAY;
 
   const playerPosition = gameRoom.players[userId].position;
   gameRoom.disconnectedPlayers[userId] = {
