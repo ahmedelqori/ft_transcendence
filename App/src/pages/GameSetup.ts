@@ -2,6 +2,7 @@ import { createElement, defineComponent, eventBus } from "@/uccello/Uccello.js";
 import { router } from "@/router/Router.js";
 import enhancedFetch from "@/Hooks/fetch";
 import Loader from "@/components/Loader/Loader";
+const DOMAIN_GAME="http://localhost:3000"
 
 const GameSetup = defineComponent<void>({
   async onMounted() {
@@ -9,7 +10,7 @@ const GameSetup = defineComponent<void>({
     eventBus.emit("navigate:bar", { data: "/game" });
     try {
       const res = await enhancedFetch.fetch(
-        `${import.meta.env.VITE_URL_DEV}/api/games/current_game`,
+        `${DOMAIN_GAME}/current_game`,
         {
           mode: "no-cors",
         }

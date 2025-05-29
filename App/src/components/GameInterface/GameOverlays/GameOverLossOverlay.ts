@@ -11,20 +11,21 @@ interface GameOverLossOverlayProps {
     player: number;
     opponent: number;
   };
+  gameState: any;
 }
 
 export const GameOverLossOverlay = defineComponent<void, GameOverLossOverlayProps>({
   state() {},
 
   render(this: IComponent<void, GameOverLossOverlayProps>) {
-    const { visible, score } = this.props;
+    const { visible, score, gameState } = this.props;
     
     if (!visible) {
       return createElement("div", { style: { display: "none" } });
     }
 
-    const handleGoToDashboard = async () => {
-      await router.navigateTo("/dashboard");
+    const handleGoToPage = async (link:string) => {
+      await router.navigateTo(link);
     };
 
     return createElement(
@@ -159,7 +160,12 @@ export const GameOverLossOverlay = defineComponent<void, GameOverLossOverlayProp
                   transform: "translateY(0)",
                 },
                 on: {
-                  click: handleGoToDashboard,
+                  click: () => {
+                    if (gameState.tournamentId != 0)
+                      handleGoToPage(`/tournament/${gameState.tournamentId}`)
+                    else
+                      handleGoToPage(`/dashboard`)
+                  },
                 },
               },
               ["GO TO DASHBOARD"]

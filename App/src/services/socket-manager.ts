@@ -31,6 +31,8 @@ export interface GameState {
   ball: BallState;
   score: Score;
   winner?: string;
+  gameId?: number;
+  tournamentId?: number;
 }
 
 export interface GameConfig {
@@ -135,6 +137,7 @@ export class SocketManager {
     paddles: { left: 50, right: 50 },
     ball: { x: 50, y: 50 },
     score: { left: 0, right: 0 },
+    tournamentId: 0,
   };
   private gameConfig: GameConfig | null = null;
   private isLocal: boolean = false;
@@ -175,14 +178,14 @@ export class SocketManager {
 
       let wsUrl;
       if (this.isLocal) {
-        wsUrl = `wss://${import.meta.env.VITE_DOMAIN_DEV}/api/games/local/${this.gameId}`;
-        // wsUrl = `ws://localhost:3000/local/${this.gameId}`;
+        // wsUrl = `wss://${import.meta.env.VITE_DOMAIN_DEV}/api/games/local/${this.gameId}`;
+        wsUrl = `ws://localhost:3000/local/${this.gameId}`;
 
         console.log("[SocketManager] Connecting to local game:", wsUrl);
       } else {
         const token = `Bearer ${localStorage.getItem("access_token")}`;
-        wsUrl = `wss://${import.meta.env.VITE_DOMAIN_DEV}/api/games/online/${this.gameId}?token=${token}`;
-        // wsUrl = `ws://localhost:3000/online/${this.gameId}?token=${token}`;
+        // wsUrl = `wss://${import.meta.env.VITE_DOMAIN_DEV}/api/games/online/${this.gameId}?token=${token}`;
+        wsUrl = `ws://localhost:3000/online/${this.gameId}?token=${token}`;
         console.log("[SocketManager] Connecting to online game:", wsUrl);
       }
       this.socket = new WebSocket(wsUrl);
@@ -231,18 +234,8 @@ export class SocketManager {
 
   disconnect(): void {
     if (this.socket) {
-      console.log("[SocketManager] Disconnecting from server");
+      console.log("[SocketManager] Disconnecting from server Intentionally");
       this.socket.close(1000);
-      this.socket = null;
-    }
-  }
-
-  disconnectIntentionally(): void {
-    if (this.socket) {
-      console.log(
-        "[SocketManager] Intentionally disconnecting from server (cancel)"
-      );
-      this.socket.close(1000); // NORMAL close code for intentional disconnect
       this.socket = null;
     }
   }
@@ -460,7 +453,7 @@ export class SocketManager {
         case "gameFinished":
           this.gameState = message.data.gameState;
           console.log(
-            `[SocketManager] Game finished. Winner: ${this.gameState.winner}`
+            `[SocketManager] Game finished. GameState: ${this.gameState}`
           );
           this._notifyListeners("onGameFinish", {
             gameState: this.gameState,
@@ -595,6 +588,7 @@ export class SocketManager {
       paddles: { left: 50, right: 50 },
       ball: { x: 50, y: 50 },
       score: { left: 0, right: 0 },
+      tournamentId: 0,
     };
     this.gameConfig = null;
 

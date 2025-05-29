@@ -7,25 +7,22 @@ import { router } from "@/router/Router.js";
 
 interface VictoryOverlayProps {
   score: { player: number; opponent: number };
-  onGoToDashboard?: () => void;
   visible?: boolean;
+  gameState:any;
 }
 
 export const VictoryOverlay = defineComponent<void, VictoryOverlayProps>({
   state() {},
 
   render(this: IComponent<void, VictoryOverlayProps>) {
-    const { score, onGoToDashboard, visible = true } = this.props;
+    const { score, visible = true, gameState } = this.props;
 
     if (!visible) {
       return createElement("div", { style: { display: "none" } });
     }
 
-    const handleGoToDashboard = async () => {
-      if (onGoToDashboard) {
-        onGoToDashboard();
-      }
-      await router.navigateTo("/dashboard");
+    const handleGoToPage = async (link:string) => {
+      await router.navigateTo(link);
     };
 
     return createElement(
@@ -165,20 +162,11 @@ export const VictoryOverlay = defineComponent<void, VictoryOverlayProps>({
                   transform: "translateY(0)",
                 },
                 on: {
-                  click: handleGoToDashboard,
-                  mouseover: (e: MouseEvent) => {
-                    const target = e.target as HTMLElement;
-                    if (target) {
-                      target.style.backgroundColor = "rgba(221, 242, 71, 0.9)";
-                      target.style.transform = "translateY(-2px)";
-                    }
-                  },
-                  mouseout: (e: MouseEvent) => {
-                    const target = e.target as HTMLElement;
-                    if (target) {
-                      target.style.backgroundColor = "#ddf247";
-                      target.style.transform = "translateY(0)";
-                    }
+                  click: () => {
+                    if (gameState.tournamentId != 0)
+                      handleGoToPage(`/tournament/${gameState.tournamentId}`)
+                    else
+                      handleGoToPage(`/dashboard`)
                   },
                 },
               },

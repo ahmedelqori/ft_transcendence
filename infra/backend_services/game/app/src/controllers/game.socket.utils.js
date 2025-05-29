@@ -260,10 +260,17 @@ export function sendInitialGameData(
 ) {
   let gameRoom = gameRooms.get(gameId);
   if (gameRoom) {
+    // Get game data for tournamentId
+    const game = gameRoom.gameData;
+    
     socket.send(
       Message("initGame", {
         gameConfig: defaultGameConfig,
-        gameState: gameRoom.gameState,
+        gameState: {
+          ...gameRoom.gameState,
+          gameId: gameId,
+          tournamentId: game?.tournementId || 0
+        },
       })
     );
   } else {
@@ -271,7 +278,11 @@ export function sendInitialGameData(
     socket.send(
       Message("initGame", {
         gameConfig: defaultGameConfig,
-        gameState: createGameState(),
+        gameState: {
+          ...createGameState(),
+          gameId: gameId,
+          tournamentId: 0
+        },
       })
     );
   }
@@ -328,12 +339,12 @@ export async function updateGameInDatabase(socket, gameRoom, winner) {
         fastify.log.error(`Failed to notify tournament service: ${error.message}`);
       }
     }
-    return true;
+    return updatedGame;
   } catch (error) {
     fastify.log.error(
       `Failed to update game ${gameId} in database: ${error.message}`
     );
-    return false;
+    return null;
   }
 }
 
@@ -368,7 +379,7 @@ function determineWinnerId(winner, game, gameRoom) {
 export async function notifyGameFinished(token, game) {
   try {
     await axios.post(
-      `${process.env.TOURNAMENT_URL}next-round`,
+      `${process.env.TOURNAMENT_URL_DEV}next-round`,
       { game: game },
       {
         headers: {

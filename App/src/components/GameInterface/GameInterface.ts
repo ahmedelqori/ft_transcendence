@@ -195,7 +195,7 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       if (this.getIsMounted)
         this.updateState({
           isConnected: false,
-          currentOverlay: OverlayType.NONE,
+          // currentOverlay: OverlayType.NONE,
         });
     };
 
@@ -326,6 +326,8 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     };
 
     handlers.onGameFinish = (data: GameFinishData) => {
+      console.log(`Game ID: ${data.gameState.gameId}`);
+      console.log(`Tournament ID: ${data.gameState.tournamentId}`);
       const playerPosition = socketManager.getPlayerPosition();
       const userWon = data.gameState?.winner === playerPosition;
 
@@ -508,11 +510,25 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods
   ) {
-    const { socketManager } = this.state;
+    const { socketManager } = this.state;    
+    const cancelGameState: any = {
+      ...socketManager?.getGameState(),
+      score: { left: 0, right: 10 },
+      winner: this.state.playerPosition === "left" ? "right" : "left",
+      state: GameStates.FINISHED
+    };
+    
+    if (this.getIsMounted)    
+      this.updateState({
+        currentOverlay: OverlayType.DEFEAT,
+        gameState: cancelGameState,
+      });
+  
     if (socketManager && socketManager.getIsConnected()) {
       console.log("[GameInterface] Canceling game (intentional disconnect)");
-      socketManager.disconnectIntentionally(); // Use intentional disconnect method
+      socketManager.disconnect();
     }
+    
   },
 
   async handleGoToDashboard(
@@ -625,6 +641,7 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
         visible: currentOverlay === OverlayType.VICTORY,
         props: { 
           score: score,
+          gameState: gameState,
           onGoToDashboard: this.handleGoToDashboard.bind(this)
         }
       },
@@ -633,6 +650,7 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
         visible: currentOverlay === OverlayType.DEFEAT,
         props: { 
           score: score,
+          gameState: gameState,
           onGoToDashboard: this.handleGoToDashboard.bind(this)
         }
       },
