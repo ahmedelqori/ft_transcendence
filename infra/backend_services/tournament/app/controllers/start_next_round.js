@@ -59,39 +59,39 @@ export default async function start_next_round(req, res) {
     }
 
     // check if all games are finished start createing the next round
-    const players = await tournament_players.query().where({
-        tournament_id: tournementId,
-        round: r.round / 2
-    });
+    // const players = await tournament_players.query().where({
+    //     tournament_id: tournementId,
+    //     round: r.round / 2
+    // });
 
-    if (r.round / 2 == players.length && players.length > 1) {
-        console.log("should create new round");
-        for (let i = 0; i < players.length; i+=2) {
-            console.log("Create game: ", players[i].player_id, "Vs", players[i+ 1].player_id);
-            const response = await axios.post(process.env.GAME_URL, {
-                playerOneId: players[i].player_id,
-                playerTwoId: players[i + 1].player_id,
-                // tournamentId: tournementId
-                tournementId: tournementId
-                }, {
-                headers: {
-                    Authorization: req.headers.authorization
-                }
-                }
-            );
-            try {
-                await tournament_games.query().insert({
-                    tournament_id: tournementId,
-                    round: r.round / 2,
-                    game_id: response.data.id,
-                });
-                console.log("Game created: ", response.data.id);
-            } catch (error) {
-                console.log(error);
-            }
-        }
-    }
+    // if (r.round / 2 == players.length && players.length > 1) {
+    //     console.log("should create new round");
+    //     for (let i = 0; i < players.length; i+=2) {
+    //         console.log("Create game: ", players[i].player_id, "Vs", players[i+ 1].player_id);
+    //         const response = await axios.post(process.env.GAME_URL, {
+    //             playerOneId: players[i].player_id,
+    //             playerTwoId: players[i + 1].player_id,
+    //             // tournamentId: tournementId
+    //             tournementId: tournementId
+    //             }, {
+    //             headers: {
+    //                 Authorization: req.headers.authorization
+    //             }
+    //             }
+    //         );
+    //         try {
+    //             await tournament_games.query().insert({
+    //                 tournament_id: tournementId,
+    //                 round: r.round / 2,
+    //                 game_id: response.data.id,
+    //             });
+    //             console.log("Game created: ", response.data.id);
+    //         } catch (error) {
+    //             console.log(error);
+    //         }
+    //     }
+    // }
 
-    res.send("DONE");
+    res.send({message: 'tournament started successfully'});
 }
 

@@ -6,6 +6,7 @@ import {
   cancelGame,
   deleteGame,
   getUserGames,
+  getCurrentGame
 } from "../controllers/game.controller.js";
 import {
   acceptGameInvitation,

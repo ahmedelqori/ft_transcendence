@@ -37,7 +37,11 @@ export default async function results_tournament(req, res) {
             });
 
             if (games[i].round == 2){
-                winner = get_user(req, game.data.winnerId, id);
+                // const winner_id = (await tournament_games.query().where({
+                //     tournament_id: id,
+                //     round: 1
+                // }).first().select('player_id')).player_id;
+                // winner = get_user(req, winner_id, id);
             }
 
             if (games[i].round == 2){
