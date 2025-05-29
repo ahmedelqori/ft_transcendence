@@ -57,7 +57,7 @@ const Profile = defineComponent<ProfileState>({
                   "animate-pulse",
                 ],
               },
-              [this.state.username]
+              [this.state.username?.substring(0, 8)]
             )
           : createElement("p", { class: ["hidden", "text-xl", "lg:block"] }, [
               this.state.username,
