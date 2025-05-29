@@ -239,7 +239,6 @@ export class SocketManager {
     }
   }
 
-  // Add method for intentional disconnect (cancel button)
   disconnectIntentionally(): void {
     if (this.socket) {
       console.log(
@@ -581,7 +580,8 @@ export class SocketManager {
     console.log("[SocketManager] Cleaning up resources");
     if (this.socket) {
       try {
-        this.socket.close(1000, "Client cleanup");
+        this.pauseGame()
+        this.socket.close(1001, "Client cleanup");
         this.socket = null;
       } catch (err) {
         console.warn("[SocketManager] Error during socket close:", err);
