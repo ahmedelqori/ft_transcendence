@@ -706,36 +706,26 @@ function handleActiveGameDisconnect(gameRoom, socket, closeCode) {
   const userId = socket.userId;
   const gameId = socket.gameId;
   const isIntentionalDisconnect =
-    closeCode === WS_CLOSE.NORMAL || closeCode === WS_CLOSE.GOING_AWAY;
+    closeCode === WS_CLOSE.NORMAL;
 
-  // Store disconnected player info
   const playerPosition = gameRoom.players[userId].position;
   gameRoom.disconnectedPlayers[userId] = {
     ...gameRoom.players[userId],
     disconnectedAt: Date.now(),
     intentionalDisconnect: isIntentionalDisconnect,
   };
-
-  // Remove from active players
   delete gameRoom.players[userId];
-
   fastify.log.info(
     `Removed player ${userId} (${playerPosition}) from active players in game ${gameId}`
   );
-
-  // Handle last player disconnect
   if (Object.keys(gameRoom.players).length === 0) {
     handleLastPlayerDisconnect(gameRoom, socket);
     return;
   }
-
-  // Pause game if it was in play
   if (gameRoom.gameState.state === Game.IN_PLAY) {
     gameRoom.gameState.state = Game.PAUSED;
     pauseGame(gameId);
   }
-
-  // Notify players and setup reconnection timer
   broadcastDisconnectNotification(gameId, userId, isIntentionalDisconnect);
   setupReconnectionTimer(gameRoom, socket, isIntentionalDisconnect);
 }
