@@ -27,6 +27,7 @@ import { GameOverLossOverlay } from "./GameOverlays/GameOverLossOverlay.js";
 import { WaitingConfigurationOverlay } from "./GameOverlays/WaitingConfigurationOverlay.js";
 import { WaitingOpponentOverlay } from "./GameOverlays/WaitingOpponentOverlay.js";
 import { CountdownOverlay } from "./GameOverlays/CountdownOverlay.js";
+import { LocalGameCompleteOverlay } from "./GameOverlays/LocalGameCompleteOverlay.js";
 
 export enum OverlayType {
   NONE = 'none',
@@ -36,7 +37,8 @@ export enum OverlayType {
   DISCONNECTED = 'disconnected',
   VICTORY = 'victory',
   DEFEAT = 'defeat',
-  PAUSED = 'paused'
+  PAUSED = 'paused',
+  LOCAL_GAME_COMPLETE = 'localGameComplete'
 }
 
 interface GameInterfaceProps {
@@ -66,6 +68,7 @@ interface GameInterfaceMethods {
   togglePauseResume(): void;
   cancelGame(): void;
   handleGoToDashboard(): void;
+  handleReplayLocalGame(): void;
   startCountdown(seconds: number): void;
   setupOnlineGame(): Promise<void>;
   setupLocalGame(): Promise<void>;
@@ -300,11 +303,11 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
             position: "left",
             player: data.player
           },
-          "opponent": {
+          "friend": {
             position: "right",
             player: {
               id: "0",
-              username: "opponent",
+              username: "Friend",
               avatar_url: "/assets/default.webp",
             }
           }
@@ -362,12 +365,15 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
 
     handlers.onGameFinish = async (data: GameFinishData) => {
       const playerPosition = socketManager.getPlayerPosition();
-      const userWon = data.gameState?.winner === playerPosition;
-      
-      // For local games, automatically go to dashboard
+      const userWon = data.gameState?.winner === playerPosition;      
       if (socketManager.isLocalGame()) {
-        console.log("[GameInterface] Local game finished, redirecting to dashboard");
-        this.handleGoToDashboard();
+        console.log("[GameInterface] Local game finished, showing completion overlay");
+        
+        if (this.getIsMounted)
+          this.updateState({
+            gameState: data.gameState,
+            currentOverlay: OverlayType.LOCAL_GAME_COMPLETE,
+          });
         return;
       }
       
@@ -599,6 +605,33 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       this.updateState({ countdownTimerId: timerId });
   },
 
+  async handleReplayLocalGame(
+    this: IComponent<GameInterfaceState, GameInterfaceProps> &
+      GameInterfaceMethods
+  ) {
+    console.log("[GameInterface] Replaying local game");
+    
+    // Reset the game state and start a new local game
+    if (this.getIsMounted) {
+      this.updateState({
+        currentOverlay: OverlayType.WAITING_CONFIG,
+        gameState: null,
+        countdownValue: 5,
+        readyToStart: false,
+      });
+    }
+
+    // Clean up current socket manager
+    const { socketManager } = this.state;
+    if (socketManager) {
+      this.removeSocketListeners();
+      socketManager.cleanup();
+    }
+
+    // Start a new local game
+    await this.setupLocalGame();
+  },
+
   render(
     this: IComponent<GameInterfaceState, GameInterfaceProps> &
       GameInterfaceMethods
@@ -661,6 +694,17 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
         component: GamePausedOverlay,
         visible: currentOverlay === OverlayType.PAUSED,
         props: { onResume: () => this.togglePauseResume() }
+      },
+      {
+        component: LocalGameCompleteOverlay,
+        visible: currentOverlay === OverlayType.LOCAL_GAME_COMPLETE,
+        props: { 
+          score: score,
+          winner: gameState?.winner === "left" ? "player" : "friend",
+          playerName: this.state.players?.[Object.keys(this.state.players)[0]]?.player?.username,
+          onReplay: this.handleReplayLocalGame.bind(this),
+          onGoToDashboard: this.handleGoToDashboard.bind(this)
+        }
       }
     ];
 
@@ -685,8 +729,8 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
           gameState,
           gameConfig: gameConfig,
           socketManager: socketManager,
-          players: this.state.players, // Pass players data
-          playerPosition: playerPosition, // Pass player position
+          players: this.state.players,
+          playerPosition: playerPosition,
         }),
       ]
     );
