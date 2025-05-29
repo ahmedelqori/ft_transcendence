@@ -18,9 +18,9 @@ import {
 import {
   sendErrorAndClose,
   Message,
-  runHeartBeatMechanism,
   sendToUser,
 } from "./game.socket.utils.js";
+import { authenticate} from "../middlewares/auth.middleware.js";
 
 export const localGameConnections = new Map();
 export const localGameRooms = new Map();
@@ -47,6 +47,7 @@ export const setupLocalWebSocketHandlers = async function (fastify) {
     {
       websocket: true,
       schema: localWebsocketRouteSchema,
+      preHandler: authenticate,
     },
     handleLocalWebSocketConnection
   );
@@ -72,8 +73,6 @@ async function handleLocalWebSocketConnection(socket, req) {
     localGameRooms.set(gameId, gameRoom);
     fastify.log.info(`Created new local game room: ${gameId}`);
   }
-
-  // Generate a pseudo user ID for this connection
   const userId = `player_${Date.now()}`;
   socket.gameId = gameId;
   socket.userId = userId;
@@ -85,13 +84,11 @@ async function handleLocalWebSocketConnection(socket, req) {
   localGameConnections.get(gameId).set(userId, socket);
 
   socket.send(Message("connected", { message: "Local game connected" }));
-  socket.pingInterval = runHeartBeatMechanism(socket);
-
-  // Send initial game configuration
   socket.send(
     Message("initGame", {
       gameConfig: defaultGameConfig,
       gameState: gameRoom.gameState,
+      player: req.user
     })
   );
 

@@ -125,6 +125,11 @@ interface EventCallbacks {
     userId: string;
     gameState: GameState;
   }) => void)[];
+  onInitGame: ((data: {
+    gameConfig: GameConfig;
+    gameState: GameState;
+    player?: any;
+  }) => void)[];
 }
 
 export class SocketManager {
@@ -157,6 +162,7 @@ export class SocketManager {
     onPlayerAbandoned: [],
     onReconnectionExpired: [],
     onJoinedOfflineGame: [],
+    onInitGame: [],
   };
 
   init(gameId: string, user: any): SocketManager {
@@ -178,13 +184,13 @@ export class SocketManager {
       }
 
       let wsUrl;
+      const token = `Bearer ${localStorage.getItem("access_token")}`;
       if (this.isLocal) {
         // wsUrl = `wss://${import.meta.env.VITE_DOMAIN_DEV}/api/games/local/${this.gameId}`;
-        wsUrl = `ws://localhost:3000/local/${this.gameId}`;
+        wsUrl = `ws://localhost:3000/local/${this.gameId}?token=${token}`;
 
         // console.log("[SocketManager] Connecting to local game:", wsUrl);
       } else {
-        const token = `Bearer ${localStorage.getItem("access_token")}`;
         // wsUrl = `wss://${import.meta.env.VITE_DOMAIN_DEV}/api/games/online/${this.gameId}?token=${token}`;
         wsUrl = `ws://localhost:3000/online/${this.gameId}?token=${token}`;
         // console.log("[SocketManager] Connecting to online game:", wsUrl);
@@ -361,6 +367,14 @@ export class SocketManager {
           //   "[SocketManager] Game initialized with config",
           //   this.gameConfig
           // );
+          
+          // Notify listeners with the initGame data, including player data for local games
+          this._notifyListeners("onInitGame", {
+            gameConfig: message.data.gameConfig,
+            gameState: message.data.gameState,
+            player: message.data.player, // Include player data from local games
+          });
+          
           this.joinGame();
           break;
 
@@ -515,6 +529,7 @@ export class SocketManager {
             gameState: message.data.gameState,
           });
           break;
+
         default:
           console.warn("[SocketManager] Unknown message type:", message.type);
       }

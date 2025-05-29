@@ -292,6 +292,34 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
         });
     };
 
+    handlers.onInitGame = (data: { gameConfig: any; gameState: GameState; player?: any }) => {
+      if (socketManager.isLocalGame() && data.player) {
+        const localPlayers = {
+          [data.player.id]: {
+            id: data.player.id,
+            position: "left",
+            player: data.player
+          },
+          "opponent": {
+            position: "right",
+            player: {
+              id: "0",
+              username: "opponent",
+              avatar_url: "/assets/default.webp",
+            }
+          }
+        };
+        
+        if (this.getIsMounted)
+          this.updateState({
+            gameState: data.gameState,
+            players: localPlayers,
+            playerPosition: "left",
+            currentOverlay: OverlayType.NONE,
+          });
+      }
+    };
+
     handlers.onGameStart = (data: GameStartData) => {
       // console.log("[GameInterface] Game started", data.gameState);
 
@@ -332,9 +360,18 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
         });
     };
 
-    handlers.onGameFinish = (data: GameFinishData) => {
+    handlers.onGameFinish = async (data: GameFinishData) => {
       const playerPosition = socketManager.getPlayerPosition();
       const userWon = data.gameState?.winner === playerPosition;
+      
+      // For local games, automatically go to dashboard
+      if (socketManager.isLocalGame()) {
+        console.log("[GameInterface] Local game finished, redirecting to dashboard");
+        this.handleGoToDashboard();
+        return;
+      }
+      
+      // For online games, show the victory/defeat overlay
       if (this.getIsMounted)
         this.updateState({
           gameState: data.gameState,
@@ -481,6 +518,15 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
       GameInterfaceMethods
   ) {
     const { socketManager } = this.state;    
+    
+    // For local games, go directly to dashboard
+    if (socketManager?.isLocalGame()) {
+      console.log("[GameInterface] Local game canceled, redirecting to dashboard");
+      this.handleGoToDashboard();
+      return;
+    }
+    
+    // For online games, show defeat overlay
     const cancelGameState: any = {
       ...socketManager?.getGameState(),
       score: { left: 0, right: 10 },

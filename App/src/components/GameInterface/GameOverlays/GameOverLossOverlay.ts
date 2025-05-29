@@ -161,7 +161,7 @@ export const GameOverLossOverlay = defineComponent<void, GameOverLossOverlayProp
                 },
                 on: {
                   click: () => {
-                    if (gameState.tournamentId != 0)
+                    if (gameState.tournamentId &&  gameState.tournamentId != 0)
                       handleGoToPage(`/tournament/${gameState.tournamentId}`)
                     else
                       handleGoToPage(`/dashboard`)
