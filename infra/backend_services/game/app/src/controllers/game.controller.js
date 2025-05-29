@@ -36,8 +36,9 @@ export const getGameById = async function(req, reply) {
 export const getCurrentGame = async function(req, reply) {
   fastify.log.info(`Fetching the running game`);
   try {
-    const game = await req.server.prisma.game.findUnique({
-      where: { status: "IN_PROGRESS" }
+    const game = await req.server.prisma.game.findFirst({ 
+      where: {status: "IN_PROGRESS" },
+	orderBy: {startedAt: 'desc'},
     });
 
     if (!game) {
