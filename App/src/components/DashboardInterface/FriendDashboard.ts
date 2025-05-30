@@ -1,8 +1,12 @@
 import { authState } from "@/Hooks/Auth";
-import { createElement, defineComponent } from "@/uccello/Uccello";
+import { createElement, defineComponent, IComponent } from "@/uccello/Uccello";
+
+interface FriendDashboardProps {
+  friends: any[];
+}
 
 const FriendDashboard = defineComponent({
-  render() {
+  render(this:IComponent<FriendDashboardProps>) {
     return createElement(
       "div",
       {
@@ -61,9 +65,18 @@ const FriendDashboard = defineComponent({
           },
           ["Unknown".substring(0, 8)]
         ),
-        createElement("p", { class: ["text-9xl", "font-medium", "z-10"] }, [
-          "Vs",
-        ]),
+        createElement(
+          "p",
+          {
+            class: [
+              "text-9xl",
+              "font-medium",
+              "z-10",
+              "text-[var(--light-yellow)]",
+            ],
+          },
+          ["Vs"]
+        ),
         createElement(
           "p",
           {
