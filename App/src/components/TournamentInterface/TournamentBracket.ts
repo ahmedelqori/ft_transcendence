@@ -35,6 +35,9 @@ const TournamentBracket = defineComponent<
     }
   ) {
     await this.handleGetTournament();
+    eventBus.on("change:tournament", async () => {
+      await this.handleGetTournament();
+    });
   },
   state() {
     return {
