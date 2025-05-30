@@ -24,6 +24,7 @@ const LocalDashboard = defineComponent({
           "relative",
           "bg-[linear-gradient(188deg,rgba(221,242,71,0.02)_0%,rgba(135,135,135,0.02)_100%)]",
           "hover:bg-[linear-gradient(188deg,rgba(221,242,71,0.10)_0%,rgba(135,135,135,0.10)_100%)]",
+          "justify-start",
         ],
       },
       [
@@ -74,11 +75,9 @@ const LocalDashboard = defineComponent({
           },
           [
             "Play Local",
-            createElement(
-              "i",
-              { class: ["ph", "ph-arrow-up-right", "text-lg", "font-bold"] },
-              []
-            ),
+            createElement("i", {
+              class: ["ph", "ph-arrow-up-right", "text-lg", "font-bold"],
+            }),
           ]
         ),
       ]

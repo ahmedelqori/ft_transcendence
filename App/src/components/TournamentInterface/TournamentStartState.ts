@@ -174,8 +174,10 @@ const TournamentStartState = defineComponent<
                         "tbody",
                         {
                           class: [
-                            this.state.selected ? "blur-sm" : "blur-none",
-                            this.state.selected
+                            this.state.joinSelected || this.state.selected
+                              ? "blur-sm"
+                              : "blur-none",
+                            this.state.joinSelected || this.state.selected
                               ? "pointer-events-none"
                               : "pointer-events-auto",
                           ],
@@ -201,7 +203,6 @@ const TournamentStartState = defineComponent<
                                         await router.navigateTo(
                                           `/tournament/${el.id}`
                                         );
-                                        this.props.setState("bracket");
                                       } else {
                                         this.updateState({
                                           id: el.id,
@@ -327,19 +328,19 @@ const TournamentStartState = defineComponent<
               ),
             ]
           ),
-          this.state.selected
-            ? createElement(TournamentSelected, {
-                class: ["w-full", "h-full"],
-                GoToTournament: () => this.handleSelectTournament(),
-                setNickName: (nickName: string) =>
-                  this.updateState({ nickName }),
-                setCode: (code: string) => this.updateState({ code }),
-                resetOptions: () => this.resetOptions(),
-              })
-            : null,
-          this.state.joinSelected
+          // this.state.selected
+          //   ? createElement(TournamentSelected, {
+          //       class: ["w-full", "h-full"],
+          //       GoToTournament: () => this.handleSelectTournament(),
+          //       setNickName: (nickName: string) =>
+          //         this.updateState({ nickName }),
+          //       setCode: (code: string) => this.updateState({ code }),
+          //       resetOptions: () => this.resetOptions(),
+          //     })
+          //   : null,
+          this.state.joinSelected || this.state.selected
             ? createElement(TournamentJoinButton, {
-                id: this.state.joinId,
+                id: this.state.selected ? this.state.id : this.state.joinId,
                 code: this.state.joindCode,
                 nickname: this.state.joindNickName,
                 setJoinId: (id: string) => {
@@ -382,7 +383,6 @@ const TournamentStartState = defineComponent<
       }
       console.log(this.state.id, this.state.nickName);
       await router.navigateTo(`/tournament/${this.state.id}`);
-      this.props.setState("bracket");
     } catch (err) {
       console.log(err);
     }
@@ -393,7 +393,7 @@ const TournamentStartState = defineComponent<
     try {
       const response = await enhancedFetch.fetch(
         `${import.meta.env.VITE_URL_DEV}/api/tournament/${
-          this.state.joinId
+          this.state.selected ? this.state.id : this.state.joinId
         }/join?code=${this.state.joindCode}`,
         {
           method: "POST",
@@ -410,9 +410,11 @@ const TournamentStartState = defineComponent<
           errorData.message || `HTTP error! status: ${response.status}`
         );
       }
-      console.log(this.state.id, this.state.nickName);
-      await router.navigateTo(`/tournament/${this.state.id}`);
-      this.props.setState("bracket");
+      await router.navigateTo(
+        `/tournament/${
+          this.state.selected ? this.state.id : this.state.joindCode
+        }`
+      );
     } catch (err) {
       console.log(err);
     }

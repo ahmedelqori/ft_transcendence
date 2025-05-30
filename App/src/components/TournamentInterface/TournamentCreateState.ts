@@ -273,13 +273,6 @@ const TournamentCreateState = defineComponent<
       );
       const data = await res.json();
       await router.navigateTo(`/tournament/${data.id}`);
-      eventBus.emit("change:tournament");
-      this.props.setData(
-        "bracket",
-        this.state.number,
-        this.state.nickName,
-        this.state.title
-      );
     } catch (err) {
       console.log(err);
     }

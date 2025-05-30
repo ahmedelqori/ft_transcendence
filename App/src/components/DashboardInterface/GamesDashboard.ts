@@ -63,12 +63,14 @@ const GamesDashboard = defineComponent<GamesDashboardState>({
         createElement(
           "h3",
           {
-            class: [],
+            class: ["px-4"],
           },
           ["Last FOUR Matches :".toUpperCase()]
         ),
         this.state.isLoading
           ? createElement(Loader)
+          : this.state.games.length === 0
+          ? createElement("div", {}, ["No Games Yet"])
           : createElement(
               "div",
               { class: ["w-full", "gap-2"] },
@@ -99,7 +101,9 @@ const GamesDashboard = defineComponent<GamesDashboardState>({
                           e.winner ? "bg-[#ddf247]" : "bg-[#ff4242]",
                           "px-4",
                           "py-1",
-                          "bg-opacity-50",
+                          e.winner ? "text-black" : "text-white",
+                          //   "bg-opacity-50",
+                          "font-medium",
                         ],
                       },
                       [
