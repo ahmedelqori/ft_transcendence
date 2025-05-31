@@ -72,9 +72,9 @@ const TournamentBracket = defineComponent<
           "div",
           { class: ["w-full", "h-full", "flex-row", "relative"] },
           [
-            this.state.status === "READY" ||
-            (this.state.status === "STARTED" &&
-              (authState.getState() as any).user.id === this.state.owner)
+            (this.state.status === "READY" ||
+              this.state.status === "STARTED") &&
+            authState.getState().user?.id === this.state.owner
               ? createElement(
                   "div",
                   {
