@@ -1,4 +1,5 @@
 import enhancedFetch from "@/Hooks/fetch";
+import { router } from "@/router/Router";
 import {
   createElement,
   createFragment,
@@ -26,6 +27,10 @@ const FriendsSideBar = defineComponent<void, FriendsSideBarProps>({
         createElement("img", {
           src: this.props.avatar,
           class: ["w-[75px]", "rounded-full"],
+          on: {
+            click: async () =>
+              await router.navigateTo(`/profile/${this.props.username}`),
+          },
         }),
         this.props.showFriend
           ? createFragment([

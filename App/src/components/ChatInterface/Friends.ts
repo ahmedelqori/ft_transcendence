@@ -7,8 +7,8 @@ import {
 import Friend from "./Friend.js";
 import Search from "./Search.js";
 import enhancedFetch from "@/Hooks/fetch.js";
-import { authState } from "@/Hooks/Auth.js";
-import Loader from "../Loader/Loader.js";
+import { authState } from "@/Hooks/Auth";
+import Loader from "../Loader/Loader.ts";
 
 interface UserInterface {
   username: string;

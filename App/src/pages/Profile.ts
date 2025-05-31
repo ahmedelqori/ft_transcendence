@@ -54,7 +54,6 @@ const Profile = defineComponent<ProfileState>({
           : createElement(ProfileInterface, {
               username: this.state.username,
               whoami: this.state.whoami,
-              class: [],
             }),
       ]
     );

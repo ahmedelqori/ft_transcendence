@@ -11,9 +11,7 @@ import { authState } from "@/Hooks/Auth";
 import { InviteUserComp, UserCompo } from "./TournamentBracketComponents";
 import Loader from "../Loader/Loader";
 
-interface TournamentBracketProps {
-  number: number;
-}
+interface TournamentBracketProps {}
 
 interface TournamentBracketState {
   inviteUsers: boolean;
@@ -33,12 +31,10 @@ const TournamentBracket = defineComponent<
   async onMounted(
     this: IComponent<TournamentBracketState, TournamentBracketProps> & {
       handleGetTournament: () => Promise<void>;
-      handleChangeParamTournament: () => void;
       handleStartTournament: () => Promise<void>;
     }
   ) {
     await this.handleGetTournament();
-    window.addEventListener("hashchange", this.handleChangeParamTournament);
     eventBus.on("change:tournament", async () => {
       await this.handleGetTournament();
     });
@@ -162,7 +158,7 @@ const TournamentBracket = defineComponent<
                 on: {
                   click: async () => {
                     await this.handleLeaveTournament();
-                    await router.navigateTo("/dashboard");
+                    await router.navigateTo("/tournament");
                   },
                 },
               },
@@ -1120,13 +1116,8 @@ const TournamentBracket = defineComponent<
       console.log(err);
     }
   },
-  handleChangeParamTournament() {
-    if (router.getMatchedRoute?.path === "/tournament/:id")
-      eventBus.emit("change:tournament");
-  },
   async handleGetTournament() {
     try {
-      console.log(router);
       const settingResponse = await enhancedFetch.fetch(
         `${import.meta.env.VITE_URL_DEV}/api/tournament/${
           (router.getParams as any).id
@@ -1155,7 +1146,7 @@ const TournamentBracket = defineComponent<
       }
     } catch (err: any) {
       eventBus.emit("notif:error", err.error || err.message);
-      await router.navigateTo("/dashboard");
+      await router.navigateTo("/tournament");
     }
   },
 });
