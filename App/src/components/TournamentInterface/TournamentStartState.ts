@@ -411,9 +411,7 @@ const TournamentStartState = defineComponent<
         );
       }
       await router.navigateTo(
-        `/tournament/${
-          this.state.selected ? this.state.id : this.state.joindCode
-        }`
+        `/tournament/${this.state.selected ? this.state.id : this.state.joinId}`
       );
     } catch (err) {
       console.log(err);
