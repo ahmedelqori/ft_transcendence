@@ -110,7 +110,7 @@ function setupLocalSocketEventHandlers(socket) {
   });
 
   socket.on("close", () => {
-    clearInterval(socket.pingInterval);
+    // clearInterval(socket.pingInterval);
     handleLocalDisconnect(socket.gameId, socket.userId);
   });
 }

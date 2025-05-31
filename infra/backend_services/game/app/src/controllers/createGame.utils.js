@@ -1,9 +1,9 @@
 import { fastify } from "../server.js";
 import axios from "axios";
-import { Agent } from "https";
-const vaultAgent = new Agent({
-  rejectUnauthorized: false
-});
+// import { Agent } from "https";
+// const vaultAgent = new Agent({
+//   rejectUnauthorized: false
+// });
 
 export async function handleLocalGame(req, reply, playerOneId) {
   fastify.log.info(`Creating a local game for player ${playerOneId}`);
@@ -83,12 +83,12 @@ export async function handleRegularGame(req, reply, playerTwoId) {
 
 async function validateTournament(req, tournamentId) {
   try {
-    const response = await axios.get(`${TOURNAMENT_URL}${tournamentId}`,
+    const response = await axios.get(`${process.env.TOURNAMENT_URL}${tournamentId}`,
       {
         headers: {
           Authorization: `${req.token}`,
         },
-        httpsAgent: vaultAgent
+        // httpsAgent: vaultAgent
       }
     );
     if (!response) {
@@ -109,12 +109,12 @@ async function validateTournament(req, tournamentId) {
 
 async function checkFriendship(req, playerTwoId) {
   try {
-    const response = await axios.get(`${FRIENDSHIP_URL}${playerTwoId}`,
+    const response = await axios.get(`${process.env.FRIENDSHIP_URL}${playerTwoId}`,
       {
         headers: {
           Authorization: `${req.token}`,
         },
-        httpsAgent: vaultAgent
+        // httpsAgent: vaultAgent
       }
     );
     return response;
@@ -127,7 +127,7 @@ async function checkFriendship(req, playerTwoId) {
 async function sendGameInvitation(req, game) {
   fastify.log.info(`Sending regular game invitation for game ${game.id} from ${game.playerOneId} to ${game.playerTwoId}`);
   try {
-    await axios.post(`${NOTIFICATION_URL}`,
+    await axios.post(`${process.env.NOTIFICATION_URL}`,
       {
         to: game.playerTwoId,
         type: "inviteToMatch",
@@ -137,7 +137,7 @@ async function sendGameInvitation(req, game) {
         headers: {
           Authorization: `${req.token}`,
         },
-        httpsAgent: vaultAgent
+        // httpsAgent: vaultAgent
       }
     );
     return true;
@@ -149,7 +149,7 @@ async function sendGameInvitation(req, game) {
 
 async function sendTournamentGameInvitation(req, game) {
   try {
-    await axios.post(`${NOTIFICATION_URL}`,
+    await axios.post(`${process.env.NOTIFICATION_URL}`,
       {
         to: game.playerOneId,
         type: "joinTournamentGame",
@@ -159,10 +159,10 @@ async function sendTournamentGameInvitation(req, game) {
         headers: {
           Authorization: `${req.token}`,
         },
-        httpsAgent: vaultAgent
+        // httpsAgent: vaultAgent
       }
     );
-    await axios.post(`${NOTIFICATION_URL}`,
+    await axios.post(`${process.env.NOTIFICATION_URL}`,
       {
         to: game.playerTwoId,
         type: "joinTournamentGame",
@@ -172,7 +172,7 @@ async function sendTournamentGameInvitation(req, game) {
         headers: {
           Authorization: `${req.token}`,
         },
-        httpsAgent: vaultAgent
+        // httpsAgent: vaultAgent
 
       }
     );
@@ -204,7 +204,7 @@ export const acceptGameInvitation = async function (req, reply) {
       },
     });
     try {
-      await axios.post(`${NOTIFICATION_URL}`,
+      await axios.post(`${process.env.NOTIFICATION_URL}`,
         {
           to: updatedGame.playerOneId,
           type: "gameAccepted",
@@ -214,7 +214,7 @@ export const acceptGameInvitation = async function (req, reply) {
           headers: {
             Authorization: `${req.token}`,
           },
-          httpsAgent: vaultAgent
+          // httpsAgent: vaultAgent
         }
       );
     } catch (error) {
@@ -246,7 +246,7 @@ export const declineGameInvitation = async function (req, reply) {
       where: { id: game.id },
     });
     try {
-      await axios.post(`${NOTIFICATION_URL}`,
+      await axios.post(`${process.env.NOTIFICATION_URL}`,
         {
           to: game.playerOneId,
           type: "gameDeclined",
@@ -256,7 +256,7 @@ export const declineGameInvitation = async function (req, reply) {
           headers: {
             Authorization: `${req.token}`,
           },
-          httpsAgent: vaultAgent
+          // httpsAgent: vaultAgent
         }
       );
     } catch (error) {

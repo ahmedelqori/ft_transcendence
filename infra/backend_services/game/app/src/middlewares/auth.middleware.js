@@ -1,10 +1,10 @@
 import axios from 'axios';
 import {fastify} from "../server.js";
-import {Agent} from 'https';
+// import {Agent} from 'https';
 export let TOKEN = 0
-const vaultAgent = new Agent({
-  rejectUnauthorized: false
-});
+// const vaultAgent = new Agent({
+//   rejectUnauthorized: false
+// });
 
 export async function authenticate(req, reply) {
   fastify.log.info(`Authenticating request: ${req.url}`);
@@ -26,9 +26,9 @@ export async function authenticate(req, reply) {
 
   try {
     fastify.log.info(`Validating token with auth service`);
-    const response = await axios.get(WHOAMI_URL, {
+    const response = await axios.get(`${process.env.WHOAMI_URL}`, {
       headers: { Authorization: `${token}` },
-      httpsAgent: vaultAgent
+      // httpsAgent: vaultAgent
     });
     
     if (response.status !== 200) {
