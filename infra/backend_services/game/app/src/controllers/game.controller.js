@@ -14,7 +14,6 @@ export const getAllGames = async function(req, reply) {
   }
 };
 
-
 export const getGameById = async function(req, reply) {
   const { id } = req.params;
   fastify.log.info(`Fetching game by ID: ${id}`);
@@ -33,6 +32,7 @@ export const getGameById = async function(req, reply) {
     return reply.code(500).send({ error: "Error retrieving game" });
   }
 };
+
 export const getCurrentGame = async function(req, reply) {
   fastify.log.info(`Fetching the running game`);
   try {
@@ -79,9 +79,6 @@ export const getUserGames = async function(req, reply) {
 
 export const createGame = async function(req, reply) {
   const {playerTwoId = 0, tournementId = 0 } = req.body;
-  // const adminId = req.user?.id;
-  // const token = req.token
-  console.log(req.user)
   const playerOneId = req.user.id
   try {
     if (tournementId != 0)
@@ -91,11 +88,8 @@ export const createGame = async function(req, reply) {
     else {  
       if (playerOneId === playerTwoId) {
         fastify.log.warn(`Player ${playerOneId} cannot play against themselves`);
-        return reply.code(400).send({ 
-          error: "Player cannot play against themselves" 
-        });
+        return reply.code(400).send({error: "Player cannot play against themselves"}); 
       }
-      console.log("------", playerOneId)
       return await handleRegularGame(req, reply, playerTwoId);
     }
   } catch (error) {
@@ -114,71 +108,46 @@ export const updateGame = async function(req, reply) {
     const currentGame = await req.server.prisma.game.findUnique({
       where: { id: gameId }
     });
-
     if (!currentGame) {
       fastify.log.warn(`Game ${gameId} not found`);
       return reply.code(404).send({ error: "Game not found" });
     }
-    
     if (userId !== currentGame.playerOneId && userId !== currentGame.playerTwoId) {
       fastify.log.warn(`User ${userId} cannot update game ${gameId}`);
       return reply.code(403).send({ error: "Not authorized to update this game" });
     }
-
     if (["FINISHED", "CANCELED"].includes(currentGame.status)) {
       fastify.log.warn(`Cannot modify a ${currentGame.status} game`);
       return reply.code(400).send({
         error: `Cannot modify a ${currentGame.status} game`
       });
     }
-
     const gameUpdate = {
       ...currentGame,
       ...updatedData
     };
-    
     if (["FINISHED", "CANCELED"].includes(gameUpdate.status)) {
       const playerOneScore = parseInt(gameUpdate.playerOneScore);
       const playerTwoScore = parseInt(gameUpdate.playerTwoScore);
       
-      if (
-        isNaN(playerOneScore) || 
-        isNaN(playerTwoScore) || 
-        playerOneScore < 0 || 
-        playerTwoScore < 0 || 
+      if (isNaN(playerOneScore) || isNaN(playerTwoScore) || playerOneScore < 0 || playerTwoScore < 0 || 
         (playerOneScore === 0 && playerTwoScore === 0 && gameUpdate.status === "FINISHED")
       ) {
         fastify.log.warn(`Invalid scores for game completion`);
-        return reply.code(400).send({
-          error: "Invalid scores for game completion"
-        });
+        return reply.code(400).send({ error: "Invalid scores for game completion"});
       }
-
-      if (!gameUpdate.endedAt) {
+      if (!gameUpdate.endedAt)
         gameUpdate.endedAt = new Date();
-      }
-
-      gameUpdate.winnerId = 
-        gameUpdate.status === "CANCELED" 
-          ? -1 
-          : (gameUpdate.playerOneScore > gameUpdate.playerTwoScore 
-              ? currentGame.playerOneId 
-              : currentGame.playerTwoId);
+      gameUpdate.winnerId = gameUpdate.status === "CANCELED" ? -1 : (gameUpdate.playerOneScore > gameUpdate.playerTwoScore ? currentGame.playerOneId : currentGame.playerTwoId);
     } 
     else if (gameUpdate.winnerId !== -1) {
       fastify.log.warn(`Cannot set winner for in-progress game`);
-      return reply.code(400).send({
-        error: "Cannot set winner for in-progress game"
-      });
+      return reply.code(400).send({error: "Cannot set winner for in-progress game"});
     }
-
     if (gameUpdate.playerTwoId !== 0 && gameUpdate.playerTwoId === gameUpdate.playerOneId) {
       fastify.log.warn(`Player cannot play against themselves`);
-      return reply.code(400).send({ 
-        error: "Player cannot play against themselves" 
-      });
+      return reply.code(400).send({ error: "Player cannot play against themselves"});
     }
-
     const dataToUpdate = {
       playerOneScore: Math.max(gameUpdate.playerOneScore, currentGame.playerOneScore),
       playerTwoScore: Math.max(gameUpdate.playerTwoScore, currentGame.playerTwoScore),
@@ -195,7 +164,6 @@ export const updateGame = async function(req, reply) {
     if (["FINISHED", "CANCELED"].includes(updatedGame.status)) {
       fastify.log.info(`Game ${gameId} has ended`);
     }
-
     return reply.code(200).send({ game: updatedGame });
   } catch (error) {
     fastify.log.error(`Error updating game ${gameId}: ${error.message}`);
@@ -212,24 +180,19 @@ export const cancelGame = async function(req, reply) {
     const game = await req.server.prisma.game.findUnique({
       where: { id: parseInt(id) }
     });
-    
     if (!game) {
       fastify.log.warn(`Game ${id} not found`);
       return reply.code(404).send({ error: "Game not found" });
     }
-    
     if (userId !== game.playerOneId && userId !== game.playerTwoId) {
       fastify.log.warn(`User ${userId} cannot cancel game ${id}`);
       return reply.code(403).send({ error: "Not authorized to cancel this game" });
     }
-    
     if (["FINISHED", "CANCELED"].includes(game.status)) {
       fastify.log.warn(`Cannot cancel the ${game.id} it is a ${game.status} game`);
-      return reply.code(400).send({
-        error: `Cannot cancel a ${game.status} game`
+      return reply.code(400).send({error: `Cannot cancel a ${game.status} game`
       });
     }
-
     const updatedGame = await req.server.prisma.game.update({
       where: { id: parseInt(id) },
       data: { 
@@ -238,9 +201,6 @@ export const cancelGame = async function(req, reply) {
         winnerId: -1 
       }
     });
-
-    const otherPlayerId = userId === game.playerOneId ? game.playerTwoId : game.playerOneId;
-
     return reply.code(200).send(updatedGame);
   } catch (error) {
     fastify.log.error(`Error canceling game ${id}: ${error.message}`);
@@ -248,19 +208,17 @@ export const cancelGame = async function(req, reply) {
   }
 };
 
-
-export const deleteGame = async function(req, reply) {
-  const { id } = req.params;
-  fastify.log.info(`Deleting game ${id}`);
-  try {
-    const game = await req.server.prisma.game.delete({
-      where: { id: parseInt(id) }
-    });
-
-    return reply.code(200).send(game);
-  } catch (error) {
-    fastify.log.error(`Error deleting game ${id}: ${error.message}`);
-    return reply.code(500).send({ error: "Error deleting game" });
-  }
-};
+// export const deleteGame = async function(req, reply) {
+//   const { id } = req.params;
+//   fastify.log.info(`Deleting game ${id}`);
+//   try {
+//     const game = await req.server.prisma.game.delete({
+//       where: { id: parseInt(id) }
+//     });
+//     return reply.code(200).send(game);
+//   } catch (error) {
+//     fastify.log.error(`Error deleting game ${id}: ${error.message}`);
+//     return reply.code(500).send({ error: "Error deleting game" });
+//   }
+// };
 

@@ -5,8 +5,8 @@ import {
   createGameLoop,
 } from "./gameConfig.js";
 import { fastify } from "../server.js";
-// import { validateSocketConnection } from "../middlewares/auth.middleware.js";
-export const gameLoops = new Map(); // Map<gameId, {interval, callback, running, gameState}>
+
+export const gameLoops = new Map();
 const buttomBoard = 0;
 const topBoard = 100;
 const leftBoard = 0;
@@ -23,14 +23,11 @@ export function startGameLoop(gameId, gameState, callback) {
   gameLoop.interval = setInterval(() => {
     if (gameLoop.running && gameState.state === Game.IN_PLAY) {
       updateBallPosition(gameLoop.gameState);
-      if (gameLoop.callback) {
+      if (gameLoop.callback)
         gameLoop.callback(gameLoop.gameState);
-      }
     } else if (gameState.state === Game.FINISHED || gameState.state === Game.CANCELED) {
-      // Send final state update before stopping
-      if (gameLoop.callback) {
+      if (gameLoop.callback)
         gameLoop.callback(gameLoop.gameState);
-      }
       stopGameLoop(gameId);
     }
   }, frameTime);
@@ -40,9 +37,7 @@ export function startGameLoop(gameId, gameState, callback) {
 export function stopGameLoop(gameId) {
   const gameLoop = gameLoops.get(gameId);
   if (!gameLoop) {
-    fastify.log.warn(
-      `Attempted to stop non-existent game loop for game ${gameId}`
-    );
+    fastify.log.warn(`Attempted to stop non-existent game loop for game ${gameId}`);
     return;
   }
   clearInterval(gameLoop.interval);
@@ -53,9 +48,7 @@ export function stopGameLoop(gameId) {
 export function reconnecting(gameId) {
   const gameLoop = gameLoops.get(gameId);
   if (!gameLoop) {
-    fastify.log.warn(
-      `Attempted to handle reconnection for non-existent game loop ${gameId}`
-    );
+    fastify.log.warn(`Attempted to handle reconnection for non-existent game loop ${gameId}`);
     return;
   }
   gameLoop.running = false;
@@ -66,9 +59,7 @@ export function reconnecting(gameId) {
 export function pauseGame(gameId) {
   const gameLoop = gameLoops.get(gameId);
   if (!gameLoop) {
-    fastify.log.warn(
-      `Attempted to pause non-existent game loop for game ${gameId}`
-    );
+    fastify.log.warn(`Attempted to pause non-existent game loop for game ${gameId}`);
     return;
   }
   gameLoop.running = false;
@@ -78,16 +69,12 @@ export function pauseGame(gameId) {
 export function resumeGame(gameId) {
   const gameLoop = gameLoops.get(gameId);
   if (!gameLoop) {
-    fastify.log.warn(
-      `Attempted to resume non-existent game loop for game ${gameId}`
-    );
+    fastify.log.warn(`Attempted to resume non-existent game loop for game ${gameId}`);
     return;
   }
   gameLoop.running = true;
   fastify.log.info(`Game ${gameId} resumed`);
 }
-
-// ************************** GAMEPLAY CORE LOGIQUE **************************
 
 export function resetBallAndPaddles(gameState) {
   const speed = defaultGameConfig.ballSpeed;
@@ -113,9 +100,7 @@ export function updateBallPosition(gameState) {
   if (gameState.state !== Game.IN_PLAY) return;
   gameState.ball.x += gameState.ball.xDir;
   gameState.ball.y += gameState.ball.yDir;
-
   const ballRadius = defaultGameConfig.ballSize / 2;
-
   if (gameState.ball.y - ballRadius <= buttomBoard) {
     gameState.ball.yDir = Math.abs(gameState.ball.yDir);
     gameState.ball.y = ballRadius;
@@ -123,15 +108,13 @@ export function updateBallPosition(gameState) {
     gameState.ball.yDir = -Math.abs(gameState.ball.yDir);
     gameState.ball.y = topBoard - ballRadius;
   }
-
   checkPaddleCollisions(gameState);
   checkScoring(gameState);
 }
 
 export function checkPaddleCollisions(gameState) {
   const leftPaddleX = defaultGameConfig.leftPaddleX;
-  const rightPaddleX =
-    defaultGameConfig.rightPaddleX - defaultGameConfig.paddleWidth;
+  const rightPaddleX = defaultGameConfig.rightPaddleX - defaultGameConfig.paddleWidth;
   const ballRadius = defaultGameConfig.ballSize / 2;
   const paddleHalfHeight = defaultGameConfig.paddleHeight / 2;
 
@@ -160,64 +143,27 @@ export function checkPaddleCollisions(gameState) {
 export function updateAfterPaddleCollision(paddleType, gameState) {
   const paddleHalfHeight = defaultGameConfig.paddleHeight / 2;
   const ballRadius = defaultGameConfig.ballSize / 2;
-  const paddlePos =
-    paddleType === "left" ? gameState.paddles.left : gameState.paddles.right;
-
-  let relativeIntersection =
-    (gameState.ball.y - (paddlePos - paddleHalfHeight)) /
-    defaultGameConfig.paddleHeight;
+  const paddlePos = paddleType === "left" ? gameState.paddles.left : gameState.paddles.right;
+  let relativeIntersection = (gameState.ball.y - (paddlePos - paddleHalfHeight)) / defaultGameConfig.paddleHeight;
   relativeIntersection = Math.max(0, Math.min(1, relativeIntersection));
-
-
   const maxBounceAngle = Math.PI * 0.5;
   const rawBounceAngle = (relativeIntersection * 2 - 1) * maxBounceAngle;
-  
   const minHorizontalComponent = 0.3;
-  const limitedAngle = Math.sign(rawBounceAngle) * 
-    Math.min(Math.abs(rawBounceAngle), Math.PI/2 - Math.asin(minHorizontalComponent));
-
-  const aspectAdjustedBounceAngle = Math.atan(
-    Math.tan(limitedAngle) * defaultGameConfig.ratio
-  );
-
+  const limitedAngle = Math.sign(rawBounceAngle) * Math.min(Math.abs(rawBounceAngle), Math.PI/2 - Math.asin(minHorizontalComponent));
+  const aspectAdjustedBounceAngle = Math.atan(Math.tan(limitedAngle) * defaultGameConfig.ratio);
   const incomingAngle = Math.atan2(gameState.ball.yDir, gameState.ball.xDir);
-  
-  const currentSpeed = Math.sqrt(
-    gameState.ball.xDir * gameState.ball.xDir +
-    gameState.ball.yDir * gameState.ball.yDir
-  );
-
-  const newSpeed = Math.min(
-    currentSpeed * 1.02,
-    defaultGameConfig.maxBallSpeed
-  );
-
+  const currentSpeed = Math.sqrt(gameState.ball.xDir * gameState.ball.xDir + gameState.ball.yDir * gameState.ball.yDir);
+  const newSpeed = Math.min(currentSpeed * 1.02, defaultGameConfig.maxBallSpeed);
   const direction = paddleType === "left" ? 1 : -1;
-
-  const adjustedAngle = aspectAdjustedBounceAngle * 0.8 + 
-    incomingAngle * 0.2 * (direction < 0 ? -1 : 1);
-
+  const adjustedAngle = aspectAdjustedBounceAngle * 0.8 + incomingAngle * 0.2 * (direction < 0 ? -1 : 1);
   const minHorizontalSpeed = newSpeed * 0.7;
-  
-  gameState.ball.xDir = direction * Math.max(
-    Math.abs(Math.cos(adjustedAngle) * newSpeed),
-    minHorizontalSpeed
-  );
-
+  gameState.ball.xDir = direction * Math.max(Math.abs(Math.cos(adjustedAngle) * newSpeed), minHorizontalSpeed);
   gameState.ball.yDir = Math.sin(adjustedAngle) * newSpeed;
-
-  gameState.ball.x =
-    paddleType === "left"
-      ? defaultGameConfig.leftPaddleX +
-        defaultGameConfig.paddleWidth +
-        ballRadius +
-        0.1
-      : defaultGameConfig.rightPaddleX - ballRadius - 0.1;
+  gameState.ball.x = paddleType === "left" ? defaultGameConfig.leftPaddleX + defaultGameConfig.paddleWidth + ballRadius + 0.1 : defaultGameConfig.rightPaddleX - ballRadius - 0.1;
 }
 
 export function checkScoring(gameState) {
   const ballRadius = defaultGameConfig.ballSize / 2;
-
   if (gameState.ball.x - ballRadius < leftBoard) {
     gameState.score.right += 1;
     resetBallAndPaddles(gameState);
@@ -225,14 +171,9 @@ export function checkScoring(gameState) {
     gameState.score.left += 1;
     resetBallAndPaddles(gameState);
   }
-
-  if (
-    gameState.score.left === defaultGameConfig.scoreToWin ||
-    gameState.score.right === defaultGameConfig.scoreToWin
-  ) {
+  if (gameState.score.left === defaultGameConfig.scoreToWin || gameState.score.right === defaultGameConfig.scoreToWin) {
     gameState.state = Game.FINISHED;
-    gameState.winner =
-      gameState.score.left === defaultGameConfig.scoreToWin ? "left" : "right";
+    gameState.winner = gameState.score.left === defaultGameConfig.scoreToWin ? "left" : "right";
     fastify.log.info(`Game scoring complete - Winner: ${gameState.winner}, Score: ${gameState.score.left}-${gameState.score.right}`);
     return true;
   }
@@ -240,29 +181,18 @@ export function checkScoring(gameState) {
 }
 
 export function updatePaddlePosition(gameState, userId, position, isPlayerOne) {
-  if (typeof position !== "number" || isNaN(position)) {
+  if (typeof position !== "number" || isNaN(position))
     return false;
-  }
-
   let newPosition = position;
   const paddleHalfHeight = defaultGameConfig.paddleHeight / 2;
-
-  if (newPosition < paddleHalfHeight) {
+  if (newPosition < paddleHalfHeight)
     newPosition = paddleHalfHeight;
-  } else if (newPosition > topBoard - paddleHalfHeight) {
+  else if (newPosition > topBoard - paddleHalfHeight)
     newPosition = topBoard - paddleHalfHeight;
-  }
-
-  // Debug paddle movement
-  fastify.log.debug(
-    `Updating paddle: userId=${userId}, isLeft=${isPlayerOne}, position=${newPosition}`
-  );
-
-  if (isPlayerOne) {
+  fastify.log.debug(`Updating paddle: userId=${userId}, isLeft=${isPlayerOne}, position=${newPosition}`);
+  if (isPlayerOne)
     gameState.paddles.left = newPosition;
-    return true;
-  } else {
+  else
     gameState.paddles.right = newPosition;
-    return true;
-  }
+  return true;
 }

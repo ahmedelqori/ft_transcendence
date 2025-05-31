@@ -1,3 +1,4 @@
+import { router } from "@/router/Router";
 import {
   createElement,
   defineComponent,
@@ -42,6 +43,7 @@ const FriendItem = defineComponent<FriendItemState, FriendItemProps>({
               "shadow-sm",
               "transition-all",
               "duration-300",
+              "cursor-pointer",
             ],
           },
           [
@@ -70,6 +72,7 @@ const FriendItem = defineComponent<FriendItemState, FriendItemProps>({
           "div",
           {
             class: [
+              "cursor-pointer",
               "border",
               "w-full",
               "h-full",
@@ -90,6 +93,10 @@ const FriendItem = defineComponent<FriendItemState, FriendItemProps>({
               "duration-300",
               "hover:border-opacity-50",
             ],
+            on: {
+              click: async () =>
+                await router.navigateTo(`/profile/${this.props.username}`),
+            },
           },
           [
             createElement(
@@ -129,63 +136,6 @@ const FriendItem = defineComponent<FriendItemState, FriendItemProps>({
                 ],
               },
               [`@${this.props.username}`]
-            ),
-            createElement(
-              "div",
-              { class: ["absolute", "bottom-0", "right-0"] },
-              [
-                createElement(
-                  "div",
-                  {
-                    class: ["relative", "w-10", "h-10"],
-                  },
-                  [
-                    createElement("div", {
-                      class: [
-                        "cursor-pointer",
-                        "absolute",
-                        "top-0",
-                        "left-0",
-                        "h-0",
-                        "w-0",
-                        "rounded-tl-none",
-                        "rounded-tr-none",
-                        "rounded-bl-none",
-                        "rounded-br-2xl",
-                        "border-t-[40px]",
-                        "border-r-[40px]",
-                        "border-t-transparent",
-                        "border-l-[#ddf247]",
-                        "border-[#ddf247]",
-                        "hover:border-[#c7da2c]",
-                        "transition-colors",
-                        "duration-200",
-                      ],
-                    }),
-                    createElement(
-                      "button",
-                      {
-                        class: [
-                          "absolute",
-                          "top-[65%]",
-                          "left-[65%]",
-                          "-translate-x-1/2",
-                          "-translate-y-1/2",
-                          "text-black",
-                          "font-bold",
-                          "text-lg",
-                          "cursor-pointer",
-                          "hover:scale-110",
-                          "transition-transform",
-                          "duration-200",
-                        ],
-                        "aria-label": "Remove friend",
-                      },
-                      ["-"]
-                    ),
-                  ]
-                ),
-              ]
             ),
           ]
         );

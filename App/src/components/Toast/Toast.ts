@@ -414,7 +414,7 @@ export const inviteToTournament = defineComponent({
         createElement("img", {
           width: "40px",
           height: "40px",
-          src: "/assets/default.webp",
+          src: this.props.avatar_url,
           class: ["w-[40px]", "h-[40px]", "rounded-full"],
           on: {
             click: () => {

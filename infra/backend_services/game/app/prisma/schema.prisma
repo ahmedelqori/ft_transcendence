@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:/app/database/dev.db"
+  url      = "file:./dev.db"
 
 }
 
@@ -14,11 +14,6 @@ enum Status {
   IN_PROGRESS
   FINISHED
   CANCELED
-}
-
-model User {
-  id        Int @id    
-  score    Int @default(0)
 }
 
 model Game {
@@ -33,8 +28,3 @@ model Game {
   status             Status @default(PENDING)
   tournementId         Int @default(0)
 }
-
-
-// winnerId == -1 if the game was canceled | 0 if the AI is the winner
-
-// WHO CANCELS LOSE THE GAME

@@ -23,6 +23,7 @@ interface ProfileInterfaceState {
   gameWin: number;
   gameLose: number;
   scoreDiffrence: number;
+  relationShip: string;
 }
 const ProfileInterface = defineComponent<
   ProfileInterfaceState,
@@ -41,7 +42,10 @@ const ProfileInterface = defineComponent<
       if (!res.ok) throw res;
 
       const user = await res.json();
-
+      const relationResponse = await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/friends/${user.id}`
+      );
+      const relation = await relationResponse.json();
       const response = await enhancedFetch.fetch(
         `${import.meta.env.VITE_URL_DEV}/api/games/user/${user.id}`,
         {
@@ -70,6 +74,7 @@ const ProfileInterface = defineComponent<
             createdAt: formattedDate,
             animationComplete: false,
             id: user.id,
+            relationShip: relation.status,
           });
 
         setTimeout(() => {
@@ -89,6 +94,7 @@ const ProfileInterface = defineComponent<
             createdAt: null,
             animationComplete: false,
             id: -1,
+            relationShip: "none",
           });
     }
   },
@@ -103,9 +109,15 @@ const ProfileInterface = defineComponent<
       gameLose: 0,
       scoreDiffrence: 0,
       id: -1,
+      relationShip: "none",
     };
   },
-  render(this: IComponent<ProfileInterfaceState, ProfileInterfaceProps>) {
+  render(
+    this: IComponent<ProfileInterfaceState, ProfileInterfaceProps> & {
+      handlePlayButton: () => Promise<void>;
+      handleUnfriendButton: () => Promise<void>;
+    }
+  ) {
     return createElement(
       "div",
       {
@@ -253,68 +265,73 @@ const ProfileInterface = defineComponent<
                       class: ["flex-row", "justify-end", "gap-4", "w-full"],
                     },
                     [
-                      createElement(
-                        "button",
-                        {
-                          class: [
-                            "z-10",
-                            "px-10",
-                            "py-2",
-                            "gap-2",
-                            "text-lg",
-                            "flex-row",
-                            "rounded-xl",
-                            "font-medium",
-                            "text-black",
-                            "cursor-pointer",
-                            "bg-[var(--main-color)]",
-                            "transition-all",
-                            "duration-300",
-                            "hover:bg-[var(--light-yellow)]",
-                            "hover:shadow-md",
-                            "transform",
-                            "hover:-translate-y-1",
-                            this.state.animationComplete
-                              ? "opacity-100"
-                              : "opacity-0",
-                          ],
-                          style: {
-                            transitionDelay: "300ms",
-                          },
-                        },
-                        ["Join Tour"]
-                      ),
-                      createElement(
-                        "button",
-                        {
-                          class: [
-                            "z-10",
-                            "px-6",
-                            "py-2",
-                            "gap-2",
-                            "text-lg",
-                            "flex-row",
-                            "rounded-xl",
-                            "font-medium",
-                            "text-black",
-                            "cursor-pointer",
-                            "bg-[var(--light-yellow)]",
-                            "transition-all",
-                            "duration-300",
-                            "hover:bg-[var(--main-color)]",
-                            "hover:shadow-md",
-                            "transform",
-                            "hover:-translate-y-1",
-                            this.state.animationComplete
-                              ? "opacity-100"
-                              : "opacity-0",
-                          ],
-                          style: {
-                            transitionDelay: "400ms",
-                          },
-                        },
-                        ["Start Game"]
-                      ),
+                      this.state.relationShip === "friend"
+                        ? createElement(
+                            "button",
+                            {
+                              class: [
+                                "z-10",
+                                "px-10",
+                                "py-2",
+                                "gap-2",
+                                "text-lg",
+                                "flex-row",
+                                "rounded-xl",
+                                "font-medium",
+                                "text-white",
+                                "cursor-pointer",
+                                "bg-[var(--red-color)]",
+                                "transition-all",
+                                "duration-300",
+                                "hover:scale-[110%]",
+
+                                this.state.animationComplete
+                                  ? "opacity-100"
+                                  : "opacity-0",
+                              ],
+                              on: {
+                                click: async () =>
+                                  await this.handleUnfriendButton(),
+                              },
+                            },
+                            ["Unfriend"]
+                          )
+                        : null,
+                      this.state.id !== authState.getState().user?.id
+                        ? createElement(
+                            "button",
+                            {
+                              class: [
+                                "z-10",
+                                "px-6",
+                                "py-2",
+                                "gap-2",
+                                "text-lg",
+                                "flex-row",
+                                "rounded-xl",
+                                "font-medium",
+                                "text-black",
+                                "cursor-pointer",
+                                "bg-[var(--light-yellow)]",
+                                "transition-all",
+                                "duration-300",
+                                "hover:scale-[110%]",
+                                this.state.animationComplete
+                                  ? "opacity-100"
+                                  : "opacity-0",
+                              ],
+
+                              on: {
+                                click: () => this.handlePlayButton(),
+                              },
+                            },
+                            [
+                              this.state.relationShip === "friend"
+                                ? "Let's Play"
+                                : "Add Friend",
+                            ]
+                          )
+                        : null,
                     ]
                   ),
                   createElement(
@@ -664,6 +681,54 @@ const ProfileInterface = defineComponent<
       ]
     );
   },
+  async handleUnfriendButton(
+    this: IComponent<ProfileInterfaceState, ProfileInterfaceProps>
+  ) {
+    try {
+      await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/friends/${this.state.id}/friend`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (this.getIsMounted) this.updateState({ relationShip: "none" });
+    } catch (err) {
+      console.log(err);
+    }
+  },
+  async handlePlayButton(
+    this: IComponent<ProfileInterfaceState, ProfileInterfaceProps>
+  ) {
+    if (this.state.relationShip === "friend") {
+      try {
+        await enhancedFetch.fetch(
+          `${import.meta.env.VITE_URL_DEV}/api/games/`,
+          {
+            method: "POST",
+            body: JSON.stringify({ playerTwoId: this.state.id }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      } catch (err) {
+        console.log(err);
+      }
+    } else {
+      try {
+        await enhancedFetch.fetch(
+          `${import.meta.env.VITE_URL_DEV}/api/friends/${
+            this.state.id
+          }/request`,
+          {
+            method: "POST",
+          }
+        );
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  },
   async extractData(
     this: IComponent<ProfileInterfaceState, ProfileInterfaceProps>,
     arr: any,
@@ -710,13 +775,3 @@ style.innerHTML = `
 document.head.appendChild(style);
 
 export default ProfileInterface;
-// endedAt: "2025-04-30T13:40:26.841Z";
-// id: 154;
-// playerOneId: 1;
-// playerOneScore: 7;
-// playerTwoId: 2;
-// playerTwoScore: 10;
-// startedAt: "2025-04-21T14:04:42.280Z";
-// status: "FINISHED";
-// tournementId: 0;
-// winnerId: 2;

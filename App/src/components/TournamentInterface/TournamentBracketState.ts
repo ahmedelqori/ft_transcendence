@@ -1,11 +1,7 @@
 import { createElement, defineComponent, IComponent } from "@/uccello/Uccello";
 import TournamentBracket from "./TournamentBracket";
 import { router } from "@/router/Router";
-interface TournamentBracketStateProps {
-  number: number;
-  nickName: string;
-  title: string;
-}
+interface TournamentBracketStateProps {}
 interface TournamentBracketStateSt {}
 const TournamentBracketState = defineComponent<
   TournamentBracketStateSt,
@@ -21,7 +17,7 @@ const TournamentBracketState = defineComponent<
     this: IComponent<TournamentBracketStateSt, TournamentBracketStateProps>
   ) {
     return createElement("div", { class: ["w-full", "h-full"] }, [
-      createElement(TournamentBracket, { number: this.props.number }),
+      createElement(TournamentBracket),
     ]);
   },
 });

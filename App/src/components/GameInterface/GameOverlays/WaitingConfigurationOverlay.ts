@@ -13,9 +13,8 @@ export const WaitingConfigurationOverlay = defineComponent<void, WaitingConfigur
 
   render(this: IComponent<void, WaitingConfigurationOverlayProps>) {
     const { visible } = this.props;    
-    if (!visible) {
+    if (!visible)
       return createElement("div", { style: { display: "none" } });
-    }
 
     return createElement(
       "div",

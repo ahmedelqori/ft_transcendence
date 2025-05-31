@@ -11,22 +11,20 @@ interface GameOverLossOverlayProps {
     player: number;
     opponent: number;
   };
+  gameState: any;
 }
 
 export const GameOverLossOverlay = defineComponent<void, GameOverLossOverlayProps>({
   state() {},
 
   render(this: IComponent<void, GameOverLossOverlayProps>) {
-    const { visible, score } = this.props;
+    const { visible, score, gameState } = this.props;
     
-    if (!visible) {
+    if (!visible)
       return createElement("div", { style: { display: "none" } });
-    }
-
-    const handleGoToDashboard = async () => {
-      await router.navigateTo("/dashboard");
+    const handleGoToPage = async (link:string) => {
+      await router.navigateTo(link);
     };
-
     return createElement(
       "div",
       {
@@ -66,7 +64,6 @@ export const GameOverLossOverlay = defineComponent<void, GameOverLossOverlayProp
             }
           },
           [
-            // Loss icon
             createElement(
               "div",
               {
@@ -77,9 +74,7 @@ export const GameOverLossOverlay = defineComponent<void, GameOverLossOverlayProp
                 }
               },
               ["😢"]
-            ),
-            
-            // Defeat text
+            ),            
             createElement(
               "div",
               {
@@ -115,9 +110,7 @@ export const GameOverLossOverlay = defineComponent<void, GameOverLossOverlayProp
                   [`${score.player} - ${score.opponent}`]
                 )
               ]
-            ),
-            
-            // Motivational message
+            ),            
             createElement(
               "p",
               {
@@ -132,8 +125,6 @@ export const GameOverLossOverlay = defineComponent<void, GameOverLossOverlayProp
               },
               ["Better luck next time. Practice makes perfect!"]
             ),
-
-            // Go to Dashboard button
             createElement(
               "button",
               {
@@ -159,7 +150,12 @@ export const GameOverLossOverlay = defineComponent<void, GameOverLossOverlayProp
                   transform: "translateY(0)",
                 },
                 on: {
-                  click: handleGoToDashboard,
+                  click: () => {
+                    if (gameState.tournamentId &&  gameState.tournamentId != 0)
+                      handleGoToPage(`/tournament/${gameState.tournamentId}`)
+                    else
+                      handleGoToPage(`/dashboard`)
+                  },
                 },
               },
               ["GO TO DASHBOARD"]

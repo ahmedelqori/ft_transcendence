@@ -11,21 +11,19 @@ interface EditSecurityState {
   isEnable: boolean;
   isAlreadyEnable: boolean;
   code: any[];
+  textAreaInput: string;
 }
 
 const EditSecurity = defineComponent<EditSecurityState>({
-  async onMounted(this: IComponent<EditSecurityState>) {
+  async onMounted(
+    this: IComponent<EditSecurityState> & {
+      twoFaIsEnabled: () => Promise<void>;
+      getBioContent: () => Promise<void>;
+    }
+  ) {
+    await this.twoFaIsEnabled();
+    await this.getBioContent();
     try {
-      const res = await enhancedFetch.fetch(
-        `${import.meta.env.VITE_URL_DEV}/api/2fa/is-enable`
-      );
-
-      const data = await res.json();
-      this.updateState({
-        isEnable: data.two_fa,
-        isAlreadyEnable: true,
-        twoFAImage: data.qr,
-      });
     } catch (err) {}
   },
   state() {
@@ -34,12 +32,14 @@ const EditSecurity = defineComponent<EditSecurityState>({
       isEnable: false,
       code: ["", "", "", "", "", ""],
       isAlreadyEnable: false,
+      textAreaInput: "",
     };
   },
   render(
     this: IComponent<EditSecurityState> & {
       activateTwoFA: () => Promise<void>;
       verifyTwoFA: () => Promise<void>;
+      updateBio: (e: any) => Promise<void>;
     }
   ) {
     return createElement(
@@ -350,6 +350,10 @@ const EditSecurity = defineComponent<EditSecurityState>({
             ]
           ),
           createElement("textarea", {
+            on: {
+              change: (e: any) => this.updateBio(e),
+            },
+            value: this.state.textAreaInput,
             placeholder: authState.getState().user?.bio
               ? authState.getState().user?.bio
               : `My Name is ${authState.getState().user?.username}`,
@@ -376,6 +380,33 @@ const EditSecurity = defineComponent<EditSecurityState>({
         ]),
       ]
     );
+  },
+  async twoFaIsEnabled(this: IComponent<EditSecurityState>) {
+    try {
+      const res = await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/2fa/is-enable`
+      );
+
+      const data = await res.json();
+      if (this.getIsMounted)
+        this.updateState({
+          isEnable: data.two_fa,
+          isAlreadyEnable: true,
+          twoFAImage: data.qr,
+        });
+    } catch (err) {
+      console.log(err);
+    }
+  },
+  async getBioContent(this: IComponent<EditSecurityState>) {
+    const response = await enhancedFetch.fetch(
+      `${import.meta.env.VITE_URL_DEV}/api/account/whoami/`
+    );
+    const data = await response.json();
+    if (this.getIsMounted)
+      this.updateState({
+        textAreaInput: data.bio,
+      });
   },
   async activateTwoFA(this: IComponent<EditSecurityState>) {
     if (this.state.isEnable) {
@@ -436,6 +467,25 @@ const EditSecurity = defineComponent<EditSecurityState>({
     } catch (err) {
       console.log(err);
     }
+  },
+  async updateBio(this: IComponent<EditSecurityState>, e: any) {
+    try {
+      if (this.getIsMounted) {
+        this.updateState({ textAreaInput: e.target.value });
+        await enhancedFetch.fetch(
+          `${import.meta.env.VITE_URL_DEV}/api/account/update-profile/`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              bio: this.state.textAreaInput,
+            }),
+          }
+        );
+      }
+    } catch (err) {}
   },
 });
 

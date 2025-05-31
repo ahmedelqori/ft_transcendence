@@ -1,3 +1,4 @@
+import TournamentBracketState from "@/components/TournamentInterface/TournamentBracketState";
 import TournamentInterface from "@/components/TournamentInterface/TournamentInterface";
 import { createElement, defineComponent, eventBus } from "@/uccello/Uccello.js";
 
@@ -56,7 +57,13 @@ const Tournament = defineComponent<void>({
               "border-opacity-[30%]",
             ],
           },
-          [createElement(TournamentInterface)]
+          [
+            createElement(TournamentBracketState, {
+              //   number: this.state.number,
+              //   nickName: this.state.nickName,
+              //   title: this.state.title,
+            }),
+          ]
         ),
       ]
     );

@@ -6,15 +6,15 @@ import Welcome from "../pages/Welcome.js";
 import Settings from "../pages/Settings.js";
 import NotFound from "../pages/NotFound.js";
 import Dashboard from "../pages/Dashboard.js";
-import Tournament from "../pages/Tournament.js";
+import Tournaments from "../pages/Tournaments.js";
 import LeaderBoard from "../pages/LeaderBoard.js";
 import { eventBus, HashRouter } from "../uccello/Uccello.js";
 import AccessToken from "../pages/AccessToken.js";
-import enhancedFetch from "../Hooks/fetch.js";
 import LocalGame from "@/pages/LocalGame.js";
 import GameSetup from "@/pages/GameSetup.js";
 import { authState } from "@/Hooks/Auth.js";
 import TwoFA from "@/pages/TwoFA.js";
+import Tournament from "@/pages/Tournament.js";
 
 const routes: any[] = [
   {
@@ -75,7 +75,7 @@ const routes: any[] = [
   },
   {
     path: "/tournament",
-    component: Tournament,
+    component: Tournaments,
     beforeEnter: async () => {
       if (!(await isAuth())) return "/login";
     },
@@ -88,7 +88,7 @@ const routes: any[] = [
     },
   },
   {
-    path: "/localGame",
+    path: "/localgame",
     component: LocalGame,
     beforeEnter: async () => {
       if (!(await isAuth())) return "/login";
