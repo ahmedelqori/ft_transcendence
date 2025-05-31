@@ -4,8 +4,8 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
-
+  url      = "file:/app/database/game.db"
+  relationMode = "prisma" // Required for SQLite relations
 }
 
 enum Status {

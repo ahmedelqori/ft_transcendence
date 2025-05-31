@@ -81,7 +81,7 @@ async function handleWebSocketConnection(socket, req) {
   if (checkChangingDevice(connections, socket, gameRooms, defaultGameConfig, setupSocketEventHandlers)) return
   socket.send(Message("connected", { message: "You are connected" }));
   fastify.log.info(`User ${userId} connected to game ${gameId}`);
-  socket.pingInterval = runHeartBeatMechanism(socket);
+  // socket.pingInterval = runHeartBeatMechanism(socket);
   sendInitialGameData(gameId, socket, gameRooms, defaultGameConfig,createGameState);
   setupSocketEventHandlers(socket);
 }
@@ -99,7 +99,7 @@ function setupSocketEventHandlers(socket) {
 
   socket.on("close", (code, reason) => {
     fastify.log.warn(`socket close event triggered with code ${code}`);
-    clearInterval(socket.pingInterval);    
+    // clearInterval(socket.pingInterval);    
     const gameId = socket.gameId;
     const userId = socket.userId;
     if (socket.changed) return;
