@@ -5,7 +5,6 @@ export let TOKEN = 0
 const vaultAgent = new Agent({
   rejectUnauthorized: false
 });
-const WHOAMI_URL_DEV='https://www.meedivo.me/api/account/whoami/'
 
 export async function authenticate(req, reply) {
   fastify.log.info(`Authenticating request: ${req.url}`);
@@ -27,7 +26,7 @@ export async function authenticate(req, reply) {
 
   try {
     fastify.log.info(`Validating token with auth service`);
-    const response = await axios.get(WHOAMI_URL_DEV, {
+    const response = await axios.get(WHOAMI_URL, {
       headers: { Authorization: `${token}` },
       httpsAgent: vaultAgent
     });

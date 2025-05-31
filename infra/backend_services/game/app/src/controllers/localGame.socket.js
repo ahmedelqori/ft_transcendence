@@ -77,7 +77,6 @@ async function handleLocalWebSocketConnection(socket, req) {
   socket.gameId = gameId;
   socket.userId = userId;
   
-  // Set up connection in our map
   if (!localGameConnections.has(gameId)) {
     localGameConnections.set(gameId, new Map());
   }
@@ -116,12 +115,10 @@ function setupLocalSocketEventHandlers(socket) {
   });
 }
 
-// *************************** MESSAGE HANDLERS ***************************
-
 function handleLocalMessage(socket, data) {
   const messageHandlers = {
     startOfflineGame: () => handleOfflineGameStart(socket),
-    joinGame: () => handleOfflineGameStart(socket), // Add support for joinGame message
+    joinGame: () => handleOfflineGameStart(socket),
     offlinePaddleMove: () => handleOfflinePaddleMove(socket.gameId, socket.userId, data.position, data.side),
     pauseGame: () => handlePauseLocalGame(socket.gameId),
     resumeGame: () => handleResumeLocalGame(socket.gameId),
@@ -179,10 +176,8 @@ function handleOfflineGameStart(socket) {
 function initiateLocalGameStart(gameId, userId, gameRoom) {
   gameRoom.gameState.state = Game.IN_PLAY;
   resetBallAndPaddles(gameRoom.gameState);
-
   const connections = localGameConnections.get(gameId);
   if (!connections) return;
-
   for (const socket of connections.values()) {
     socket.send(Message("gameStarted", {
       startedBy: userId,
@@ -191,13 +186,11 @@ function initiateLocalGameStart(gameId, userId, gameRoom) {
   }
 
   fastify.log.info(`Local game ${gameId} started`);
-
   startGameLoop(gameId, gameRoom.gameState, (updatedGameState) => {
     try {
       if (updatedGameState.state === Game.FINISHED) {
         handleLocalGameOver(gameId, updatedGameState);
       }
-      
       const gameLoop = gameLoops.get(gameId);
       if (gameLoop && gameLoop.running) {
         const connections = localGameConnections.get(gameId);
@@ -216,17 +209,12 @@ function initiateLocalGameStart(gameId, userId, gameRoom) {
 function handleOfflinePaddleMove(gameId, userId, position, side) {
   const gameRoom = localGameRooms.get(gameId);
   if (!gameRoom) return false;
-
   const pos = Number(position);
   if (isNaN(pos)) {
     fastify.log.warn(`Invalid position value from local game: ${position}`);
     return false;
   }
-
-  if (gameRoom.gameState.state !== Game.IN_PLAY) {
-    return false;
-  }
-
+  if (gameRoom.gameState.state !== Game.IN_PLAY) return false;
   const isLeftPaddle = side === "left";
   updatePaddlePosition(gameRoom.gameState, userId, pos, isLeftPaddle);
   return true;
@@ -235,12 +223,9 @@ function handleOfflinePaddleMove(gameId, userId, position, side) {
 function handlePauseLocalGame(gameId) {
   const gameRoom = localGameRooms.get(gameId);
   if (!gameRoom) return;
-  
   if (gameRoom.gameState.state !== Game.IN_PLAY) return;
-  
   gameRoom.gameState.state = Game.PAUSED;
-  pauseGame(gameId); // Add this line to actually pause the game loop
-  
+  pauseGame(gameId);
   const connections = localGameConnections.get(gameId);
   if (connections) {
     for (const socket of connections.values()) {
@@ -250,19 +235,15 @@ function handlePauseLocalGame(gameId) {
       }));
     }
   }
-  
   fastify.log.info(`Local game ${gameId} paused`);
 }
 
 function handleResumeLocalGame(gameId) {
   const gameRoom = localGameRooms.get(gameId);
   if (!gameRoom) return;
-  
   if (gameRoom.gameState.state !== Game.PAUSED) return;
-  
   gameRoom.gameState.state = Game.IN_PLAY;
-  resumeGame(gameId); // Add this line to actually resume the game loop
-  
+  resumeGame(gameId);
   const connections = localGameConnections.get(gameId);
   if (connections) {
     for (const socket of connections.values()) {
@@ -272,13 +253,11 @@ function handleResumeLocalGame(gameId) {
       }));
     }
   }
-  
   fastify.log.info(`Local game ${gameId} resumed`);
 }
 
 function handleLocalDisconnect(gameId, userId) {
   fastify.log.info(`User disconnected from local game ${gameId}`);
-
   if (localGameConnections.has(gameId)) {
     localGameConnections.get(gameId).delete(userId);
     if (localGameConnections.get(gameId).size === 0) {
@@ -295,12 +274,9 @@ function handleLocalDisconnect(gameId, userId) {
 async function handleLocalGameOver(gameId, finalGameState) {
   const gameRoom = localGameRooms.get(gameId);
   if (!gameRoom) return;
-  
   gameRoom.gameState.state = Game.FINISHED;
   gameRoom.endedAt = Date.now();
-  
   stopGameLoop(gameId);
-  
   const connections = localGameConnections.get(gameId);
   if (connections) {
     for (const socket of connections.values()) {
@@ -311,7 +287,6 @@ async function handleLocalGameOver(gameId, finalGameState) {
       }));
     }
   }
-  
   setTimeout(() => {
     localGameRooms.delete(gameId);
     localGameConnections.delete(gameId);
