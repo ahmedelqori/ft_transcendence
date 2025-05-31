@@ -26,7 +26,7 @@ const FriendsSideBar = defineComponent<void, FriendsSideBarProps>({
       createElement("div", { class: ["flex-row", "gap-5", "w-full"] }, [
         createElement("img", {
           src: this.props.avatar,
-          class: ["w-[75px]", "rounded-full"],
+          class: ["w-[75px]", "h-[75px]", "rounded-full"],
           on: {
             click: async () =>
               await router.navigateTo(`/profile/${this.props.username}`),
