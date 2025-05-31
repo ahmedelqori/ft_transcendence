@@ -1091,7 +1091,12 @@ const TournamentBracket = defineComponent<
                                 this.state.numberOfPlayers !== 4
                               ? createElement(
                                   "div",
-                                  { class: ["text-[var(--light-grey)]"] },
+                                  {
+                                    class: [
+                                      "text-[var(--light-grey)]",
+                                      "scale-x-[-1]",
+                                    ],
+                                  },
                                   ["Round 2"]
                                 )
                               : createElement(InviteUserComp, {
@@ -1184,7 +1189,12 @@ const TournamentBracket = defineComponent<
                                 this.state.numberOfPlayers !== 4
                               ? createElement(
                                   "div",
-                                  { class: ["text-[var(--light-grey)]"] },
+                                  {
+                                    class: [
+                                      "text-[var(--light-grey)]",
+                                      "scale-x-[-1]",
+                                    ],
+                                  },
                                   ["Round 2"]
                                 )
                               : createElement(InviteUserComp, {
@@ -1238,7 +1248,7 @@ const TournamentBracket = defineComponent<
                                     this.state.rounds["round4" as any][1].game
                                       .winnerId
                                 )?.avatar_url,
-                                invert: false,
+                                invert: true,
                               })
                             : "Final",
                         ]

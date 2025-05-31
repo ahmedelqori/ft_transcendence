@@ -73,7 +73,7 @@ const GamesDashboard = defineComponent<GamesDashboardState>({
           ? createElement("div", {}, ["No Games Yet"])
           : createElement(
               "div",
-              { class: ["w-full", "gap-2"] },
+              { class: ["w-full", "gap-2", "mb-auto"] },
               this.state.games.slice(0, 4).map((e) => {
                 return createElement(
                   "div",
