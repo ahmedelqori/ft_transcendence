@@ -14,9 +14,8 @@ export const DisconnectedOverlay = defineComponent<void, DisconnectedOverlayProp
   render(this: IComponent<void, DisconnectedOverlayProps>) {
     const { visible } = this.props;
     
-    if (!visible) {
+    if (!visible)
       return createElement("div", { style: { display: "none" } });
-    }
 
     return createElement(
       "div",
@@ -41,7 +40,7 @@ export const DisconnectedOverlay = defineComponent<void, DisconnectedOverlayProp
           "div",
           {
             style: {
-              border: "2px solid #ff4242", // Red border for disconnected state
+              border: "2px solid #ff4242",
               boxShadow: "0 15px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 66, 66, 0.3)",
               background: "rgba(30, 30, 30, 0.75)",
               borderRadius: "16px",
@@ -57,7 +56,6 @@ export const DisconnectedOverlay = defineComponent<void, DisconnectedOverlayProp
             }
           },
           [
-            // Disconnected text
             createElement(
               "div",
               {
@@ -73,7 +71,7 @@ export const DisconnectedOverlay = defineComponent<void, DisconnectedOverlayProp
                       fontSize: "clamp(1.5rem, 5vw, 2.5rem)",
                       fontWeight: "700",
                       marginBottom: "0.5rem",
-                      color: "#ff4242", // Red for disconnected state
+                      color: "#ff4242",
                       textShadow: "0 0 5px rgba(255, 66, 66, 0.4)"
                     }
                   },
@@ -86,16 +84,14 @@ export const DisconnectedOverlay = defineComponent<void, DisconnectedOverlayProp
                       fontSize: "clamp(1.5rem, 5vw, 2.5rem)", 
                       fontWeight: "700",
                       marginBottom: "1rem",
-                      color: "#ff4242", // Red for disconnected state
+                      color: "#ff4242",
                       textShadow: "0 0 5px rgba(255, 66, 66, 0.4)"
                     }
                   },
                   ["DISCONNECTED"]
                 )
               ]
-            ),
-            
-            // Disconnected icon
+            ),            
             createElement(
               "div",
               {
@@ -112,9 +108,7 @@ export const DisconnectedOverlay = defineComponent<void, DisconnectedOverlayProp
                 }
               },
               ["!"]
-            ),
-            
-            // Message
+            ),            
             createElement(
               "p",
               {

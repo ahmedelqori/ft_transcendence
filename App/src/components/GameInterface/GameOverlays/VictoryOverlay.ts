@@ -65,7 +65,6 @@ export const VictoryOverlay = defineComponent<void, VictoryOverlayProps>({
             },
           },
           [
-            // Trophy icon
             createElement(
               "div",
               {
@@ -77,8 +76,6 @@ export const VictoryOverlay = defineComponent<void, VictoryOverlayProps>({
               },
               ["🏆"]
             ),
-
-            // Victory text
             createElement(
               "div",
               {
@@ -117,8 +114,6 @@ export const VictoryOverlay = defineComponent<void, VictoryOverlayProps>({
                 ),
               ]
             ),
-
-            // Congratulatory message
             createElement(
               "p",
               {
@@ -134,8 +129,6 @@ export const VictoryOverlay = defineComponent<void, VictoryOverlayProps>({
               },
               ["Excellent play! Well done on your victory!"]
             ),
-
-            // Go to Dashboard button
             createElement(
               "button",
               {

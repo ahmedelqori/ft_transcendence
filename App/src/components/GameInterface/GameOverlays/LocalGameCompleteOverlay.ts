@@ -19,21 +19,16 @@ interface LocalGameCompleteOverlayProps {
 
 export const LocalGameCompleteOverlay = defineComponent<void, LocalGameCompleteOverlayProps>({
   state() {},
-
   render(this: IComponent<void, LocalGameCompleteOverlayProps>) {
     const { visible, score, winner, playerName, onReplay, onGoToDashboard } = this.props;
     
-    if (!visible) {
+    if (!visible)
       return createElement("div", { style: { display: "none" } });
-    }
-
-    // Use neutral styling for both outcomes
-    const overlayColor = "#ddf247"; // Always use the same color
+    const overlayColor = "#ddf247";
     const winnerDisplayName = winner === "player" ? (playerName || "You") : "Your Friend";
     const winnerText = `${winnerDisplayName.toUpperCase()} WIN${winner === "player" ? "" : "S"}!`;
-    const neutralIcon = "🏆"; // Always show trophy
+    const neutralIcon = "🏆";
     const neutralMessage = "Good game! Ready for another round?";
-
     return createElement(
       "div",
       {
@@ -73,7 +68,6 @@ export const LocalGameCompleteOverlay = defineComponent<void, LocalGameCompleteO
             },
           },
           [
-            // Trophy icon (always the same)
             createElement(
               "div",
               {
@@ -85,8 +79,6 @@ export const LocalGameCompleteOverlay = defineComponent<void, LocalGameCompleteO
               },
               [neutralIcon]
             ),
-
-            // Winner announcement
             createElement(
               "div",
               {
@@ -125,8 +117,6 @@ export const LocalGameCompleteOverlay = defineComponent<void, LocalGameCompleteO
                 ),
               ]
             ),
-
-            // Neutral message
             createElement(
               "p",
               {
@@ -142,8 +132,6 @@ export const LocalGameCompleteOverlay = defineComponent<void, LocalGameCompleteO
               },
               [neutralMessage]
             ),
-
-            // Buttons container
             createElement(
               "div",
               {
@@ -156,7 +144,6 @@ export const LocalGameCompleteOverlay = defineComponent<void, LocalGameCompleteO
                 },
               },
               [
-                // Replay button
                 createElement(
                   "button",
                   {
@@ -198,8 +185,6 @@ export const LocalGameCompleteOverlay = defineComponent<void, LocalGameCompleteO
                   },
                   ["🔄 PLAY AGAIN"]
                 ),
-
-                // Dashboard button
                 createElement(
                   "button",
                   {

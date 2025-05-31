@@ -71,7 +71,7 @@ export interface GameStateData {
   state: string;
   gameState: GameState;
   message?: string;
-  gameRoom?: any; // Add gameRoom property for readyToStart events
+  gameRoom?: any;
 }
 
 export interface PlayerJoinedData {
@@ -115,60 +115,39 @@ interface EventCallbacks {
   onReconnect: ((data: ReconnectData) => void)[];
   onPlayerLeft: ((data: { message: string; userId: string }) => void)[];
   onPlayerAbandoned: ((data: { position: string; userId: string }) => void)[];
-  onReconnectionExpired: ((data: {
-    gameId: string;
-    message: string;
-    gameState: GameState;
-  }) => void)[];
-  onJoinedOfflineGame: ((data: {
-    gameId: string;
-    userId: string;
-    gameState: GameState;
-  }) => void)[];
-  onInitGame: ((data: {
-    gameConfig: GameConfig;
-    gameState: GameState;
-    player?: any;
-  }) => void)[];
+  onReconnectionExpired: ((data: {gameId: string;message: string;gameState: GameState}) => void)[];
+  onJoinedOfflineGame: ((data: {gameId: string;userId: string;gameState: GameState;}) => void)[];
+  onInitGame: ((data: {gameConfig: GameConfig;gameState: GameState;player?: any;}) => void)[];
 }
 
 export class SocketManager {
-  private socket: WebSocket | null = null;
-  private isConnected: boolean = false;
-  private gameId: string = "";
-  private user: any = null;
-  private playerPosition: string = "";
-  private gameState: GameState = {
-    state: GameStates.START,
-    paddles: { left: 50, right: 50 },
-    ball: { x: 50, y: 50 },
-    score: { left: 0, right: 0 },
-    tournamentId: 0,
-  };
-  private gameConfig: GameConfig | null = null;
-  private isLocal: boolean = false;
-  private listeners: EventCallbacks = {
-    onConnect: [],
-    onDisconnect: [],
-    onGameState: [],
-    onPlayerJoined: [],
-    onGameStart: [],
-    onGamePause: [],
-    onGameResume: [],
-    onGameFinish: [],
-    onError: [],
-    onReconnect: [],
-    onPlayerLeft: [],
-    onPlayerAbandoned: [],
-    onReconnectionExpired: [],
-    onJoinedOfflineGame: [],
-    onInitGame: [],
-  };
+  private socket: WebSocket | null;
+  private isConnected: boolean;
+  private gameId: string;
+  private user: any;
+  private playerPosition: string
+  private gameState: GameState
+  private gameConfig: GameConfig | null;
+  private isLocal: boolean;
+  private listeners: EventCallbacks 
+
+  constructor() {
+    this.gameConfig = null;
+    this.socket = null;
+    this.isConnected = false;
+    this.gameId = ""
+    this.user = null;
+    this.playerPosition = "";
+    this.gameState = {state: GameStates.START, paddles: { left: 50, right: 50 }, ball: { x: 50, y: 50 }, score: { left: 0, right: 0 }, tournamentId: 0,};
+    this.gameConfig = null;
+    this.isLocal = false;
+    this.listeners = {
+      onConnect: [], onDisconnect: [], onGameState: [], onPlayerJoined: [],onGameStart: [],
+      onGamePause: [], onGameResume: [], onGameFinish: [], onError: [], onReconnect: [],
+      onPlayerLeft: [], onPlayerAbandoned: [], onReconnectionExpired: [], onJoinedOfflineGame: [], onInitGame: [],};
+  }  
 
   init(gameId: string, user: any): SocketManager {
-    // console.log(
-    //   `[SocketManager] Initializing for game ${gameId}, user ${user.id}`
-    // );
     this.gameId = gameId;
     this.user = user;
     return this;
@@ -176,94 +155,71 @@ export class SocketManager {
 
   connect(): Promise<{ message: string }> {
     return new Promise((resolve, reject) => {
-      if (!this.gameId || !this.user?.id) {
-        // console.error(
-        //   "[SocketManager] Cannot connect: Missing gameId or userId"
-        // );
-        return reject(new Error("Missing gameId or userId"));
-      }
-
+      if (!this.gameId || !this.user?.id) return reject(new Error("Missing gameId or userId"));
       let wsUrl;
       const token = `Bearer ${localStorage.getItem("access_token")}`;
       if (this.isLocal) {
-        // wsUrl = `wss://${import.meta.env.VITE_DOMAIN_DEV}/api/games/local/${this.gameId}`;
-        wsUrl = `ws://localhost:3000/local/${this.gameId}?token=${token}`;
-
-        // console.log("[SocketManager] Connecting to local game:", wsUrl);
+        wsUrl = `wss://${import.meta.env.VITE_DOMAIN}/api/games/local/${this.gameId}`;
+        // wsUrl = `ws://localhost:3000/local/${this.gameId}?token=${token}`;
       } else {
-        // wsUrl = `wss://${import.meta.env.VITE_DOMAIN_DEV}/api/games/online/${this.gameId}?token=${token}`;
-        wsUrl = `ws://localhost:3000/online/${this.gameId}?token=${token}`;
-        // console.log("[SocketManager] Connecting to online game:", wsUrl);
+        wsUrl = `wss://${import.meta.env.VITE_DOMAIN}/api/games/online/${this.gameId}?token=${token}`;
+        // wsUrl = `ws://localhost:3000/online/${this.gameId}?token=${token}`;
       }
       this.socket = new WebSocket(wsUrl);
-
       const connectionTimeout = setTimeout(() => {
         if (this.socket && this.socket.readyState !== WebSocket.OPEN) {
-          console.error("[SocketManager] Connection timeout");
+          console.log("[SocketManager] Connection timeout");
           reject(new Error("Connection timeout"));
           this.socket.close();
           this.socket = null;
         }
       }, 5000);
-
       this.socket.onopen = () => {
         this.isConnected = true;
         clearTimeout(connectionTimeout);
-        // console.log("[SocketManager] WebSocket connection established");
         this._notifyListeners("onConnect", {
           message: "Connected to game server",
         });
         resolve({ message: "Connected to game server" });
       };
-
       this.socket.onclose = (event) => {
         this.isConnected = false;
         clearTimeout(connectionTimeout);
-        // console.log(`[SocketManager] Connection closed, code: ${event.code}`);
         this._notifyListeners("onDisconnect", {
           code: event.code,
           reason: event.reason || "Connection closed",
         });
         this.socket = null;
       };
-
       this.socket.onerror = (error) => {
-        console.error("[SocketManager] WebSocket error:", error);
+        console.log("[SocketManager] WebSocket error:", error);
         this._notifyListeners("onError", {
           message: "WebSocket connection error",
           error,
         });
       };
-
       this.socket.onmessage = (event) => this._handleMessage(event);
     });
   }
-
   disconnect(): void {
     if (this.socket) {
-      console.log("[SocketManager] Disconnecting from server Intentionally");
       this.socket.close(1000);
       this.socket = null;
     }
   }
-
   sendMessage(message: any): boolean {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      // console.log("[SocketManager] Sending message:", message.type);
       this.socket.send(JSON.stringify(message));
       return true;
     }
-    // console.warn("[SocketManager] Failed to send message: Socket not open");
     return false;
   }
 
   joinGame(): boolean {
-    // console.log("[SocketManager] Joining game");
     return this.sendMessage({ type: "joinGame" });
   }
 
   startOfflineGame(): boolean {
-    // console.log("[SocketManager] Starting offline game");
     return this.sendMessage({ type: "startOfflineGame" });
   }
 
@@ -290,7 +246,6 @@ export class SocketManager {
         this.gameState.paddles.right = position;
       }
     }
-
     return this.sendMessage({
       type: "paddleMove",
       position: position,
@@ -298,12 +253,10 @@ export class SocketManager {
   }
 
   pauseGame(): boolean {
-    // console.log("[SocketManager] Requesting game pause");
     return this.sendMessage({ type: "pauseGame" });
   }
 
   resumeGame(): boolean {
-    // console.log("[SocketManager] Requesting game resume");
     return this.sendMessage({ type: "resumeGame" });
   }
 
@@ -330,60 +283,35 @@ export class SocketManager {
     return this.gameId;
   }
 
-  addEventListener<K extends keyof EventCallbacks>(
-    event: K,
-    callback: EventCallbacks[K][number]
-  ): void {
-    if (this.listeners[event]) {
-      (this.listeners[event] as Function[]).push(callback);
-    }
+  addEventListener<K extends keyof EventCallbacks>(event: K,callback: EventCallbacks[K][number]): void {
+    if (this.listeners[event]) (this.listeners[event] as Function[]).push(callback);
   }
-
-  removeEventListener<K extends keyof EventCallbacks>(
-    event: K,
-    callback: EventCallbacks[K][number]
-  ): void {
+  removeEventListener<K extends keyof EventCallbacks>(event: K,callback: EventCallbacks[K][number]): void {
     if (this.listeners[event]) {
       (this.listeners[event] as Function[]) = this.listeners[event].filter(
         (cb) => cb !== callback
       );
     }
   }
-
   private _handleMessage(event: MessageEvent): void {
     try {
       const message = JSON.parse(event.data.toString());
-      console.log("[SocketManager] Received message type :", message.type, message.data);
-
       switch (message.type) {
         case "connected":
-          // console.log("[SocketManager] Connected to game server");
           break;
-
         case "initGame":
           this.gameConfig = message.data.gameConfig;
           this.gameState = message.data.gameState;
-          // console.log(
-          //   "[SocketManager] Game initialized with config",
-          //   this.gameConfig
-          // );
-          
-          // Notify listeners with the initGame data, including player data for local games
           this._notifyListeners("onInitGame", {
             gameConfig: message.data.gameConfig,
             gameState: message.data.gameState,
-            player: message.data.player, // Include player data from local games
+            player: message.data.player,
           });
-          
           this.joinGame();
           break;
-
         case "joinedGame":
           this.playerPosition = message.data.position;
           this.gameState = message.data.gameState;
-          // console.log(
-          //   `[SocketManager] Joined as ${this.playerPosition} player`
-          // );
           this._notifyListeners("onPlayerJoined", {
             position: this.playerPosition,
             gameState: this.gameState,
@@ -392,7 +320,6 @@ export class SocketManager {
           break;
 
         case "playerJoined":
-          // console.log("[SocketManager] Another player joined the game");
           this._notifyListeners("onPlayerJoined", {
             players: message.data.players,
           });
@@ -400,19 +327,15 @@ export class SocketManager {
 
         case "readyToStart":
           this.gameState = message.data.gameState;
-          // console.log(
-          //   "[SocketManager] Game ready to start - countdown should begin"
-          // );
           this._notifyListeners("onGameState", {
             state: "readyToStart",
             gameState: this.gameState,
-            gameRoom: message.data.gameRoom, // Pass the gameRoom data with player info
+            gameRoom: message.data.gameRoom,
           });
           break;
 
         case "gameStarted":
           this.gameState = message.data.gameState;
-          // console.log("[SocketManager] Game started");
           this._notifyListeners("onGameStart", {
             gameState: this.gameState,
           });
@@ -428,7 +351,6 @@ export class SocketManager {
 
         case "gamePaused":
           this.gameState.state = GameStates.PAUSED;
-          // console.log(`[SocketManager] Game paused: ${message.data.message}`);
           this._notifyListeners("onGamePause", {
             message: message.data.message,
             reason: message.data.reason,
@@ -437,16 +359,12 @@ export class SocketManager {
 
         case "gameResumed":
           this.gameState.state = GameStates.IN_PLAY;
-          // console.log(`[SocketManager] Game resumed: ${message.data.message}`);
           this._notifyListeners("onGameResume", {
             message: message.data.message,
           });
           break;
 
         case "playerReconnected":
-          // console.log(
-          //   `[SocketManager] Player reconnected (position: ${message.data.position})`
-          // );
           this._notifyListeners("onReconnect", {
             position: message.data.position,
           });
@@ -455,9 +373,6 @@ export class SocketManager {
         case "reconnectedToGame":
           this.gameState = message.data.gameState;
           this.playerPosition = message.data.position;
-          // console.log(
-          //   `[SocketManager] Reconnected to game as ${this.playerPosition} player`
-          // );
           this._notifyListeners("onReconnect", {
             gameState: this.gameState,
             position: this.playerPosition,
@@ -468,9 +383,6 @@ export class SocketManager {
 
         case "gameFinished":
           this.gameState = message.data.gameState;
-          // console.log(
-          //   `[SocketManager] Game finished. GameState: ${this.gameState}`
-          // );
           this._notifyListeners("onGameFinish", {
             gameState: this.gameState,
             winner: this.gameState.winner || "",
@@ -480,7 +392,6 @@ export class SocketManager {
 
         case "gameCanceled":
           this.gameState.state = GameStates.CANCELED;
-          // console.log(`[SocketManager] Game canceled: ${message.data.message}`);
           this._notifyListeners("onGameState", {
             state: "canceled",
             gameState: this.gameState,
@@ -489,7 +400,6 @@ export class SocketManager {
           break;
 
         case "playerLeft":
-          // console.log(`[SocketManager] Player left: ${message.data.message}`);
           this._notifyListeners("onPlayerLeft", {
             message: message.data.message,
             userId: message.data.userId,
@@ -497,9 +407,6 @@ export class SocketManager {
           break;
 
         case "playerAbandoned":
-          // console.log(
-          //   `[SocketManager] Player abandoned game (position: ${message.data.position})`
-          // );
           this._notifyListeners("onPlayerAbandoned", {
             position: message.data.position,
             userId: message.data.userId,
@@ -507,9 +414,6 @@ export class SocketManager {
           break;
 
         case "reconnectionExpired":
-          // console.log(
-          //   `[SocketManager] Reconnection expired: ${message.data.message}`
-          // );
           this.gameState = message.data.gameState;
           this._notifyListeners("onReconnectionExpired", {
             gameId: message.data.gameId,
@@ -519,9 +423,6 @@ export class SocketManager {
           break;
 
         case "joinedOfflineGame":
-          // console.log(
-          //   `[SocketManager] Joined offline game: ${message.data.gameId}`
-          // );
           this.gameState = message.data.gameState;
           this._notifyListeners("onJoinedOfflineGame", {
             gameId: message.data.gameId,
@@ -542,10 +443,7 @@ export class SocketManager {
     }
   }
 
-  private _notifyListeners<K extends keyof EventCallbacks>(
-    event: K,
-    data: Parameters<EventCallbacks[K][number]>[0]
-  ): void {
+  private _notifyListeners<K extends keyof EventCallbacks>(event: K,data: Parameters<EventCallbacks[K][number]>[0]): void {
     if (this.listeners[event]) {
       this.listeners[event].forEach((callback) => {
         try {
@@ -558,12 +456,10 @@ export class SocketManager {
   }
 
   setLocalGameMode(local: boolean) {
-    console.log(`[SocketManager] Setting local game mode to: ${local}`);
     this.isLocal = local;
   }
 
   cleanup(): void {
-    // console.log("[SocketManager] Cleaning up resources");
     if (this.socket) {
       try {
         this.pauseGame()
@@ -586,7 +482,5 @@ export class SocketManager {
       tournamentId: 0,
     };
     this.gameConfig = null;
-
-    console.log("[SocketManager] Resources cleaned up");
   }
 }

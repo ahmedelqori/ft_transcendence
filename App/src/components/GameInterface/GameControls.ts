@@ -14,13 +14,9 @@ interface GameControlsProps {
 
 export const GameControls = defineComponent<void, GameControlsProps>({
   state() {},
-
   render(this: IComponent<any, GameControlsProps>) {
     const { isConnected, gameState, onPause, onCancel } = this.props;
-    const canPauseOrResume =
-      gameState &&
-      (gameState.state === GameStates.IN_PLAY ||
-        gameState.state === GameStates.PAUSED);
+    const canPauseOrResume = gameState && (gameState.state === GameStates.IN_PLAY || gameState.state === GameStates.PAUSED);
     const isPaused = gameState && gameState.state === GameStates.PAUSED;
     const pauseButtonText = isPaused ? "Resume" : "Pause";
     const pauseIcon = isPaused ? "ph-play" : "ph-pause";
@@ -54,11 +50,8 @@ export const GameControls = defineComponent<void, GameControlsProps>({
       "focus:ring-0",
       "bg-[#ff4d4d]",
     ];
-    const cancelButtonClasses = !isConnected
-      ? [...cancelButtonBaseClass, "opacity-50", "cursor-not-allowed"]
-      : [...cancelButtonBaseClass, "hover:bg-[#e63939]"];
-    let pauseButtonClasses = isPaused
-      ? [
+    const cancelButtonClasses = !isConnected ? [...cancelButtonBaseClass, "opacity-50", "cursor-not-allowed"] : [...cancelButtonBaseClass, "hover:bg-[#e63939]"];
+    let pauseButtonClasses = isPaused ? [
           ...pauseButtonBaseClasse,
           "ring-2",
           "ring-[var(--light-yellow)]",
@@ -71,10 +64,7 @@ export const GameControls = defineComponent<void, GameControlsProps>({
           "focus:ring-0",
           "hover:bg-[var(--darker-grey)]",
         ];
-    pauseButtonClasses = !canPauseOrResume
-      ? [...pauseButtonClasses, "opacity-50", "cursor-not-allowed"]
-      : pauseButtonClasses;
-
+    pauseButtonClasses = !canPauseOrResume ? [...pauseButtonClasses, "opacity-50", "cursor-not-allowed"] : pauseButtonClasses;
     return createElement(
       "div",
       { class: ["flex", "flex-row", "justify-center", "gap-8", "mb-3"] },
@@ -101,7 +91,6 @@ export const GameControls = defineComponent<void, GameControlsProps>({
             class: cancelButtonClasses,
             on: {
               click: (e) => {
-                // Always blur cancel button
                 (e.target as HTMLElement).blur();
                 onCancel();
               },
