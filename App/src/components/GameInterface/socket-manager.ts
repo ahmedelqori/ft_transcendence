@@ -159,10 +159,11 @@ export class SocketManager {
       let wsUrl;
       const token = `Bearer ${localStorage.getItem("access_token")}`;
       if (this.isLocal) {
-        wsUrl = `wss://${import.meta.env.VITE_DOMAIN}/api/games/local/${this.gameId}`;
+        console.log(import.meta.env.VITE_DOMAIN_DEV)
+        wsUrl = `wss://${import.meta.env.VITE_DOMAIN_DEV}/api/games/local/${this.gameId}`;
         // wsUrl = `ws://localhost:3000/local/${this.gameId}?token=${token}`;
       } else {
-        wsUrl = `wss://${import.meta.env.VITE_DOMAIN}/api/games/online/${this.gameId}?token=${token}`;
+        wsUrl = `wss://${import.meta.env.VITE_DOMAIN_DEV}/api/games/online/${this.gameId}?token=${token}`;
         // wsUrl = `ws://localhost:3000/online/${this.gameId}?token=${token}`;
       }
       this.socket = new WebSocket(wsUrl);

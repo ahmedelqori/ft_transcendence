@@ -3,7 +3,7 @@ import {
   defineComponent,
   type IComponent,
 } from "@/uccello/Uccello.js";
-import { type GameState, GameStates } from "@/services/socket-manager.js";
+import { type GameState, GameStates } from "@/components/GameInterface/socket-manager.js";
 
 interface GameControlsProps {
   isConnected: boolean;

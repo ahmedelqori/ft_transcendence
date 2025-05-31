@@ -8,9 +8,9 @@ import {
   type GameConfig,
   SocketManager,
   GameStates,
-} from "@/services/socket-manager.js";
+} from "@/components/GameInterface/socket-manager.js";
 import { GameRenderer } from "./GameRenderer.js";
-import { CanvasManager } from "@/services/canvas-manager.js";
+import { CanvasManager } from "@/components/GameInterface/canvas-manager.js";
 import { PlayerInfo } from "./PlayerInfo.js";
 
 interface GameCanvasProps {

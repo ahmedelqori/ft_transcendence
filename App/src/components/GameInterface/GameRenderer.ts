@@ -3,8 +3,8 @@ import {
   defineComponent,
   type IComponent,
 } from "@/uccello/Uccello.js";
-import { GameState, GameStates } from "@/services/socket-manager.js";
-import { CanvasManager } from "@/services/canvas-manager.js";
+import { GameState, GameStates } from "@/components/GameInterface/socket-manager.js";
+import { CanvasManager } from "@/components/GameInterface/canvas-manager.js";
 
 export interface GameConfig {
   paddleWidth: number;

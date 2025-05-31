@@ -19,7 +19,7 @@ import {
   GamePauseResumeData,
   GameFinishData,
   ReconnectData,
-} from "@/services/socket-manager.js";
+} from "@/components/GameInterface/socket-manager.js";
 import { GamePausedOverlay } from "./GameOverlays/GamePausedOverlay.js";
 import { VictoryOverlay } from "./GameOverlays/VictoryOverlay.js";
 import { DisconnectedOverlay } from "./GameOverlays/DisconnectedOverlay.js";
