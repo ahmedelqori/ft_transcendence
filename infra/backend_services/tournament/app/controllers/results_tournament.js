@@ -20,7 +20,7 @@ export default async function results_tournament(req, res) {
     const games = await tournament_games.query().where({tournament_id: id});
 
     
-    let winner = undefined;
+    let winner;
     let round2 = [];
     let round4 = [];
     let round8 = [];
@@ -36,28 +36,30 @@ export default async function results_tournament(req, res) {
                 }
             });
 
-            if (games[i].round == 2){
-                // const winner_id = (await tournament_games.query().where({
-                //     tournament_id: id,
-                //     round: 1
-                // }).first().select('player_id')).player_id;
-                // winner = get_user(req, winner_id, id);
+            if (games[i].round == 2) {
+                const winner_id = (await tournament_players.query().where({
+                    tournament_id: id,
+                    round: 1
+                }).first().select('player_id')).player_id;
+                winner = await get_user(req, winner_id, id);
             }
 
             if (games[i].round == 2){
                 round2.push(
-                        {
-                            playerOne: await get_user(req, game.data.playerOneId, id),
-                            playerTwo: await get_user(req, game.data.playerTwoId, id)
-                        }
+                    {
+                        // playerOne: await get_user(req, game.data.playerOneId, id),
+                        // playerTwo: await get_user(req, game.data.playerTwoId, id)
+                        game: game.data
+                    }
                 );
             }
 
             if (games[i].round == 4){
                 round4.push(
                     {
-                        playerOne: await get_user(req, game.data.playerOneId, id),
-                        playerTwo: await get_user(req, game.data.playerTwoId, id)
+                        // playerOne: await get_user(req, game.data.playerOneId, id),
+                        // playerTwo: await get_user(req, game.data.playerTwoId, id)
+                        game: game.data
                     }
                 );
             }
@@ -65,8 +67,9 @@ export default async function results_tournament(req, res) {
             if (games[i].round == 8){
                 round8.push(
                     {
-                        playerOne: await get_user(req, game.data.playerOneId, id),
-                        playerTwo: await get_user(req, game.data.playerTwoId, id)
+                        // playerOne: await get_user(req, game.data.playerOneId, id),
+                        // playerTwo: await get_user(req, game.data.playerTwoId, id)
+                        game: game.data
                     }
                 );
             }
@@ -74,8 +77,9 @@ export default async function results_tournament(req, res) {
             if (games[i].round == 16){
                 round16.push(
                     {
-                        playerOne: await get_user(req, game.data.playerOneId, id),
-                        playerTwo: await get_user(req, game.data.playerTwoId, id)
+                        // playerOne: await get_user(req, game.data.playerOneId, id),
+                        // playerTwo: await get_user(req, game.data.playerTwoId, id)
+                        game: game.data
                     }
                 );
             }

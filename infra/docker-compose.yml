@@ -1,6 +1,12 @@
 volumes:
   # vault_database:
   temp_env:
+  framework_build:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./infra/volumes/framework_build
+      o: bind
   user_managment_database:
     driver: local
     driver_opts:
@@ -82,7 +88,19 @@ services:
     restart: always
     volumes:
       - profile_images:/app/profile_images
+      - framework_build:/var/www/html
 
+  uccello:
+    build:
+      context: ./uccello
+      dockerfile: Dockerfile
+    container_name: uccello
+    env_file:
+      - ./uccello/app/.env
+    networks:
+      - appNet
+    volumes:
+      - framework_build:/app/dist
 
   user_managment:
     build:

@@ -50,8 +50,8 @@ export default async function start_next_round(req, res) {
 
     if (r.round / 2 == 1) {
         await tournament.query().patchAndFetchById(tournementId, {
-            // status: 'COMPLETE'
-            status: 'FINISHED'
+            status: 'COMPLETE'
+            // status: 'FINISHED'
         });
         reload_tournament(req, tournementId);
         res.status(200);

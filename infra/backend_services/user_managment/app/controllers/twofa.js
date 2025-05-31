@@ -3,9 +3,6 @@ import Player from "../models.js";
 
 
 export default async function twoFA(req, res) {
-    
-    console.log('req.headers.origin', req.headers.origin);
-    console.log('process.env.ORIGIN', process.env.ORIGIN);
 
     if (req.headers.origin !== process.env.ORIGIN) {
         res.status(401).send({ message: 'unauthorized' });

@@ -81,7 +81,7 @@ async function handleWebSocketConnection(socket, req) {
   if (checkChangingDevice(connections, socket, gameRooms, defaultGameConfig, setupSocketEventHandlers)) return
   socket.send(Message("connected", { message: "You are connected" }));
   fastify.log.info(`User ${userId} connected to game ${gameId}`);
-  // socket.pingInterval = runHeartBeatMechanism(socket);
+  // fdtf = runHeartBeatMechanism(socket);
   sendInitialGameData(gameId, socket, gameRooms, defaultGameConfig,createGameState);
   setupSocketEventHandlers(socket);
 }

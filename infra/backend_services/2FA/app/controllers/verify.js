@@ -39,7 +39,7 @@ export default async function verify(req, res) {
             const r = await axios.post(process.env.TWOFA_URL,{status: true}, {
                 headers: {
                     Authorization: req.headers.authorization,
-                    origin: process.env.ACCEPTED_ORIGIN,
+                    origin: process.env.ORIGIN,
                 },
             });
             if (r.status !== 200) {

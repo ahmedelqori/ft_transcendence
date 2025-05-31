@@ -48,7 +48,7 @@ server {
 	# modsecurity on;
 	# modsecurity_rules_file /etc/nginx/modsec/main.conf;
 	# Add index.php to the list if you are using PHP
-	index index.html index.htm index.nginx-debian.html;
+	index index.html index.htm;
 
 	server_name _;
 

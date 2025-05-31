@@ -6,7 +6,8 @@ export default async function get_notif(req, res) {
 
     try{
         const records = await notif.query()
-            .where({to: req.user.id})
+            .where('to', req.user.id)
+            .whereIn('type', ['friendRequest', 'inviteToMatch', 'tournamentInvite'])
             .select('id', 'type', 'payload');
         for (let i = 0; i < records.length; i++) {
             records[i].payload = JSON.parse(records[i].payload);

@@ -3,11 +3,12 @@ import axios from "axios";
 
 
 async function already_started(id, round) {
-    // const games = await tournament_games.query().where({
-    //     tournament_id: id,
-    //     round: round
-    // });
-    // return games.length > 0;
+    const games = await tournament_games.query().where({
+        tournament_id: id,
+        round: round
+    });
+    if (games.length > 0)
+        return true;
     return false;
 }
 
@@ -33,7 +34,7 @@ export default async function start_tournament(req, res) {
             tournament_id: id,
             round: round
         });
-        // console.log("Players in round: ", players.length, "Round: ", round, "aaaa: ", !already_started(id, round));
+        console.log("Players in round: ", players.length, "Round: ", round, "aaaa: ", !already_started(id, round));
 
         if (round == players.length && players.length > 1) {
             console.log("should create new round");

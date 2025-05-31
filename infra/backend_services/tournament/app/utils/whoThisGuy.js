@@ -26,7 +26,9 @@ export default async function get_user(req, user_id, tournament_id) {
     };
     
     let user = response.data;
-    user.nickname = (await tournament_players.query().where({'tournament_id': tournament_id, player_id: user_id}).first().select('nickname')).nickname;
+    // user.nickname = (await tournament_players.query().where({'tournament_id': tournament_id, player_id: user_id}).first().select('nickname')).nickname;
+    const player = await tournament_players.query().where({'tournament_id': tournament_id, player_id: user_id}).first().select('nickname');
 
+    user.nickname = player?.nickname;
     return user;
 };
