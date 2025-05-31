@@ -14,11 +14,8 @@ export const CountdownOverlay = defineComponent<void, CountdownOverlayProps>({
 
   render(this: IComponent<void, CountdownOverlayProps>) {
     const { visible, countdown } = this.props;
-    
-    if (!visible) {
+    if (!visible)
       return createElement("div", { style: { display: "none" } });
-    }
-
     return createElement(
       "div",
       {
@@ -88,10 +85,8 @@ export const CountdownOverlay = defineComponent<void, CountdownOverlayProps>({
                       fontSize: "clamp(3.5rem, 8vw, 5rem)", 
                       fontWeight: "700",
                       marginTop: "1rem",
-                      color: countdown === 1 ? "#56f2ff" : "#ffffff",
-                      textShadow: countdown === 1 ? 
-                        "0 0 8px rgba(86, 242, 255, 0.8)" : 
-                        "0 0 8px rgba(221, 242, 71, 0.6)",
+                      color: "#ffffff",
+                      textShadow: countdown === 1 ? "0 0 8px rgba(86, 242, 255, 0.8)" : "0 0 8px rgba(221, 242, 71, 0.6)",
                       animation: "pulse 1s infinite",
                       letterSpacing: countdown === 1 ? "0.1em" : "normal"
                     }
@@ -100,7 +95,6 @@ export const CountdownOverlay = defineComponent<void, CountdownOverlayProps>({
                 )
               ]
             ),
-            
             createElement(
               "style",
               {},
@@ -112,7 +106,6 @@ export const CountdownOverlay = defineComponent<void, CountdownOverlayProps>({
                 }
               `]
             ),
-            
             createElement(
               "p",
               {

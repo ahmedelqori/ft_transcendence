@@ -14,9 +14,8 @@ export const WaitingOpponentOverlay = defineComponent<void, WaitingOpponentOverl
 
   render(this: IComponent<void, WaitingOpponentOverlayProps>) {
     const { visible, position } = this.props;    
-    if (!visible) {
+    if (!visible)
       return createElement("div", { style: { display: "none" } });
-    }
 
     return createElement(
       "div",

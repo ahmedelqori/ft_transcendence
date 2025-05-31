@@ -3,8 +3,8 @@ import {
   defineComponent,
   type IComponent,
 } from "@/uccello/Uccello.js";
-import { GameState, GameStates } from "@/services/socket-manager.js";
-import { CanvasManager } from "@/services/canvas-manager.js";
+import { GameState, GameStates } from "@/components/GameInterface/socket-manager.js";
+import { CanvasManager } from "@/components/GameInterface/canvas-manager.js";
 
 export interface GameConfig {
   paddleWidth: number;
@@ -31,42 +31,17 @@ interface GameRendererMethods {
   handleResize(): void;
   startAnimationLoop(): void;
   renderGame(): void;
-  drawCenterLine(
-    ctx: CanvasRenderingContext2D,
-    canvasManager: CanvasManager
-  ): void;
-  drawBall(
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    canvasManager: CanvasManager
-  ): void;
-  drawPaddle(
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    canvasManager: CanvasManager,
-    color?: string
-  ): void;
-  drawScore(
-    ctx: CanvasRenderingContext2D,
-    gameState: GameState,
-    canvasManager: CanvasManager
-  ): void;
-  drawBallTrajectory(
-    ctx: CanvasRenderingContext2D,
-    gameState: GameState,
-    canvasManager: CanvasManager
-  ): void;
+  drawCenterLine(ctx: CanvasRenderingContext2D, canvasManager: CanvasManager): void;
+  drawBall(ctx: CanvasRenderingContext2D, x: number, y: number, canvasManager: CanvasManager): void;
+  drawPaddle(ctx: CanvasRenderingContext2D, x: number, y: number, canvasManager: CanvasManager, color?: string): void;
+  drawScore(ctx: CanvasRenderingContext2D, gameState: GameState, canvasManager: CanvasManager): void;
+  drawBallTrajectory(ctx: CanvasRenderingContext2D, gameState: GameState, canvasManager: CanvasManager): void;
   setupDrawing(ctx: CanvasRenderingContext2D, canvasManager: CanvasManager): void;
   init(): boolean;
   cleanup(): void;
 }
 
-export const GameRenderer = defineComponent<
-  GameRendererState,
-  GameRendererProps
->({
+export const GameRenderer = defineComponent<GameRendererState, GameRendererProps>({
   state() {
     return {
       ballPositionHistory: [],
@@ -75,9 +50,7 @@ export const GameRenderer = defineComponent<
     };
   },
 
-  onMounted(
-    this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods
-  ) {
+  onMounted(this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods) {
     if (this.props.gameConfig) {
       setTimeout(() => {
         this.init();
@@ -85,133 +58,66 @@ export const GameRenderer = defineComponent<
       }, 50);
     }
   },
-
-  onUnmounted(
-    this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods
-  ) {
-    console.log("[GameRenderer] Component unmounting");
-    cancelAnimationFrame(this.state.animationFrameId);
-    
+  onUnmounted(this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods) {
+    cancelAnimationFrame(this.state.animationFrameId);    
     this.cleanup();
   },
   
-  cleanup(
-    this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods
-  ) {
+  cleanup(this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods) {
     const { canvasManager } = this.state;
-    if (canvasManager) {
-      console.log("[GameRenderer] Destroying canvas manager");
+    if (canvasManager)
       canvasManager.destroy();
-    }
   },
-
-  init(
-    this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods
-  ): boolean {
+  init(this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods): boolean {
     try {
-      if (!this.props.gameConfig) {
-        return false;
-      }
       const containerElement = this.getHtmlElement;
-      if (!containerElement) {
-        return false;
-      }
-
+      if (!this.props.gameConfig || !containerElement) return false;
       const canvasManager = CanvasManager.getInstance();      
       canvasManager.init(containerElement);      
       canvasManager.setGameConfig(this.props.gameConfig);
-      if (this.getIsMounted)
-        this.updateState({ canvasManager });
+      if (this.getIsMounted) this.updateState({ canvasManager });
       return true;
     } catch (error) {
-      console.error("[GameRenderer] Error initializing canvas:", error);
+      console.log("[GameRenderer] Error initializing canvas:", error);
       return false;
     }
   },
 
-  startAnimationLoop(
-    this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods
-  ) {
-    if (!this.props.gameConfig) {
-      return;
-    }
+  startAnimationLoop(this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods) {
+    if (!this.props.gameConfig) return;
     const animate = () => {
       this.renderGame();
       const nextFrameId = requestAnimationFrame(animate);
-      if (this.getIsMounted)
-        this.updateState({ animationFrameId: nextFrameId });
+      if (this.getIsMounted) this.updateState({ animationFrameId: nextFrameId });
     };
-
     const initialFrameId = requestAnimationFrame(animate);
-    if (this.getIsMounted)
-      this.updateState({ animationFrameId: initialFrameId });
+    if (this.getIsMounted) this.updateState({ animationFrameId: initialFrameId });
   },
 
-  renderGame(
-    this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods
-  ) {
+  renderGame(this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods) {
     const { gameState } = this.props;
     const { canvasManager } = this.state;
-
-    if (!canvasManager) {
-      if (!this.init()) {
-        return;
-      }
-    }
-
+    if (!canvasManager)
+      if (!this.init()) return;
     const canvas = canvasManager?.getCanvas();
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
     this.setupDrawing(ctx, canvasManager!);
-
-    if (!gameState) {
-      return;
-    }
-
+    if (!gameState) return;
     try {
       this.drawCenterLine(ctx, canvasManager!);
-
-      if (gameState.state === GameStates.IN_PLAY) {
+      if (gameState.state === GameStates.IN_PLAY)
         this.drawBallTrajectory(ctx, gameState, canvasManager!);
-      }
-
-      this.drawPaddle(
-        ctx,
-        this.props.gameConfig.leftPaddleX,
-        gameState.paddles.left,
-        canvasManager!,
-        "#ddf247"
-      );
-
-      this.drawPaddle(
-        ctx,
-        this.props.gameConfig.rightPaddleX - this.props.gameConfig.paddleWidth,
-        gameState.paddles.right,
-        canvasManager!,
-        "#FFFFFF"
-      );
-
-      if (gameState.ball) {
-        this.drawBall(
-          ctx,
-          gameState.ball.x,
-          gameState.ball.y,
-          canvasManager!
-        );
-      }
-
+      this.drawPaddle(ctx, this.props.gameConfig.leftPaddleX, gameState.paddles.left, canvasManager!,"#ddf247");
+      this.drawPaddle(ctx, this.props.gameConfig.rightPaddleX - this.props.gameConfig.paddleWidth, gameState.paddles.right,canvasManager!,"#FFFFFF");
+      if (gameState.ball) this.drawBall(ctx, gameState.ball.x, gameState.ball.y,canvasManager!);
       this.drawScore(ctx, gameState, canvasManager!);
     } catch (error) {
-      console.error("[GameRenderer] Error rendering game:", error);
+      console.log("[GameRenderer] Error rendering game:", error);
     }
   },
-
-  handleResize(
-    this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods
-  ) {
+  handleResize(this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods) {
     if (this.state.canvasManager) {
       this.state.canvasManager.resizeCanvas();
       this.renderGame();
@@ -220,7 +126,6 @@ export const GameRenderer = defineComponent<
 
   render(this: IComponent<GameRendererState, GameRendererProps>) {
     const { gameConfig } = this.props;
-
     if (!gameConfig) {
       return createElement(
         "div",
@@ -276,12 +181,7 @@ export const GameRenderer = defineComponent<
     );
   },
 
-  setupDrawing(
-    this: IComponent<GameRendererState, GameRendererProps> &
-      GameRendererMethods,
-    ctx: CanvasRenderingContext2D,
-    canvasManager: CanvasManager
-  ): void {
+  setupDrawing(this: IComponent<GameRendererState, GameRendererProps> &GameRendererMethods,ctx: CanvasRenderingContext2D,canvasManager: CanvasManager): void {
     const dimensions = canvasManager.dimensions;
     ctx.clearRect(0, 0, dimensions.width, dimensions.height);
     ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
@@ -291,12 +191,7 @@ export const GameRenderer = defineComponent<
     ctx.strokeRect(0, 0, dimensions.width, dimensions.height);
   },
 
-  drawCenterLine(
-    this: IComponent<GameRendererState, GameRendererProps> &
-      GameRendererMethods,
-    ctx: CanvasRenderingContext2D,
-    canvasManager: CanvasManager
-  ) {
+  drawCenterLine(this: IComponent<GameRendererState, GameRendererProps> &GameRendererMethods,ctx: CanvasRenderingContext2D,canvasManager: CanvasManager) {
     const { width, height } = canvasManager.dimensions;
     ctx.strokeStyle = "#444";
     ctx.setLineDash([5, 5]);
@@ -308,170 +203,93 @@ export const GameRenderer = defineComponent<
     ctx.setLineDash([]);
   },
 
-  drawBall(
-    this: IComponent<GameRendererState, GameRendererProps> &
-      GameRendererMethods,
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    canvasManager: CanvasManager
-  ) {
-    const ballSizePixels = Math.min(
-      canvasManager.xToPixels(this.props.gameConfig.ballSize),
-      canvasManager.yToPixels(this.props.gameConfig.ballSize)
-    );
-
+  drawBall(this: IComponent<GameRendererState, GameRendererProps> &GameRendererMethods,ctx: CanvasRenderingContext2D,x: number,y: number,canvasManager: CanvasManager) {
+    const ballSizePixels = Math.min(canvasManager.xToPixels(this.props.gameConfig.ballSize),canvasManager.yToPixels(this.props.gameConfig.ballSize));
     const radius = ballSizePixels / 2;
     const centerX = canvasManager.xToPixels(x);
     const centerY = canvasManager.yToPixels(y);
-
     ctx.shadowColor = "#ff4242";
     ctx.shadowBlur = 15;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
-
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
     ctx.fillStyle = "#ff4242";
     ctx.fill();
     ctx.closePath();
-
     ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
   },
 
-  drawPaddle(
-    this: IComponent<GameRendererState, GameRendererProps> &
-      GameRendererMethods,
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    canvasManager: CanvasManager,
-    color: string = "#FFFFFF"
-  ) {
+  drawPaddle(this: IComponent<GameRendererState, GameRendererProps> &GameRendererMethods,ctx: CanvasRenderingContext2D,x: number,y: number,canvasManager: CanvasManager,color: string = "#FFFFFF") {
     ctx.fillStyle = color;
     ctx.shadowColor = color;
     ctx.shadowBlur = 8;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
-
-    const paddleWidth = canvasManager.xToPixels(
-      this.props.gameConfig.paddleWidth
-    );
-    const paddleHeight = canvasManager.yToPixels(
-      this.props.gameConfig.paddleHeight
-    );
+    const paddleWidth = canvasManager.xToPixels(this.props.gameConfig.paddleWidth);
+    const paddleHeight = canvasManager.yToPixels(this.props.gameConfig.paddleHeight);
     const xPos = canvasManager.xToPixels(x);
     const yPos = canvasManager.yToPixels(y) - paddleHeight / 2;
-
     const radius = 4;
     ctx.beginPath();
     ctx.moveTo(xPos + radius, yPos);
     ctx.lineTo(xPos + paddleWidth - radius, yPos);
-    ctx.quadraticCurveTo(
-      xPos + paddleWidth,
-      yPos,
-      xPos + paddleWidth,
-      yPos + radius
-    );
+    ctx.quadraticCurveTo(xPos + paddleWidth,yPos,xPos + paddleWidth,yPos + radius);
     ctx.lineTo(xPos + paddleWidth, yPos + paddleHeight - radius);
-    ctx.quadraticCurveTo(
-      xPos + paddleWidth,
-      yPos + paddleHeight,
-      xPos + paddleWidth - radius,
-      yPos + paddleHeight
-    );
+    ctx.quadraticCurveTo(xPos + paddleWidth,yPos + paddleHeight,xPos + paddleWidth - radius,yPos + paddleHeight);
     ctx.lineTo(xPos + radius, yPos + paddleHeight);
-    ctx.quadraticCurveTo(
-      xPos,
-      yPos + paddleHeight,
-      xPos,
-      yPos + paddleHeight - radius
-    );
+    ctx.quadraticCurveTo(xPos,yPos + paddleHeight,xPos,yPos + paddleHeight - radius);
     ctx.lineTo(xPos, yPos + radius);
     ctx.quadraticCurveTo(xPos, yPos, xPos + radius, yPos);
     ctx.closePath();
     ctx.fill();
-
     ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
   },
 
-  drawScore(
-    this: IComponent<GameRendererState, GameRendererProps> &
-      GameRendererMethods,
-    ctx: CanvasRenderingContext2D,
-    gameState: GameState,
-    canvasManager: CanvasManager
-  ) {
+  drawScore(this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods,ctx: CanvasRenderingContext2D,gameState: GameState,canvasManager: CanvasManager) {
     if (!gameState || !gameState.score) return;
-
     const { width } = canvasManager.dimensions;
     const topOffset = 50;
     const fontSize = 32;
-
     ctx.font = `bold ${fontSize}px 'Poppins', sans-serif`;
     ctx.textAlign = "center";
     ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-
     const leftScore = gameState.score.left || 0;
     const rightScore = gameState.score.right || 0;
-
     const scoreText = `${leftScore} - ${rightScore}`;
     ctx.fillText(scoreText, width / 2, topOffset);
   },
 
-  drawBallTrajectory(
-    this: IComponent<GameRendererState, GameRendererProps> &
-      GameRendererMethods,
-    ctx: CanvasRenderingContext2D,
-    gameState: GameState,
-    canvasManager: CanvasManager
-  ) {
+  drawBallTrajectory(this: IComponent<GameRendererState, GameRendererProps> & GameRendererMethods,ctx: CanvasRenderingContext2D,gameState: GameState,canvasManager: CanvasManager) {
     if (gameState.state !== GameStates.IN_PLAY || !gameState.ball) return;
-
     const currentBallPosition = {
       x: gameState.ball.x,
       y: gameState.ball.y,
       time: Date.now(),
     };
-
     this.state.ballPositionHistory.push(currentBallPosition);
-
     const currentTime = Date.now();
     const maxTrailAge = 200;
-    this.state.ballPositionHistory = this.state.ballPositionHistory.filter(
-      (pos) => currentTime - pos.time < maxTrailAge
-    );
-
+    this.state.ballPositionHistory = this.state.ballPositionHistory.filter((pos) => currentTime - pos.time < maxTrailAge);
     if (this.state.ballPositionHistory.length > 1) {
-      const sortedHistory = [...this.state.ballPositionHistory].sort(
-        (a, b) => a.time - b.time
-      );
-
+      const sortedHistory = [...this.state.ballPositionHistory].sort((a, b) => a.time - b.time);
       for (let i = 0; i < sortedHistory.length - 1; i++) {
         const position = sortedHistory[i];
         const age = currentTime - position.time;
         const opacity = 1 - age / maxTrailAge;
-        const size =
-          Math.min(
-            canvasManager.xToPixels(this.props.gameConfig.ballSize),
-            canvasManager.yToPixels(this.props.gameConfig.ballSize)
-          ) *
-          (0.7 + 0.3 * (1 - opacity));
-
+        const size = Math.min(canvasManager.xToPixels(this.props.gameConfig.ballSize), canvasManager.yToPixels(this.props.gameConfig.ballSize)) * (0.7 + 0.3 * (1 - opacity));
         const centerX = canvasManager.xToPixels(position.x);
         const centerY = canvasManager.yToPixels(position.y);
-
         ctx.beginPath();
         ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 66, 66, ${opacity * 0.3})`;
         ctx.fill();
       }
     }
-    if (this.getIsMounted)
-      this.updateState({ ballPositionHistory: this.state.ballPositionHistory });
+    if (this.getIsMounted) this.updateState({ ballPositionHistory: this.state.ballPositionHistory });
   },
 });

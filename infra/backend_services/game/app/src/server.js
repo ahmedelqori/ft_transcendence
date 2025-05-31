@@ -4,10 +4,7 @@ import prismaPlugin from "./plugins/prisma.plugin.js";
 import fastifyWebsocket from "@fastify/websocket";
 import { setupWebSocketHandlers } from "./controllers/game.socket.js";
 import { setupLocalWebSocketHandlers } from "./controllers/localGame.socket.js";
-import { authenticate } from "./middlewares/auth.middleware.js";
 import cors from "@fastify/cors";
-import swagger from "@fastify/swagger";
-import swaggerUI from "@fastify/swagger-ui";
 
 export const gameConnections = new Map();
 
@@ -39,28 +36,6 @@ fastify.register(fastifyWebsocket, {
   },
 });
 
-fastify.register(swagger, {
-  openapi: {
-    info: {
-      title: "Pong Game API",
-      description: "API documentation for the multiplayer Pong game",
-      version: "1.0.0",
-    },
-    servers: [
-      {
-        url: "http://localhost:3000",
-      },
-    ],
-    tags: [{ name: "games", description: "Game related endpoints" }],
-  },
-});
-
-fastify.register(swaggerUI, {
-  routePrefix: "docs",
-  uiConfig: {
-    docExpansion: "list",
-  },
-});
 fastify.register(prismaPlugin);
 fastify.register(gameRoutes, {
   prefix: "/",

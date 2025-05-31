@@ -4,7 +4,6 @@ import {
   createGame,
   updateGame,
   cancelGame,
-  deleteGame,
   getUserGames,
   getCurrentGame
 } from "../controllers/game.controller.js";
@@ -174,10 +173,6 @@ export const gameRoutes = function (fastify, options, done) {
         body: {
           type: "object",
           properties: {
-            // playerOneId: {
-            //   type: 'integer',
-            //   description: 'ID of the player creating the game'
-            // },
             playerTwoId: {
               type: "integer",
               description: "ID of the opponent (0 if no specific opponent yet)",
@@ -302,22 +297,22 @@ export const gameRoutes = function (fastify, options, done) {
     declineGameInvitation
   );
 
-  fastify.delete(
-    "/delete/:id",
-    {
-      schema: {
-        tags: ["games"],
-        summary: "Delete game",
-        description: "Delete a game completely from the system",
-        params: idSchema.schema.params,
-        response: {
-          200: responseGameSchema,
-          500: errorSchema,
-        },
-      },
-    },
-    deleteGame
-  );
+  // fastify.delete(
+  //   "/delete/:id",
+  //   {
+  //     schema: {
+  //       tags: ["games"],
+  //       summary: "Delete game",
+  //       description: "Delete a game completely from the system",
+  //       params: idSchema.schema.params,
+  //       response: {
+  //         200: responseGameSchema,
+  //         500: errorSchema,
+  //       },
+  //     },
+  //   },
+  //   deleteGame
+  // );
 
   done();
 };

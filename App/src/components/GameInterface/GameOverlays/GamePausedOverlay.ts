@@ -13,14 +13,9 @@ export const GamePausedOverlay = defineComponent<void, GamePausedOverlayProps>({
   state() {},
 
   render(this: IComponent<void, GamePausedOverlayProps>) {
-    const { visible, onResume } = this.props;
-    
-    console.log("[GamePausedOverlay] Rendering with visible:", visible);
-    
-    if (!visible) {
+    const { visible, onResume } = this.props;    
+    if (!visible)
       return createElement("div", { style: { display: "none" } });
-    }
-
     return createElement(
       "div",
       {
