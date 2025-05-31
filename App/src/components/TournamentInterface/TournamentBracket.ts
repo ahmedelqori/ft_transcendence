@@ -32,12 +32,19 @@ const TournamentBracket = defineComponent<
     this: IComponent<TournamentBracketState, TournamentBracketProps> & {
       handleGetTournament: () => Promise<void>;
       handleStartTournament: () => Promise<void>;
+      handleChangeParam: () => void;
     }
   ) {
     await this.handleGetTournament();
     eventBus.on("change:tournament", async () => {
       await this.handleGetTournament();
     });
+    window.addEventListener("hashchange", this.handleChangeParam);
+  },
+  onUnMounted(
+    this: IComponent<TournamentBracketState> & { handleChangeParam: () => void }
+  ) {
+    window.removeEventListener("hashchange", this.handleChangeParam);
   },
   state() {
     return {
@@ -1087,6 +1094,10 @@ const TournamentBracket = defineComponent<
           ]
         )
       : createElement(Loader);
+  },
+  handleChangeParam() {
+    if (router.getMatchedRoute?.path === "/tournament/:id")
+      eventBus.emit("change:tournament");
   },
   async handleStartTournament() {
     try {
