@@ -73,7 +73,7 @@ const GamesDashboard = defineComponent<GamesDashboardState>({
           ? createElement("div", {}, ["No Games Yet"])
           : createElement(
               "div",
-              { class: ["w-full", "gap-2"] },
+              { class: ["w-full", "gap-2", "mb-auto"] },
               this.state.games.slice(0, 4).map((e) => {
                 return createElement(
                   "div",
@@ -85,7 +85,8 @@ const GamesDashboard = defineComponent<GamesDashboardState>({
                       createElement("img", {
                         src: authState.getState().user?.avatar,
                         width: "64",
-                        class: ["rounded-full"],
+                        height: "64",
+                        class: ["rounded-full", "h-16"],
                       }),
                       createElement("span", { class: ["text-lg"] }, [
                         authState.getState().user?.username,
@@ -119,7 +120,8 @@ const GamesDashboard = defineComponent<GamesDashboardState>({
                       createElement("img", {
                         src: e.avatar,
                         width: "64",
-                        class: ["rounded-full"],
+                        height: "64",
+                        class: ["rounded-full", "h-16"],
                       }),
                     ]),
                   ]

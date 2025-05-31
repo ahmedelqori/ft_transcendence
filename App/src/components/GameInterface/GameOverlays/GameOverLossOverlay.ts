@@ -158,7 +158,7 @@ export const GameOverLossOverlay = defineComponent<void, GameOverLossOverlayProp
                   },
                 },
               },
-              ["GO TO DASHBOARD"]
+              [gameState.tournamentId && gameState.tournamentId != 0 ? "GO TO TOURNAMENT" : "GO TO DASHBOARD"]
             ),
           ]
         )

@@ -163,7 +163,7 @@ export const VictoryOverlay = defineComponent<void, VictoryOverlayProps>({
                   },
                 },
               },
-              ["GO TO DASHBOARD"]
+              [gameState.tournamentId && gameState.tournamentId != 0 ? "GO TO TOURNAMENT" : "GO TO DASHBOARD"]
             ),
           ]
         ),

@@ -76,7 +76,7 @@ export const UserCompo = defineComponent<void, UserCompoProps>({
           src: this.props.avatar_url || "/assets/default.webp",
           width: "25",
           height: "25",
-          class: ["rounded-full"],
+          class: ["rounded-full", "w-[25px]", "h-[25px]"],
         }),
         this.props.username.substring(0, 8),
       ]
