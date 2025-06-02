@@ -14,6 +14,7 @@ class NotifSystem {
     this.socket.onopen = () => {};
     this.socket.onmessage = (event) => {
       const data: any = JSON.parse(event.data);
+      console.log("===============> ", data);
       switch (data.type) {
         case "friendRequest":
           this.handleFriendRequest(data);
@@ -111,7 +112,8 @@ class NotifSystem {
     });
   }
   private handleReloadTournament() {
-    eventBus.emit("change:tournament");
+    if (router.getMatchedRoute?.path === "/tournament/:id")
+      eventBus.emit("change:tournament");
   }
   private async handlePlayGameFromTournament(data: any) {
     await router.navigateTo(`/game/${data.payload.id}`);

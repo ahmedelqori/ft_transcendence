@@ -1,34 +1,20 @@
 import GameInterface from "@/components/GameInterface/GameInterface.js";
-import Loader from "@/components/Loader/Loader";
-import { router } from "@/router/Router";
-import {
-  createElement,
-  defineComponent,
-  type IComponent,
-  eventBus,
-} from "@/uccello/Uccello.js";
+import { createElement, defineComponent, type IComponent, eventBus } from "@/uccello/Uccello.js";
 
-interface GameState {
-  change: boolean;
-}
-const Game = defineComponent<GameState>({
-  state() {
-    return { change: false };
-  },
-  onMounted(this: IComponent<GameState> & { handleChangeParam: () => void }) {
+// interface GameState {
+//   isLoading: boolean;
+// }
+const Game = defineComponent<void>({
+  state(): void {},
+  onMounted(this: IComponent<void>) {
     console.log("[Game] Component mounted");
     document.title = "Game";
     eventBus.emit("navigate:bar", { data: "/game" });
-    window.addEventListener("hashchange", this.handleChangeParam);
-    eventBus.on("change:game", () => {
-      this.updateState({ change: false });
-    });
   },
-  onUnMounted(this: IComponent<GameState> & { handleChangeParam: () => void }) {
-    window.removeEventListener("hashchange", this.handleChangeParam);
-  },
-  render(this: IComponent<GameState>) {
+
+  render(this: IComponent<void>) {
     console.log("[Game] Rendering game page");
+    
     const header = createElement(
       "div",
       {
@@ -87,16 +73,8 @@ const Game = defineComponent<GameState>({
           "items-start",
         ],
       },
-      this.state.change === false
-        ? [header, createElement(GameInterface)]
-        : [createElement(Loader)]
+      [header, createElement(GameInterface)]
     );
-  },
-  handleChangeParam(this: IComponent<GameState>) {
-    if (router.getMatchedRoute?.path === "/game/:id") {
-      this.updateState({ change: true });
-      eventBus.emit("change:game");
-    }
   },
 });
 
