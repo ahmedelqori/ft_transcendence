@@ -5,8 +5,4 @@ npm install
 
 npm run build
 
-ls  /
-
-ls /app
-
 while true; do sleep 3600; done
