@@ -21,7 +21,12 @@ const Game = defineComponent<GameState>({
     eventBus.emit("navigate:bar", { data: "/game" });
     window.addEventListener("hashchange", this.handleChangeParam);
     eventBus.on("change:game", () => {
-      this.updateState({ change: false });
+      console.log("Hello");
+      if (this.getIsMounted) this.updateState({ change: true });
+
+      setTimeout(() => {
+        if (this.getIsMounted) this.updateState({ change: false });
+      }, 400);
     });
   },
   onUnMounted(this: IComponent<GameState> & { handleChangeParam: () => void }) {
@@ -93,8 +98,7 @@ const Game = defineComponent<GameState>({
     );
   },
   handleChangeParam(this: IComponent<GameState>) {
-    if (router.getMatchedRoute?.path === "/game/:id") {
-      this.updateState({ change: true });
+    if (router.getMatchedRoute?.path === "/game/:gameId") {
       eventBus.emit("change:game");
     }
   },
