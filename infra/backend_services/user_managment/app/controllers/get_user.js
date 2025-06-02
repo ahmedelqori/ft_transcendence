@@ -77,7 +77,6 @@ export default async function get_user(req, res) {
     const { identifier } = req.params;
     let n = parseInt(identifier);
 
-    console.log("Identifier: ", identifier, "n: ", n);
     if (n != identifier) {
         n = identifier;
     }

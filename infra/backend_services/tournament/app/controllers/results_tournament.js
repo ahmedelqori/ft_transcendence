@@ -41,7 +41,9 @@ export default async function results_tournament(req, res) {
                     tournament_id: id,
                     round: 1
                 }).first().select('player_id')).player_id;
-                winner = await get_user(req, winner_id, id);
+                if (winner_id) {
+                    winner = await get_user(req, winner_id, id);
+                }
             }
 
             if (games[i].round == 2){

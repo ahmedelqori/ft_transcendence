@@ -1,9 +1,6 @@
 import { fastify } from "../server.js";
 import axios from "axios";
-// import { Agent } from "https";
-// const vaultAgent = new Agent({
-//   rejectUnauthorized: false
-// });
+import { startTournamentGameTimeout } from "./tournamentTimeout.js";
 
 export async function handleLocalGame(req, reply, playerOneId) {
   fastify.log.info(`Creating a local game for player ${playerOneId}`);
@@ -34,7 +31,8 @@ export async function handleTournamentGame(req, reply) {
     return reply.code(403).send({error: tournamentValid.message || "Tournament validation failed",});
   }
   try {
-    const tournamentGame = await req.server.prisma.game.create({data: {playerOneId, playerTwoId, tournementId, status: "ACCEPTED"}});
+    const tournamentGame = await req.server.prisma.game.create({data: {playerOneId, playerTwoId, tournementId, status: "ACCEPTED"}});    
+    startTournamentGameTimeout(req.token, tournamentGame.id);
     try {
       await sendTournamentGameInvitation(req, tournamentGame);
       fastify.log.info(`Tournament game invitation ${tournamentGame.id} sent to players ${playerOneId} and ${playerTwoId}`);
