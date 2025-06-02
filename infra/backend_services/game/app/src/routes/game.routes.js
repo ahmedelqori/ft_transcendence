@@ -2,8 +2,8 @@ import {
   getAllGames,
   getGameById,
   createGame,
-  updateGame,
-  cancelGame,
+  // updateGame,
+  // cancelGame,
   getUserGames,
   getCurrentGame
 } from "../controllers/game.controller.js";
@@ -194,68 +194,68 @@ export const gameRoutes = function (fastify, options, done) {
     createGame
   );
 
-  fastify.put(
-    "/:id",
-    {
-      schema: {
-        tags: ["games"],
-        summary: "Update game",
-        description: "Update game details like scores or status",
-        params: idSchema.schema.params,
-        body: {
-          type: "object",
-          properties: {
-            playerOneScore: { type: "integer" },
-            playerTwoScore: { type: "integer" },
-            status: {
-              type: "string",
-              enum: [
-                "PENDING",
-                "ACCEPTED",
-                "IN_PROGRESS",
-                "FINISHED",
-                "CANCELED",
-              ],
-            },
-            winnerId: { type: "integer" },
-          },
-        },
-        response: {
-          200: {
-            type: "object",
-            properties: {
-              game: responseGameSchema,
-            },
-          },
-          400: errorSchema,
-          403: errorSchema,
-          404: errorSchema,
-          500: errorSchema,
-        },
-      },
-    },
-    updateGame
-  );
+  // fastify.put(
+  //   "/:id",
+  //   {
+  //     schema: {
+  //       tags: ["games"],
+  //       summary: "Update game",
+  //       description: "Update game details like scores or status",
+  //       params: idSchema.schema.params,
+  //       body: {
+  //         type: "object",
+  //         properties: {
+  //           playerOneScore: { type: "integer" },
+  //           playerTwoScore: { type: "integer" },
+  //           status: {
+  //             type: "string",
+  //             enum: [
+  //               "PENDING",
+  //               "ACCEPTED",
+  //               "IN_PROGRESS",
+  //               "FINISHED",
+  //               "CANCELED",
+  //             ],
+  //           },
+  //           winnerId: { type: "integer" },
+  //         },
+  //       },
+  //       response: {
+  //         200: {
+  //           type: "object",
+  //           properties: {
+  //             game: responseGameSchema,
+  //           },
+  //         },
+  //         400: errorSchema,
+  //         403: errorSchema,
+  //         404: errorSchema,
+  //         500: errorSchema,
+  //       },
+  //     },
+  //   },
+  //   updateGame
+  // );
 
-  fastify.delete(
-    "/:id",
-    {
-      schema: {
-        tags: ["games"],
-        summary: "Cancel game",
-        description: "Cancel an ongoing game",
-        params: idSchema.schema.params,
-        response: {
-          200: responseGameSchema,
-          400: errorSchema,
-          403: errorSchema,
-          404: errorSchema,
-          500: errorSchema,
-        },
-      },
-    },
-    cancelGame
-  );
+  // fastify.delete(
+  //   "/:id",
+  //   {
+  //     schema: {
+  //       tags: ["games"],
+  //       summary: "Cancel game",
+  //       description: "Cancel an ongoing game",
+  //       params: idSchema.schema.params,
+  //       response: {
+  //         200: responseGameSchema,
+  //         400: errorSchema,
+  //         403: errorSchema,
+  //         404: errorSchema,
+  //         500: errorSchema,
+  //       },
+  //     },
+  //   },
+  //   cancelGame
+  // );
 
   fastify.put(
     "/accept/:id",
