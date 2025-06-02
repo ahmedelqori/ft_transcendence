@@ -176,7 +176,10 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
           }),
         });
       }
-      if (data.type === "newMessage")
+      if (
+        data.type === "newMessage" &&
+        data.message.senderId === this.props.userId
+      )
         this.updateState({
           messages: [
             ...this.state.messages,

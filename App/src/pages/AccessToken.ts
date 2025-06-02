@@ -23,6 +23,7 @@ const AccessToken = defineComponent({
 
       if (res.status === 401) throw "Unauthorized";
       const data = await res.json();
+      console.log(data);
       localStorage.setItem("access_token", data.access_token);
       const response = await enhancedFetch.fetch(
         `${import.meta.env.VITE_URL_DEV}/api/account/whoami/`
