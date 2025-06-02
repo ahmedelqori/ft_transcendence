@@ -1,7 +1,7 @@
 import { router } from "@/router/Router";
 import { createElement, defineComponent } from "@/uccello/Uccello";
 
-const LocalDashboard = defineComponent({
+const  LocalDashboard = defineComponent({
   render() {
     return createElement(
       "div",

@@ -2435,7 +2435,10 @@ export class HashRouter {
    * @param path - The path to push to the history.
    */
   private pushState(path: string) {
-    window.history.pushState({}, "", `#${path}`);
+    const newHash = `#${path}`;
+
+    if (window.location.hash !== newHash)
+      window.history.pushState({ path }, "", newHash);
   }
 
   /**
