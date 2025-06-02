@@ -12,7 +12,6 @@ const LocalDashboard = defineComponent({
         class: [
           "w-2/5",
           "h-full",
-          "absolute",
           "top-0",
           "left-0",
           "rounded-tl-[30px]",
@@ -21,10 +20,10 @@ const LocalDashboard = defineComponent({
           "border-[#878787]",
           "border-opacity-[30%]",
           "items-start",
-          "relative",
           "bg-[linear-gradient(188deg,rgba(221,242,71,0.02)_0%,rgba(135,135,135,0.02)_100%)]",
-          "hover:bg-[linear-gradient(188deg,rgba(221,242,71,0.10)_0%,rgba(135,135,135,0.10)_100%)]",
+          // "hover:bg-[linear-gradient(188deg,rgba(221,242,71,0.10)_0%,rgba(135,135,135,0.10)_100%)]",
           "justify-start",
+          "relative",
         ],
       },
       [
@@ -47,7 +46,7 @@ const LocalDashboard = defineComponent({
               "mb-auto",
             ],
           },
-          ["Grab a friend and settle"]
+          ["Challenge your friend in a local ping pong match"]
         ),
         createElement(
           "button",
@@ -55,7 +54,9 @@ const LocalDashboard = defineComponent({
             class: [
               "px-8",
               "py-2",
-              "ml-24",
+              "ml-auto",
+              "mr-28",
+              "mb-8",
               "border-[2px]",
               "items-center",
               "text-black",

@@ -1,12 +1,29 @@
 import { authState } from "@/Hooks/Auth";
+import enhancedFetch from "@/Hooks/fetch";
 import { createElement, defineComponent, IComponent } from "@/uccello/Uccello";
 
-interface FriendDashboardProps {
+interface FriendDashboardState {
+  friend: any;
   friends: any[];
+  user: any;
 }
 
-const FriendDashboard = defineComponent({
-  render(this:IComponent<FriendDashboardProps>) {
+const FriendDashboard = defineComponent<FriendDashboardState>({
+  async onMounted(
+    this: IComponent<FriendDashboardState> & {
+      handleGetFriends: () => Promise<void>;
+    }
+  ) {
+    await this.handleGetFriends();
+  },
+  state() {
+    return { friend: null, friends: [], user: null };
+  },
+  render(
+    this: IComponent<FriendDashboardState> & {
+      getRandomFriend: () => Promise<void>;
+    }
+  ) {
     return createElement(
       "div",
       {
@@ -26,6 +43,11 @@ const FriendDashboard = defineComponent({
           "bg-[linear-gradient(188deg,rgba(221,242,71,0.02)_0%,rgba(135,135,135,0.02)_100%)]",
           "hover:bg-[linear-gradient(188deg,rgba(221,242,71,0.10)_0%,rgba(135,135,135,0.10)_100%)]",
         ],
+        on: {
+          click: () => {
+            this.getRandomFriend();
+          },
+        },
       },
       [
         createElement("i", {
@@ -63,7 +85,11 @@ const FriendDashboard = defineComponent({
               "z-30",
             ],
           },
-          ["Unknown".substring(0, 8)]
+          [
+            this.state.user === null
+              ? "Unknown".substring(0, 8)
+              : this.state.user.username.substring(0, 8),
+          ]
         ),
         createElement(
           "p",
@@ -99,6 +125,39 @@ const FriendDashboard = defineComponent({
         ),
       ]
     );
+  },
+  async handleGetFriends(this: IComponent<FriendDashboardState>) {
+    try {
+      const res = await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/friends/`
+      );
+      const data = await res.json();
+      setTimeout(() => {
+        if (this.getIsMounted) {
+          this.updateState({ friends: data });
+        }
+      }, 500);
+    } catch (err) {
+      console.log(err);
+    }
+  },
+  async getRandomFriend(this: IComponent<FriendDashboardState>) {
+    const user =
+      this.state.friends[Math.floor(Math.random() * this.state.friends.length)];
+    if (this.getIsMounted) {
+      this.updateState({ user });
+    }
+    try {
+      await enhancedFetch.fetch(`${import.meta.env.VITE_URL_DEV}/api/games/`, {
+        method: "POST",
+        body: JSON.stringify({ playerTwoId: this.state.user.id }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    } catch (err) {
+      console.log(err);
+    }
   },
 });
 
