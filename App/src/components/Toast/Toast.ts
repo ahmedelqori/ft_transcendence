@@ -487,6 +487,7 @@ export const inviteToTournament = defineComponent({
           "Content-Type": "application/json",
         },
       });
+      console.log(`========== ${this.props.tournamentId} ===========`);
       await router.navigateTo(`/tournament/${this.props.tournamentId}`);
     } catch (err) {
       console.log(err);
