@@ -23,7 +23,7 @@ export const fastify = Fastify({
 
 fastify.register(cors, {
   credentials: true,
-  origin: ["http://localhost:5500"],
+  origin: ["http://10.12.8.2:5500"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization", "userid"],
   exposedHeaders: ["Authorization"],

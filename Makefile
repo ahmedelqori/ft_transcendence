@@ -86,6 +86,6 @@ shell:
 restart:
 	docker stop $(c)
 	docker  rm $(c)
-	docker image rm app_$(c)
+	docker image rm app-$(c)
 	$(CMD) up -d
 # docker container ls | grep $(c) | awk '{print $$1}' | xargs docker container stop

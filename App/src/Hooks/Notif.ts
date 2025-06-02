@@ -77,7 +77,7 @@ class NotifSystem {
   }
   private async getUserData(id: number) {
     const response = await enhancedFetch.fetch(
-      `https://www.meedivo.me/api/account/${id}`
+      `${import.meta.env.VITE_URL_DEV}/api/account/${id}`
     );
     return await response.json();
   }

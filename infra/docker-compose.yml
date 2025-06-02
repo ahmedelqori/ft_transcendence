@@ -2,59 +2,14 @@ volumes:
   # vault_database:
   temp_env:
   framework_build:
-    driver: local
-    driver_opts:
-      type: none
-      device: ../volumes/framework_build
-      o: bind
   user_managment_database:
-    driver: local
-    driver_opts:
-      type: none
-      device: ../volumes/user_managment_database
-      o: bind
   profile_images:
-    driver: local
-    driver_opts:
-      type: none
-      device: ../volumes/profile_images
-      o: bind
   friendship_database:
-      driver: local
-      driver_opts:
-        type: none
-        device: ../volumes/friendship_database
-        o: bind
   2fa_database:
-    driver: local
-    driver_opts:
-      type: none
-      device: ../volumes/2fa_database
-      o: bind
   notification_database:
-    driver: local
-    driver_opts:
-      type: none
-      device: ../volumes/notification_database
-      o: bind
   tournament_database:
-    driver: local
-    driver_opts:
-      type: none
-      device: ../volumes/tournament_database
-      o: bind
   chatlive_database:
-    driver: local
-    driver_opts:
-      type: none
-      device: ../volumes/chatlive_database
-      o: bind
   game_database:
-    driver: local
-    driver_opts:
-      type: none
-      device: ../volumes/game_database
-      o: bind
 
 networks:
   appNet:
@@ -82,7 +37,7 @@ services:
     container_name: nginx-modsecurity
     build: ./nginx-modsecurity/.
     ports:
-      - "443:443"
+      - "8081:443"
     networks:
       - appNet
     restart: always

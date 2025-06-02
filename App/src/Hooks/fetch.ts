@@ -32,6 +32,7 @@ enhancedFetch.addRequestInterceptor((request) => {
 enhancedFetch.addResponseInterceptor(async (response) => {
   if (!response.ok && response.status == 401) {
     try {
+      console.log("Cookie:", document.cookie);
       console.log(getCookie("refresh_token"));
       const res = await fetch(
         `${import.meta.env.VITE_URL_DEV}/api/account/login/refresh/`,
