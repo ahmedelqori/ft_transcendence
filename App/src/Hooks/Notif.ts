@@ -16,7 +16,7 @@ class NotifSystem {
       const data: any = JSON.parse(event.data);
       switch (data.type) {
         case "friendRequest":
-          this.handleFriendRequest(data.payload.senderId);
+          this.handleFriendRequest(data);
           break;
         case "directMessage":
           this.handleMessageRequest(data.payload.senderId);
@@ -48,14 +48,14 @@ class NotifSystem {
     };
     this.socket.onclose = () => {};
   }
-  private async handleFriendRequest(id: number) {
+  private async handleFriendRequest(req: any) {
     try {
-      const data = await this.getUserData(id);
-
+      const data = await this.getUserData(req.payload.senderId);
       eventBus.emit("notif:requestReceived", {
         username: data.username,
         avatar: data.avatar_url,
-        id: id,
+        id: req.payload.senderId,
+        notifId: req.id,
       });
     } catch (err) {
       console.log("Error::handleFriendRequest - ", err);

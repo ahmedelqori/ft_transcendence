@@ -17,6 +17,7 @@ interface RequestReceivedParams {
   username: string;
   avatar: string;
   id: number;
+  notifId: number;
 }
 
 interface DirectMessageParams {
@@ -41,6 +42,7 @@ const Toast = defineComponent<ToastState>({
           avatar: data.avatar,
           username: data.username,
           id: data.id,
+          notifId: data.notifId,
         }),
       });
       setTimeout(() => {
@@ -165,6 +167,7 @@ interface FriendRequestProps {
   avatar: any;
   username: string;
   id: number;
+  notifId: number;
 }
 
 export const FriendRequest = defineComponent<void, FriendRequestProps>({
@@ -244,7 +247,11 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
       ]
     );
   },
-  async handleAcceptRequest(this: IComponent<void, FriendRequestProps>) {
+  async handleAcceptRequest(
+    this: IComponent<void, FriendRequestProps> & {
+      handleRemoveNotif: () => Promise<void>;
+    }
+  ) {
     try {
       await enhancedFetch.fetch(
         `${import.meta.env.VITE_URL_DEV}/api/friends/${
@@ -254,11 +261,16 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
       );
       eventBus.emit("update:friends");
       eventBus.emit("reset:notif");
+      await this.handleRemoveNotif();
     } catch (err) {
       console.log(err);
     }
   },
-  async handleDeclineRequest(this: IComponent<void, FriendRequestProps>) {
+  async handleDeclineRequest(
+    this: IComponent<void, FriendRequestProps> & {
+      handleRemoveNotif: () => Promise<void>;
+    }
+  ) {
     console.log(this.props);
     try {
       await enhancedFetch.fetch(
@@ -268,9 +280,18 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
         { method: "POST" }
       );
       eventBus.emit("reset:notif");
+      await this.handleRemoveNotif();
     } catch (err) {
       console.log(err);
     }
+  },
+  async handleRemoveNotif(this: IComponent<void, FriendRequestProps>) {
+    try {
+      await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/notif/${this.props.notifId}`,
+        { method: "DELETE" }
+      );
+    } catch (err) {}
   },
 });
 

@@ -248,7 +248,7 @@ const TournamentBracket = defineComponent<
                             index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
@@ -313,7 +313,7 @@ const TournamentBracket = defineComponent<
                             index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
@@ -387,7 +387,7 @@ const TournamentBracket = defineComponent<
                             index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
@@ -461,7 +461,7 @@ const TournamentBracket = defineComponent<
                             index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
@@ -526,7 +526,7 @@ const TournamentBracket = defineComponent<
                                       e.id ==
                                       this.state.rounds["round4" as any]?.[i]
                                         .game.playerOneId
-                                  )?.username,
+                                  )?.nickname,
                                   id: this.state.rounds["round4" as any]?.[i]
                                     .game.playerOneId,
                                   avatar_url: this.state.players.find(
@@ -544,7 +544,7 @@ const TournamentBracket = defineComponent<
                                 index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
@@ -619,7 +619,7 @@ const TournamentBracket = defineComponent<
                                       e.id ==
                                       this.state.rounds["round4" as any]?.[i]
                                         .game.playerTwoId
-                                  )?.username,
+                                  )?.nickname,
                                   id: this.state.rounds["round4" as any]?.[i]
                                     .game.playerTwo,
                                   avatar_url: this.state.players.find(
@@ -637,7 +637,7 @@ const TournamentBracket = defineComponent<
                                 index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
@@ -693,7 +693,7 @@ const TournamentBracket = defineComponent<
                                     e.id ==
                                     this.state.rounds["round4" as any][0].game
                                       .winnerId
-                                )?.username,
+                                )?.nickname,
                                 id: this.state.rounds["round4" as any][0].game
                                   .winnerId,
                                 avatar_url: this.state.players.find(
@@ -763,7 +763,7 @@ const TournamentBracket = defineComponent<
                             index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
@@ -833,7 +833,7 @@ const TournamentBracket = defineComponent<
                             index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
@@ -912,7 +912,7 @@ const TournamentBracket = defineComponent<
                             index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
@@ -991,7 +991,7 @@ const TournamentBracket = defineComponent<
                             index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
@@ -1061,7 +1061,7 @@ const TournamentBracket = defineComponent<
                                       e.id ==
                                       this.state.rounds["round4" as any]?.[1]
                                         .game.playerOneId
-                                  )?.username,
+                                  )?.nickname,
                                   id: this.state.rounds["round4" as any]?.[1]
                                     .game.playerOneId,
                                   avatar_url: this.state.players.find(
@@ -1079,7 +1079,7 @@ const TournamentBracket = defineComponent<
                                 index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
@@ -1159,7 +1159,7 @@ const TournamentBracket = defineComponent<
                                       e.id ==
                                       this.state.rounds["round4" as any]?.[1]
                                         .game.playerTwoId
-                                  )?.username,
+                                  )?.nickname,
                                   id: this.state.rounds["round4" as any]?.[1]
                                     .game.playerTwoId,
                                   avatar_url: this.state.players.find(
@@ -1177,7 +1177,7 @@ const TournamentBracket = defineComponent<
                                 index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
@@ -1221,7 +1221,7 @@ const TournamentBracket = defineComponent<
                         "border-2",
                         "border-[#878787]",
                         "border-opacity-[30%]",
-                        "scale-x-[-1]",
+                        // "scale-x-[-1]",
                       ],
                     },
                     [
@@ -1239,7 +1239,7 @@ const TournamentBracket = defineComponent<
                                     e.id ==
                                     this.state.rounds["round4" as any][1].game
                                       .winnerId
-                                )?.username,
+                                )?.nickname,
                                 id: this.state.rounds["round4" as any][1].game
                                   .winnerId,
                                 avatar_url: this.state.players.find(
@@ -1250,7 +1250,11 @@ const TournamentBracket = defineComponent<
                                 )?.avatar_url,
                                 invert: true,
                               })
-                            : "Final",
+                            : createElement(
+                                "div",
+                                { class: ["scale-x-[-1]"] },
+                                ["Final"]
+                              ),
                         ]
                       ),
                     ]

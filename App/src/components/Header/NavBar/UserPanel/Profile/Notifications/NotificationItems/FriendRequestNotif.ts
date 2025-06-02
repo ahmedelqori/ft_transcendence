@@ -6,6 +6,7 @@ interface FriendRequestNotifProps {
   avatar: string;
   id: number;
   notifId: number;
+  deleteNotif: (id: number) => void;
 }
 
 const FriendRequestNotif = defineComponent<void, FriendRequestNotifProps>({
@@ -110,6 +111,7 @@ const FriendRequestNotif = defineComponent<void, FriendRequestNotifProps>({
         `${import.meta.env.VITE_URL_DEV}/api/notif/${this.props.notifId}`,
         { method: "DELETE" }
       );
+      this.props.deleteNotif(this.props.notifId);
     } catch (err) {
       console.log(err);
     }

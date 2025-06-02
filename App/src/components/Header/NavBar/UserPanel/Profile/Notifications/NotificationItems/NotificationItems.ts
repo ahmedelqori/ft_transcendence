@@ -69,9 +69,15 @@ const NotificationItems = defineComponent<NotificationItemsState>({
                   id: info.Sender.id,
                   avatar: info.Sender.avatar_url,
                   notifId: info.id,
+                  deleteNotif: (id: number) => {
+                    this.updateState({
+                      Notifications: this.state.Notifications.filter(
+                        (e) => e.id != id
+                      ),
+                    });
+                  },
                 });
             }
-            // return createFragment([]);
           })
     );
   },
