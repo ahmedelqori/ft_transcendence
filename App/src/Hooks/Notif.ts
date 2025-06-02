@@ -14,6 +14,7 @@ class NotifSystem {
     this.socket.onopen = () => {};
     this.socket.onmessage = (event) => {
       const data: any = JSON.parse(event.data);
+      console.log("===============> ", data);
       switch (data.type) {
         case "friendRequest":
           this.handleFriendRequest(data);
