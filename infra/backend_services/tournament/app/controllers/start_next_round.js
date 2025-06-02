@@ -7,12 +7,9 @@ async function reload_tournament(req, id) {
     const players = await tournament_players.query()
         .where('tournament_id', id)
         .select('player_id');
-    console.log("Joined player: ", req.user.id);
     players.forEach(async (e) => {
-        if (e.player_id != req.user.id) {
-            console.log(`Reloading tournament for player ${e.player_id}`);
-            await notif(req, e.player_id, 'reloadTournament', {});
-        }
+        console.log(`Reloading tournament for player ${e.player_id}`);
+        await notif(req, e.player_id, 'reloadTournament', {});
     });
 }
 
@@ -53,10 +50,9 @@ export default async function start_next_round(req, res) {
             status: 'COMPLETE'
             // status: 'FINISHED'
         });
-        reload_tournament(req, tournementId);
-        res.status(200);
-        return;
     }
+
+    reload_tournament(req, tournementId);
 
     // check if all games are finished start createing the next round
     // const players = await tournament_players.query().where({

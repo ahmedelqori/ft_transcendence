@@ -3,12 +3,13 @@ import axios from 'axios';
 
 
 async function update_user_status(req, status) {
+    const authorization = req.query?.authorization;
     try {
         await axios.patch(process.env.UPDATE_USER_STATUS, {
             status,
         }, {
             headers: {
-                Authorization: `Bearer ${req.query.authorization}`,
+                Authorization: `Bearer ${authorization}`,
             },
         });
     }

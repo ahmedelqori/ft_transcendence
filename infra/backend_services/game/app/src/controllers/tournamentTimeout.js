@@ -63,12 +63,12 @@ async function handleTournamentGameTimeout(token, gameId) {
 
 async function notifyTournamentGameFinished(token, game) {
   try {
-    await axios.post(`${process.env.TOURNAMENT_URL}game/finished`, {
+    await axios.post(`${process.env.TOURNAMENT_URL}next-round`, {
       game: game
     }, {
       headers: {
         Authorization: `${token}`,
-        // Origin: process.env.ORIGIN
+        Origin: process.env.ORIGIN
       }
     });
   } catch (error) {
