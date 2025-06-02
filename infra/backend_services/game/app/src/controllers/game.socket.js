@@ -555,11 +555,11 @@ async function handleTournamentLastPlayerWin(gameRoom, gameId, winnerId, winnerP
   
   let playerOneScore, playerTwoScore;
   if (game.playerOneId === winnerId) {
-    playerOneScore = winnerPosition === "left" ? 10 : 0;
-    playerTwoScore = winnerPosition === "left" ? 0 : 10;
+    playerOneScore = 10;
+    playerTwoScore = 0;
   } else {
-    playerOneScore = winnerPosition === "left" ? 0 : 10;
-    playerTwoScore = winnerPosition === "left" ? 10 : 0;
+    playerOneScore = 0;
+    playerTwoScore = 10;
   }
   
   const updateData = {
@@ -847,13 +847,12 @@ async function handleForfeitTimeout(gameId, firstPlayerId, gameRoom) {
       return;
     }
     let playerOneScore, playerTwoScore;
-    const firstPlayerPosition = gameRoom.players[firstPlayerId]?.position || "left";
     if (game.playerOneId === firstPlayerId) {
-      playerOneScore = firstPlayerPosition === "left" ? 10 : 0;
-      playerTwoScore = firstPlayerPosition === "left" ? 0 : 10;
+      playerOneScore = 10;
+      playerTwoScore = 0;
     } else {
-      playerOneScore = firstPlayerPosition === "left" ? 0 : 10;
-      playerTwoScore = firstPlayerPosition === "left" ? 10 : 0;
+      playerOneScore = 0;
+      playerTwoScore = 10;
     }
     const updateData = {
       endedAt: new Date(),
