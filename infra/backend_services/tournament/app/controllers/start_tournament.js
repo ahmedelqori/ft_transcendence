@@ -64,6 +64,7 @@ export default async function start_tournament(req, res) {
             }
         }
         else {
+            console.log("AAAAAAAAAAAAAAAAA: ", round , players.length , players.length);
             return res.status(400).send({error: 'Not enough players to create next round or already started'});
         }
         return res.send({message: 'tournament create next round successfully'});

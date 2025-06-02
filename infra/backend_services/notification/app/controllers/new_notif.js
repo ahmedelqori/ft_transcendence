@@ -37,6 +37,8 @@ export default async function new_notif(req, res) {
             }
         }
         
+        console.log('New notification in new_motif:', notification);
+
         notification.user = req.user;
         ev.emit('new_notif', notification);
 
