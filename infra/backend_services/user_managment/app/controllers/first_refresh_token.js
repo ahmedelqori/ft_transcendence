@@ -19,9 +19,9 @@ export default async function first_refresh_token(req, res) {
 
     res
         .setCookie('refresh_token', jwt_refresh_token, {
-            secure: true,
-            sameSite: 'None',
-	    	path: '/',
+            // secure: true,
+            // sameSite: 'None',
+	    	// path: '/',
         })
         .status(200)
         .send({
