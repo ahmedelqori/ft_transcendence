@@ -17,13 +17,14 @@ export const VictoryOverlay = defineComponent<void, VictoryOverlayProps>({
   render(this: IComponent<void, VictoryOverlayProps>) {
     const { score, visible = true, gameState } = this.props;
 
+    if (!visible) {
+      return createElement("div", { style: { display: "none" } });
+    }
+    
     if (gameState.tournamentId && gameState.tournamentId !== 0) {
       setTimeout(async () => {
         await router.navigateTo(`/tournament/${gameState.tournamentId}`);
       }, 500);
-    }
-    if (!visible) {
-      return createElement("div", { style: { display: "none" } });
     }
 
     const handleGoToPage = async (link: string) => {
