@@ -481,6 +481,75 @@ function handleDisconnectByGameState(gameRoom, socket, closeCode) {
   }
 }
 
+async function handleGameForfeit(gameId, winnerId, gameRoom) {
+  try {
+    const game = gameRoom.gameData || await fastify.prisma.game.findUnique({
+      where: { id: gameId },
+    });
+    if (!game) {
+      fastify.log.error(`Game ${gameId} not found in database during forfeit`);
+      return;
+    }
+    const winnerPosition = gameRoom.players[winnerId]?.position || gameRoom.disconnectedPlayers[winnerId]?.position || "left";    
+    gameRoom.gameState.state = Game.FINISHED;
+    gameRoom.gameState.winner = winnerPosition;
+    gameRoom.endedAt = new Date();    
+    if (winnerPosition === "left") {
+      gameRoom.gameState.score.left = 10;
+      gameRoom.gameState.score.right = 0;
+    } else {
+      gameRoom.gameState.score.left = 0;
+      gameRoom.gameState.score.right = 10;
+    }    
+    let playerOneScore, playerTwoScore;
+    if (game.playerOneId === winnerId) {
+      playerOneScore = 10;
+      playerTwoScore = 0;
+    } else {
+      playerOneScore = 0;
+      playerTwoScore = 10;
+    }    
+    const updateData = {
+      endedAt: new Date(),
+      playerOneScore: playerOneScore,
+      playerTwoScore: playerTwoScore,
+      status: "FINISHED",
+      winnerId: winnerId
+    };
+    const updatedGame = await fastify.prisma.game.update({
+      where: { id: gameId },
+      data: updateData
+    });
+    fastify.log.info(`Game ${gameId} updated - player ${winnerId} wins by ${reason} with score ${playerOneScore}-${playerTwoScore}`);    
+    broadcastAll(gameId, Message("gameFinished", {
+      gameState: {...gameRoom.gameState, gameId: gameId, tournamentId: game?.tournementId || 0},
+      message: "You win by forfeit!",
+      forfeit: true,
+      winnerId: winnerId,
+      tournamentId: updatedGame.tournementId
+    }));    
+    if (updatedGame.tournementId) {
+      try {
+        await notifyGameFinished(TOKEN, {...game, ...updatedGame});
+        fastify.log.info(`Tournament ${updatedGame.tournementId} notified about ${reason} in game ${gameId}`);
+      } catch (error) {
+        fastify.log.error(`Failed to notify tournament service: ${error.message}`);
+      }
+    }    
+    setTimeout(() => {
+      try {
+        gameRooms.delete(gameId);
+        connections.delete(gameId);
+        fastify.log.debug(`Game ${gameId} resources cleaned up after ${reason}`);
+      } catch (cleanupError) {
+        fastify.log.error(`Error during game cleanup after ${reason}: ${cleanupError.message}`);
+      }
+    }, CLEANUP);
+  } catch (error) {
+    fastify.log.error(`Error handling ${reason} for game ${gameId}: ${error.message}`);
+  }
+}
+
 function handleEarlyDisconnect(gameRoom, socket) {
   const userId = socket.userId;
   const gameId = socket.gameId;  
@@ -490,9 +559,18 @@ function handleEarlyDisconnect(gameRoom, socket) {
     fastify.log.info(`Forfeit timer cleared due to player ${userId} disconnect in game ${gameId}`);
   }
   if (gameRoom.players[userId]) {
-    delete gameRoom.players[userId];
-    fastify.log.info(`Removed player ${userId} from the game ${gameId}`);
-    broadcast(gameId, userId, Message("playerLeft", {message: "Opponent left the game", userId: userId,}));
+    const remainingPlayers = Object.keys(gameRoom.players).filter(id => id !== userId);    
+    if (remainingPlayers.length > 0) {
+      const winnerId = remainingPlayers[0];
+      handleGameForfeit(gameId, winnerId, gameRoom);
+    } else {
+      delete gameRoom.players[userId];
+      fastify.log.info(`Removed player ${userId} from the game ${gameId}`);
+    }
+    broadcast(gameId, userId, Message("playerLeft", {
+      message: "Opponent left the game", 
+      userId: userId,
+    }));
   }
 }
 
@@ -541,60 +619,7 @@ async function handleLastPlayerDisconnect(gameRoom, socket) {
 }
 
 async function handleTournamentLastPlayerWin(gameRoom, gameId, winnerId, winnerPosition, game) {
-  gameRoom.gameState.state = Game.FINISHED;
-  gameRoom.gameState.winner = winnerPosition;
-  gameRoom.endedAt = new Date();
-  
-  if (winnerPosition === "left") {
-    gameRoom.gameState.score.left = 10;
-    gameRoom.gameState.score.right = 0;
-  } else {
-    gameRoom.gameState.score.left = 0;
-    gameRoom.gameState.score.right = 10;
-  }
-  
-  let playerOneScore, playerTwoScore;
-  if (game.playerOneId === winnerId) {
-    playerOneScore = 10;
-    playerTwoScore = 0;
-  } else {
-    playerOneScore = 0;
-    playerTwoScore = 10;
-  }
-  
-  const updateData = {
-    endedAt: new Date(),
-    playerOneScore: playerOneScore,
-    playerTwoScore: playerTwoScore,
-    status: "FINISHED",
-    winnerId: winnerId
-  };
-  
-  const updatedGame = await fastify.prisma.game.update({
-    where: { id: gameId },
-    data: updateData
-  });
-  
-  fastify.log.info(`Tournament game ${gameId} updated - player ${winnerId} wins by being last to disconnect with score ${playerOneScore}-${playerTwoScore}`);
-  
-  broadcastAll(gameId, Message("gameFinished", {
-      gameState: {...gameRoom.gameState, tournamentId: game.tournementId},
-      message: `Tournament game ended - you win by being the last player remaining!`,
-      reason: "lastPlayerWins",
-      forfeit: true,
-      winnerId: winnerId,
-      tournamentId: updatedGame.tournementId
-    })
-  );
-  
-  if (updatedGame.tournementId) {
-    try {
-      await notifyGameFinished(TOKEN, {...game, ...updatedGame});
-      fastify.log.info(`Tournament ${updatedGame.tournementId} notified about last-player-wins game ${gameId}`);
-    } catch (error) {
-      fastify.log.error(`Failed to notify tournament service: ${error.message}`);
-    }
-  }
+  await handleGameForfeit(gameId, winnerId, gameRoom);
 }
 
 async function handleRegularGameCancel(gameRoom, gameId, game) {
@@ -828,71 +853,8 @@ function validateGameAndPlayer(gameId, userId, socket, action) {
 async function handleForfeitTimeout(gameId, firstPlayerId, gameRoom) {
   try {
     const playerCount = Object.keys(gameRoom.players).length;
-    if (playerCount >= 2 || gameRoom.gameState.state !== Game.START) return;    
-    gameRoom.gameState.state = Game.FINISHED;
-    gameRoom.gameState.winner = gameRoom.players[firstPlayerId]?.position || "left";
-    gameRoom.endedAt = new Date();
-    if (gameRoom.gameState.winner === "left") {
-      gameRoom.gameState.score.left = 10;
-      gameRoom.gameState.score.right = 0;
-    } else {
-      gameRoom.gameState.score.left = 0;
-      gameRoom.gameState.score.right = 10;
-    }
-    const game = gameRoom.gameData || await fastify.prisma.game.findUnique({
-      where: { id: gameId },
-    });
-    if (!game) {
-      fastify.log.error(`Game ${gameId} not found in database during forfeit`);
-      return;
-    }
-    let playerOneScore, playerTwoScore;
-    if (game.playerOneId === firstPlayerId) {
-      playerOneScore = 10;
-      playerTwoScore = 0;
-    } else {
-      playerOneScore = 0;
-      playerTwoScore = 10;
-    }
-    const updateData = {
-      endedAt: new Date(),
-      playerOneScore: playerOneScore,
-      playerTwoScore: playerTwoScore,
-      status: "FINISHED",
-      winnerId: firstPlayerId
-    };
-
-    const updatedGame = await fastify.prisma.game.update({
-      where: { id: gameId },
-      data: updateData
-    });
-    fastify.log.info(`Game ${gameId} updated in database - player ${firstPlayerId} wins by forfeit with score ${playerOneScore}-${playerTwoScore}`);
-    broadcastAll(gameId, Message("gameFinished", {
-      gameState: {...gameRoom.gameState, gameId: gameId, tournamentId: game?.tournementId || 0},
-      message: "You win by forfeit! Your opponent didn't join within 30 seconds.",
-      reason: "forfeit",
-      forfeit: true,
-      winnerId: firstPlayerId,
-      tournamentId: updatedGame.tournementId
-    }));
-    if (updatedGame.tournementId) {
-      try {
-        await notifyGameFinished(TOKEN, {...game, ...updatedGame});
-        fastify.log.info(`Tournament ${updatedGame.tournementId} notified about forfeit win in game ${gameId}`);
-      } catch (error) {
-        fastify.log.error(`Failed to notify tournament service: ${error.message}`);
-      }
-    }
-    setTimeout(() => {
-      try {
-        gameRooms.delete(gameId);
-        connections.delete(gameId);
-        fastify.log.debug(`Game ${gameId} resources cleaned up after forfeit`);
-      } catch (cleanupError) {
-        fastify.log.error(`Error during game cleanup after forfeit: ${cleanupError.message}`);
-      }
-    }, CLEANUP);
-
+    if (playerCount >= 2 || gameRoom.gameState.state !== Game.START) return;
+    await handleGameForfeit(gameId, firstPlayerId, gameRoom);
   } catch (error) {
     fastify.log.error(`Error handling forfeit timeout for game ${gameId}: ${error.message}`);
   }
