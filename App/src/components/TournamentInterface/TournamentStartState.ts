@@ -61,7 +61,7 @@ const TournamentStartState = defineComponent<
               maxplayers: e.total_places,
               currentplayers: e.total_players,
               id: e.id,
-              nickname: e.nickname,
+              nickname: e.owner.nickname,
               status: e.status,
             };
           }),

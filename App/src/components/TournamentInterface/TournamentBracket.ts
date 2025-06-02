@@ -152,53 +152,99 @@ const TournamentBracket = defineComponent<
                 ),
               ]
             ),
-            createElement(
-              "div",
-              {
-                class: [
-                  "absolute",
-                  "right-[-26px]",
-                  "top-[-41px]",
-                  "bg-opacity-1",
-                  "py-2",
-                  "text-black",
-                  "font-medium",
-                  "text-lg",
-                  "flex-row",
-                ],
-                on: {
-                  click: async () => {
-                    await this.handleLeaveTournament();
-                    await router.navigateTo("/tournament");
-                  },
-                },
-              },
-              [
-                createElement(
-                  "button",
+            this.state.status === "CREATED"
+              ? createElement(
+                  "div",
                   {
                     class: [
-                      "rounded-br-none",
-                      "rounded-tl-none",
-                      "border-2",
-                      "text-[var(--main-color)]",
-                      "w-[120px]",
-                      "bg-[var(--red-color)]",
-                      "border-[#878787]",
-                      "border-opacity-[30%]",
-                      "rounded-[33px]",
-                      "tracking-wide",
-                      "h-12",
+                      "absolute",
+                      "right-[-26px]",
+                      "top-[-41px]",
+                      "bg-opacity-1",
+                      "py-2",
+                      "text-black",
+                      "font-medium",
+                      "text-lg",
+                      "flex-row",
                     ],
+                    on: {
+                      click: async () => {
+                        await this.handleLeaveTournament();
+                        await router.navigateTo("/tournament");
+                      },
+                    },
                   },
                   [
-                    this.state.owner === authState.getState().user?.id!
-                      ? `Delete`
-                      : "Leave",
+                    createElement(
+                      "button",
+                      {
+                        class: [
+                          "rounded-br-none",
+                          "rounded-tl-none",
+                          "border-2",
+                          "text-[var(--main-color)]",
+                          "w-[120px]",
+                          "bg-[var(--red-color)]",
+                          "border-[#878787]",
+                          "border-opacity-[30%]",
+                          "rounded-[33px]",
+                          "tracking-wide",
+                          "h-12",
+                        ],
+                      },
+                      [
+                        this.state.owner === authState.getState().user?.id!
+                          ? `Delete`
+                          : "Leave",
+                      ]
+                    ),
                   ]
-                ),
-              ]
-            ),
+                )
+              : this.state.owner === authState.getState().user?.id!
+              ? createElement(
+                  "div",
+                  {
+                    class: [
+                      "absolute",
+                      "right-[-26px]",
+                      "top-[-41px]",
+                      "bg-opacity-1",
+                      "py-2",
+                      "text-black",
+                      "font-medium",
+                      "text-lg",
+                      "flex-row",
+                    ],
+                    on: {
+                      click: async () => {
+                        await this.handleLeaveTournament();
+                        await router.navigateTo("/tournament");
+                      },
+                    },
+                  },
+                  [
+                    createElement(
+                      "button",
+                      {
+                        class: [
+                          "rounded-br-none",
+                          "rounded-tl-none",
+                          "border-2",
+                          "text-[var(--main-color)]",
+                          "w-[120px]",
+                          "bg-[var(--red-color)]",
+                          "border-[#878787]",
+                          "border-opacity-[30%]",
+                          "rounded-[33px]",
+                          "tracking-wide",
+                          "h-12",
+                        ],
+                      },
+                      [`Delete`]
+                    ),
+                  ]
+                )
+              : null,
             createElement(
               "div",
               {
