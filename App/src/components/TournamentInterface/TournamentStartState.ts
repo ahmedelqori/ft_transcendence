@@ -204,10 +204,24 @@ const TournamentStartState = defineComponent<
                                           `/tournament/${el.id}`
                                         );
                                       } else {
-                                        this.updateState({
-                                          id: el.id,
-                                          selected: true,
-                                        });
+                                        try {
+                                          const response =
+                                            await enhancedFetch.fetch(
+                                              `${
+                                                import.meta.env.VITE_URL_DEV
+                                              }/api/tournament/${el.id}`
+                                            );
+                                          if (!response.ok)
+                                            throw await response.json();
+                                          await router.navigateTo(
+                                            `/tournament/${el.id}`
+                                          );
+                                        } catch (err) {
+                                          this.updateState({
+                                            id: el.id,
+                                            selected: true,
+                                          });
+                                        }
                                       }
                                     },
                                   },

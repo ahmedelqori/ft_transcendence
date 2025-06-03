@@ -522,7 +522,7 @@ async function handleGameForfeit(gameId, winnerId, gameRoom, customMessage = nul
       playerOneScore: playerOneScore,
       playerTwoScore: playerTwoScore,
       status: "FINISHED",
-      winnerId: winnerId
+      winnerId: +winnerId
     };
     const updatedGame = await fastify.prisma.game.update({
       where: { id: gameId },

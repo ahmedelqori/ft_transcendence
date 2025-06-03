@@ -36,6 +36,7 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
     this: IComponent<ConversationState, ConversationProps> & {
       setupWebSocket: () => void;
       getMessages: () => Promise<void>;
+      getStatus: () => Promise<void>;
     }
   ) {
     this.state.intervalId = null;
@@ -155,6 +156,7 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
   setupWebSocket(
     this: IComponent<ConversationState, ConversationProps> & {
       setupWebSocket: () => void;
+      getStatus: () => Promise<string>;
     }
   ) {
     this.updateState({
@@ -167,36 +169,49 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
     });
     this.state.socket.addEventListener("open", () => {});
 
-    this.state.socket.addEventListener("message", ({ data }: { data: any }) => {
-      data = JSON.parse(data);
-      if (data.type === "messageHistory") {
+    this.state.socket.addEventListener(
+      "message",
+      async ({ data }: { data: any }) => {
+        data = JSON.parse(data);
+        if (data.type === "messageHistory") {
+          this.updateState({
+            messages: data.messages.map((e: any) => {
+              return { received: e.receiverId, content: e.content };
+            }),
+          });
+        }
+        if (
+          data.type === "newMessage" &&
+          data.message.senderId === this.props.userId
+        )
+          this.updateState({
+            messages: [
+              ...this.state.messages,
+              {
+                received: data.message.receiverId,
+                content: data.message.content,
+              },
+            ],
+          });
+
         this.updateState({
-          messages: data.messages.map((e: any) => {
-            return { received: e.receiverId, content: e.content };
-          }),
+          isLoading: false,
+          online: (await this.getStatus()) == "ON",
         });
+        eventBus.emit("scroll:height");
       }
-      if (
-        data.type === "newMessage" &&
-        data.message.senderId === this.props.userId
-      )
-        this.updateState({
-          messages: [
-            ...this.state.messages,
-            {
-              received: data.message.receiverId,
-              content: data.message.content,
-            },
-          ],
-        });
-
-      this.updateState({
-        isLoading: false,
-        online: true,
-      });
-
-      eventBus.emit("scroll:height");
-    });
+    );
+  },
+  async getStatus(this: IComponent<ConversationState, ConversationProps>) {
+    try {
+      const res = await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/account/${this.props.userId}`
+      );
+      const data = await res.json();
+      return data.status;
+    } catch (err) {
+      console.log(err);
+    }
   },
   async getMessages(this: IComponent<ConversationState, ConversationProps>) {
     try {
