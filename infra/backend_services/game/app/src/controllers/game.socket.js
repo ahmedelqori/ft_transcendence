@@ -470,7 +470,8 @@ function handleDisconnectByGameState(gameRoom, socket, closeCode) {
       return;
     case Game.START:
     case Game.JOINED:
-      handleEarlyDisconnect(gameRoom, socket);
+      handleActiveGameDisconnect(gameRoom, socket, closeCode);
+      // handleEarlyDisconnect(gameRoom, socket);
       break;
     case Game.IN_PLAY:
     case Game.PAUSED:
