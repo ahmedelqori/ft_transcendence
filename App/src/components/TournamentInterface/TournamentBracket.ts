@@ -23,6 +23,7 @@ interface TournamentBracketState {
   status: string;
   code: string;
   owner: number;
+  title: string;
 }
 
 const TournamentBracket = defineComponent<
@@ -58,6 +59,7 @@ const TournamentBracket = defineComponent<
       code: "",
       owner: -1,
       rounds: [],
+      title: "",
     };
   },
   render(
@@ -193,6 +195,45 @@ const TournamentBracket = defineComponent<
                     ],
                   },
                   [`#${this.state.code}`]
+                ),
+              ]
+            ),
+            createElement(
+              "div",
+              {
+                class: [
+                  "absolute",
+                  "left-1/2",
+                  "-translate-x-1/2",
+                  "top-[-41px]",
+                  "bg-opacity-1",
+                  "py-2",
+                  "text-black",
+                  "font-medium",
+                  "text-lg",
+                  "flex-row",
+                ],
+              },
+              [
+                createElement(
+                  "button",
+                  {
+                    class: [
+                      "rounded-tl-none",
+                      "rounded-tr-none",
+                      "border-2",
+                      "text-[var(--dark-black)]",
+                      "w-[160px]",
+                      "bg-[var(--light-yellow)]",
+                      "border-[#878787]",
+                      "border-opacity-[30%]",
+                      "rounded-[33px]",
+                      "tracking-wide",
+                      "h-12",
+                      "text-xl",
+                    ],
+                  },
+                  [`${this.state.title}`]
                 ),
               ]
             ),
@@ -1354,14 +1395,17 @@ const TournamentBracket = defineComponent<
                 ]),
               ]
             ),
-            createElement(TournamentInvite, {
-              class: [],
-              inviteUsers: this.state.inviteUsers,
-              tournamentId: (router.getParams as any).id,
-              setInviteUsers: () => {
-                this.updateState({ inviteUsers: !this.state.inviteUsers });
-              },
-            }),
+            this.state.inviteUsers
+              ? createElement(TournamentInvite, {
+                  class: [],
+                  inviteUsers: this.state.inviteUsers,
+                  tournamentId: (router.getParams as any).id,
+                  players: this.state.players,
+                  setInviteUsers: () => {
+                    this.updateState({ inviteUsers: !this.state.inviteUsers });
+                  },
+                })
+              : null,
           ]
         )
       : createElement(Loader);
@@ -1426,6 +1470,7 @@ const TournamentBracket = defineComponent<
           code: setting.settings.code,
           owner: setting.owner.id,
           rounds: result.rounds,
+          title: setting.name,
         });
       }
     } catch (err: any) {
