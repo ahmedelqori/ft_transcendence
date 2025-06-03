@@ -489,7 +489,7 @@ async function handleGameForfeit(gameId, winnerId, gameRoom, customMessage = nul
     const winnerPosition = gameRoom.players[winnerId]?.position || gameRoom.disconnectedPlayers[winnerId]?.position || "left";    
     gameRoom.gameState.state = Game.FINISHED;
     gameRoom.gameState.winner = winnerPosition;
-    gameRoom.endedAt = new Date();    
+    gameRoom.endedAt = new Date();        
     let playerOneScore, playerTwoScore;
     if (game.playerOneId == winnerId) {
       playerOneScore = 10;
@@ -497,26 +497,15 @@ async function handleGameForfeit(gameId, winnerId, gameRoom, customMessage = nul
     } else {
       playerOneScore = 0;
       playerTwoScore = 10;
-    }    
-    if (game.playerOneId == winnerId) {
-      const playerOnePosition = gameRoom.players[winnerId]?.position || gameRoom.disconnectedPlayers[winnerId]?.position || "left";
-      if (playerOnePosition === "left") {
-        gameRoom.gameState.score.left = 10;
-        gameRoom.gameState.score.right = 0;
-      } else {
-        gameRoom.gameState.score.left = 0;
-        gameRoom.gameState.score.right = 10;
-      }
+    }        
+    if (winnerPosition === "left") {
+      gameRoom.gameState.score.left = 10;
+      gameRoom.gameState.score.right = 0;
     } else {
-      const playerTwoPosition = gameRoom.players[winnerId]?.position || gameRoom.disconnectedPlayers[winnerId]?.position || "right";
-      if (playerTwoPosition === "left") {
-        gameRoom.gameState.score.left = 10;
-        gameRoom.gameState.score.right = 0;
-      } else {
-        gameRoom.gameState.score.left = 0;
-        gameRoom.gameState.score.right = 10;
-      }
-    }    
+      gameRoom.gameState.score.left = 0;
+      gameRoom.gameState.score.right = 10;
+    }
+    
     const updateData = {
       endedAt: new Date(),
       playerOneScore: playerOneScore,
