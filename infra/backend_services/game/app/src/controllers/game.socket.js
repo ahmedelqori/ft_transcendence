@@ -508,6 +508,7 @@ async function handleBothPlayersDisconnected(gameId, gameRoom, game) {
   gameRoom.gameState.state = Game.CANCELED;
   gameRoom.gameState.winner = null;
   gameRoom.endedAt = new Date();
+  gameRoom.tournamentNotified = true;
   
   const currentLeftScore = gameRoom.gameState.score.left || 0;
   const currentRightScore = gameRoom.gameState.score.right || 0;
@@ -593,6 +594,8 @@ async function handleIntentionalDisconnection(gameId, disconnectedUserId, gameRo
     gameRoom.gameState.state = Game.FINISHED;
     gameRoom.gameState.winner = winnerPosition;
     gameRoom.endedAt = new Date();
+    gameRoom.tournamentNotified = true;
+    
     const playerOneScore = game.playerOneId === winnerId ? 10 : 0;
     const playerTwoScore = game.playerTwoId === winnerId ? 10 : 0;
     const leftScore = winnerPosition === "left" ? 10 : 0;
@@ -828,14 +831,17 @@ async function handleGameOver(gameId, finalGameState) {
         where: { id: gameId },
         data: updateData
       });
-      fastify.log.info(`Game ${gameId} updated in database with winner ID: ${winnerId} (Score: ${playerOneScore}-${playerTwoScore}, Left: ${finalGameState.score.left}, Right: ${finalGameState.score.right})`);
-      if (updatedGame.tournementId) {
+      fastify.log.info(`Game ${gameId} updated in database with winner ID: ${winnerId} (Score: ${playerOneScore}-${playerTwoScore}, Left: ${finalGameState.score.left}, Right: ${finalGameState.score.right})`);      
+      if (updatedGame.tournementId && !gameRoom.tournamentNotified) {
         try {
           await notifyGameFinished(TOKEN, {...game, ...updatedGame});
-          fastify.log.info(`Tournament ${updatedGame.tournementId} notified about canceled game ${gameId}`);
+          fastify.log.info(`Tournament ${updatedGame.tournementId} notified about game ${gameId}`);
+          gameRoom.tournamentNotified = true;
         } catch (error) {
           fastify.log.error(`Failed to notify tournament service: ${error.message}`);
         }
+      } else if (gameRoom.tournamentNotified) {
+        fastify.log.info(`Tournament notification already sent for game ${gameId}, skipping duplicate notification`);
       }
     } catch (error) {
       fastify.log.error(
