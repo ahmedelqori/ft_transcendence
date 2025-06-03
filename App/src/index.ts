@@ -32,6 +32,8 @@ const App = defineComponent<AppState>({
       checkIfUserIsLoggedIn: (any: void) => boolean;
     }
   ) {
+    // console.log = () => {};
+    // console.error = () => {};
     eventBus.on("auth:logout", () => {
       this.updateState({ isLoggedIn: false });
       if (NotifWatcher) {
