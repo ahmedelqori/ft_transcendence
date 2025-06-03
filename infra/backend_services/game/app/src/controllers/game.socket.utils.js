@@ -290,6 +290,7 @@ function determineWinnerId(winner, game, gameRoom) {
 
 export async function notifyGameFinished(token, game) {
   try {
+    fastify.log.warn(game)
     await axios.post(`${process.env.TOURNAMENT_URL}next-round`, {game: game },
       {
         headers: {
