@@ -290,7 +290,6 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
           this.updateState({ currentOverlay: OverlayType.PAUSED });
       }
     };
-
     handlers.onGameResume = () => {
       if (this.getIsMounted)
         this.updateState({ 
@@ -298,8 +297,9 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
           opponentDisconnected: false 
         });
     };
-
     handlers.onGameFinish = async (data: GameFinishData) => {
+      if (this.state.countdownTimerId !== null)
+        clearInterval(this.state.countdownTimerId);
       const playerPosition = socketManager.getPlayerPosition();
       const userWon = data.gameState?.winner === playerPosition;      
       if (socketManager.isLocalGame()) {        
@@ -307,6 +307,7 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
           this.updateState({
             gameState: data.gameState,
             currentOverlay: OverlayType.LOCAL_GAME_COMPLETE,
+            countdownTimerId: null,
           });
         return;
       }      
@@ -314,6 +315,7 @@ const GameInterface = defineComponent<GameInterfaceState, GameInterfaceProps>({
         this.updateState({
           gameState: data.gameState,
           currentOverlay: userWon ? OverlayType.VICTORY : OverlayType.DEFEAT,
+          countdownTimerId: null,
         });
     };
 
