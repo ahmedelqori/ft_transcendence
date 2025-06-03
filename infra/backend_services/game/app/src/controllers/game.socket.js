@@ -491,15 +491,15 @@ async function handleGameForfeit(gameId, winnerId, gameRoom, customMessage = nul
     gameRoom.gameState.winner = winnerPosition;
     gameRoom.endedAt = new Date();    
     let playerOneScore, playerTwoScore;
-    if (game.playerOneId === winnerId) {
+    if (game.playerOneId == winnerId) {
       playerOneScore = 10;
       playerTwoScore = 0;
     } else {
       playerOneScore = 0;
       playerTwoScore = 10;
     }    
-    if (game.playerOneId === winnerId) {
-      const playerOnePosition = gameRoom.players[winnerId]?.position || gameRoom.disconnectedPlayers[winnerId]?.position ||(Object.values(gameRoom.players).find(p => p.id === game.playerOneId)?.position) ||(Object.values(gameRoom.disconnectedPlayers).find(p => p.id === game.playerOneId)?.position) ||"left";
+    if (game.playerOneId == winnerId) {
+      const playerOnePosition = gameRoom.players[winnerId]?.position || gameRoom.disconnectedPlayers[winnerId]?.position || "left";
       if (playerOnePosition === "left") {
         gameRoom.gameState.score.left = 10;
         gameRoom.gameState.score.right = 0;
@@ -508,7 +508,7 @@ async function handleGameForfeit(gameId, winnerId, gameRoom, customMessage = nul
         gameRoom.gameState.score.right = 10;
       }
     } else {
-      const playerTwoPosition = gameRoom.players[winnerId]?.position || gameRoom.disconnectedPlayers[winnerId]?.position ||(Object.values(gameRoom.players).find(p => p.id === game.playerTwoId)?.position) ||(Object.values(gameRoom.disconnectedPlayers).find(p => p.id === game.playerTwoId)?.position) ||"right";
+      const playerTwoPosition = gameRoom.players[winnerId]?.position || gameRoom.disconnectedPlayers[winnerId]?.position || "right";
       if (playerTwoPosition === "left") {
         gameRoom.gameState.score.left = 10;
         gameRoom.gameState.score.right = 0;
@@ -531,7 +531,7 @@ async function handleGameForfeit(gameId, winnerId, gameRoom, customMessage = nul
     fastify.log.info(`Game ${gameId} updated - player ${winnerId} wins by forfeit with score ${playerOneScore}-${playerTwoScore}`);    
     const message = customMessage || "You win by forfeit!";    
     broadcastAll(gameId, Message("gameFinished", {
-      gameState: {...gameRoom.gameState, gameId: gameId, tournamentId: game?.tournementId || 0},
+      gameState: {...gameRoom.gameState, tournamentId: game?.tournementId},
       message: message,
       forfeit: true,
       winnerId: winnerId,
