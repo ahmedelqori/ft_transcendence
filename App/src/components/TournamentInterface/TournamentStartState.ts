@@ -67,7 +67,6 @@ const TournamentStartState = defineComponent<
           }),
           isLoading: false,
         });
-      console.log(data);
     } catch (err) {
       console.log(err);
     }
@@ -209,18 +208,25 @@ const TournamentStartState = defineComponent<
                                             await enhancedFetch.fetch(
                                               `${
                                                 import.meta.env.VITE_URL_DEV
-                                              }/api/tournament/${el.id}`
+                                              }/api/tournament/${el.id}/results`
                                             );
-                                          if (!response.ok)
-                                            throw await response.json();
+                                          if (!response.ok) {
+                                            if (this.getIsMounted)
+                                              this.updateState({
+                                                id: el.id,
+                                                selected: true,
+                                              });
+                                            return;
+                                          }
                                           await router.navigateTo(
                                             `/tournament/${el.id}`
                                           );
                                         } catch (err) {
-                                          this.updateState({
-                                            id: el.id,
-                                            selected: true,
-                                          });
+                                          if (this.getIsMounted)
+                                            this.updateState({
+                                              id: el.id,
+                                              selected: true,
+                                            });
                                         }
                                       }
                                     },

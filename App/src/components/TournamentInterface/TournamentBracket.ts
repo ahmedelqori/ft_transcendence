@@ -113,7 +113,51 @@ const TournamentBracket = defineComponent<
                     ),
                   ]
                 )
+              : this.state.status === "COMPLETE"
+              ? createElement(
+                  "div",
+                  {
+                    class: [
+                      "absolute",
+                      "left-1/2",
+                      "top-1/2",
+                      "bg-opacity-1",
+                      "-translate-x-1/2",
+                      "-translate-y-1/2",
+                      "py-2",
+                      "text-black",
+                      "bg-[var(--light-yellow)]",
+                      "rounded-[33px]",
+                      "font-medium",
+                      "flex-row",
+                      "scale-[120%]",
+                    ],
+                    on: {
+                      click: async () => await this.handleStartTournament(),
+                    },
+                  },
+                  [
+                    createElement(UserCompo, {
+                      username: this.state.players.find(
+                        (e) =>
+                          e.id ==
+                          this.state.rounds["round2" as any]?.[0].game
+                            .playerOneId
+                      )?.nickname,
+                      id: this.state.rounds["round2" as any]?.[0].game
+                        .playerOneId,
+                      avatar_url: this.state.players.find(
+                        (e) =>
+                          e.id ==
+                          this.state.rounds["round2" as any]?.[0].game
+                            .playerOneId
+                      )?.avatar_url,
+                      invert: false,
+                    }),
+                  ]
+                )
               : null,
+
             createElement(
               "div",
               {
@@ -758,7 +802,9 @@ const TournamentBracket = defineComponent<
                 ]),
               ]
             ),
-            createElement("h4", { class: ["text-3xl"] }, ["Vs"]),
+            this.state.status !== "COMPLETE"
+              ? createElement("h4", { class: ["text-3xl"] }, ["Vs"])
+              : null,
             createElement(
               "div",
               {
