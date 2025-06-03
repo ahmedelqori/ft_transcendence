@@ -593,38 +593,13 @@ async function handleIntentionalDisconnection(gameId, disconnectedUserId, gameRo
     gameRoom.gameState.state = Game.FINISHED;
     gameRoom.gameState.winner = winnerPosition;
     gameRoom.endedAt = new Date();
-
-    let playerOneScore, playerTwoScore, leftScore, rightScore;
-    
-    if (isEarlyDisconnect || gameRoom.gameState.state === Game.START || gameRoom.gameState.state === Game.JOINED) {
-      playerOneScore = game.playerOneId === winnerId ? 10 : 0;
-      playerTwoScore = game.playerTwoId === winnerId ? 10 : 0;
-      leftScore = winnerPosition === "left" ? 10 : 0;
-      rightScore = winnerPosition === "right" ? 10 : 0;
-      
-      fastify.log.info(`Early disconnect forfeit: ${winnerId} wins 10-0`);
-    } else {
-      const currentLeftScore = gameRoom.gameState.score.left || 0;
-      const currentRightScore = gameRoom.gameState.score.right || 0;
-      
-      const leftPlayerId = getPlayerIdByPosition("left", gameRoom, game);
-      if (game.playerOneId === leftPlayerId) {
-        playerOneScore = currentLeftScore;
-        playerTwoScore = currentRightScore;
-      } else {
-        playerOneScore = currentRightScore;
-        playerTwoScore = currentLeftScore;
-      }
-      
-      leftScore = currentLeftScore;
-      rightScore = currentRightScore;
-      
-      fastify.log.info(`Active game disconnect: preserving scores ${leftScore}-${rightScore}, winner: ${winnerPosition}`);
-    }
-
+    const playerOneScore = game.playerOneId === winnerId ? 10 : 0;
+    const playerTwoScore = game.playerTwoId === winnerId ? 10 : 0;
+    const leftScore = winnerPosition === "left" ? 10 : 0;
+    const rightScore = winnerPosition === "right" ? 10 : 0;
+    fastify.log.info(`Intentional disconnect forfeit: ${winnerId} wins 10-0`);
     gameRoom.gameState.score.left = leftScore;
     gameRoom.gameState.score.right = rightScore;
-
     const updateData = {
       endedAt: new Date(),
       playerOneScore: playerOneScore,
@@ -632,15 +607,12 @@ async function handleIntentionalDisconnection(gameId, disconnectedUserId, gameRo
       status: "FINISHED",
       winnerId: winnerId
     };
-
     const updatedGame = await fastify.prisma.game.update({
       where: { id: gameId },
       data: updateData
     });
-
     fastify.log.info(`Game ${gameId} updated - player ${winnerId} wins with database score ${playerOneScore}-${playerTwoScore}`);
-
-    const message = isEarlyDisconnect ? "You win by forfeit!" : "You win - opponent disconnected!";
+    const message = isEarlyDisconnect ? "You win by forfeit!" : "You win by forfeit - opponent disconnected!";
     broadcastAll(gameId, Message("gameFinished", {
       gameState: {...gameRoom.gameState, tournamentId: game?.tournementId},
       message: message,
@@ -681,22 +653,18 @@ function getPlayerPosition(playerId, gameRoom, game) {
   if (activePlayer?.position) {
     return activePlayer.position;
   }
-  
   const disconnectedPlayer = gameRoom.disconnectedPlayers[playerId];
   if (disconnectedPlayer?.position) {
     return disconnectedPlayer.position;
   }
-  
   return game.playerOneId === playerId ? "left" : "right";
 }
 
 function getPlayerIdByPosition(position, gameRoom, game) {
   const activePlayer = Object.values(gameRoom.players || {}).find(p => p.position === position);
   if (activePlayer) return activePlayer.id;
-  
   const disconnectedPlayer = Object.values(gameRoom.disconnectedPlayers || {}).find(p => p.position === position);
   if (disconnectedPlayer) return disconnectedPlayer.id;
-  
   return position === "left" ? game.playerOneId : game.playerTwoId;
 }
 
@@ -704,7 +672,6 @@ function handleEarlyDisconnect(gameRoom, socket) {
   const userId = socket.userId;
   const gameId = socket.gameId;
   fastify.log.info(`Early disconnect from player ${userId} in the game ${gameId}`);
-  
   handleIntentionalDisconnection(gameId, userId, gameRoom, true);
 }
 
@@ -712,13 +679,11 @@ function handleActiveGameDisconnect(gameRoom, socket, closeCode) {
   const userId = socket.userId;
   const gameId = socket.gameId;
   const isIntentionalDisconnect = closeCode === WS_CLOSE.NORMAL;
-  
   if (isIntentionalDisconnect) {
     fastify.log.info(`Intentional disconnect during active game from player ${userId} in game ${gameId}`);
     handleIntentionalDisconnection(gameId, userId, gameRoom, false);
     return;
   }
-  
   const playerPosition = gameRoom.players[userId].position;
   gameRoom.disconnectedPlayers[userId] = { 
     ...gameRoom.players[userId], 
@@ -727,17 +692,14 @@ function handleActiveGameDisconnect(gameRoom, socket, closeCode) {
   };
   delete gameRoom.players[userId];
   fastify.log.info(`Removed player ${userId} (${playerPosition}) from active players in game ${gameId}`);
-  
   if (Object.keys(gameRoom.players).length === 0) {
     handleLastPlayerDisconnect(gameRoom, socket);
     return;
   }
-  
   if (gameRoom.gameState.state === Game.IN_PLAY) {
     gameRoom.gameState.state = Game.PAUSED;
     pauseGame(gameId);
   }
-  
   broadcastDisconnectNotification(gameId, userId, isIntentionalDisconnect);
   setupReconnectionTimer(gameRoom, socket, isIntentionalDisconnect);
 }
