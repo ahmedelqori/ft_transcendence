@@ -470,8 +470,7 @@ function handleDisconnectByGameState(gameRoom, socket, closeCode) {
       return;
     case Game.START:
     case Game.JOINED:
-      handleActiveGameDisconnect(gameRoom, socket, closeCode);
-      // handleEarlyDisconnect(gameRoom, socket);
+      handleEarlyDisconnect(gameRoom, socket);
       break;
     case Game.IN_PLAY:
     case Game.PAUSED:
@@ -563,7 +562,8 @@ async function handleGameForfeit(gameId, winnerId, gameRoom, customMessage = nul
 
 function handleEarlyDisconnect(gameRoom, socket) {
   const userId = socket.userId;
-  const gameId = socket.gameId;  
+  const gameId = socket.gameId;
+  fastify.log.info(`Early disconnect from player ${userId} in the game ${gameId}`);
   if (gameRoom.forfeitTimer) {
     clearTimeout(gameRoom.forfeitTimer);
     gameRoom.forfeitTimer = null;
