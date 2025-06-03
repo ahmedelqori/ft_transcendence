@@ -23,7 +23,7 @@ export default async function get_tournament(req, res) {
     const id = Number(req.params.id);
 
     if (isNaN(id) || id < 0) {
-        return res.status(400).send({ message: "Invalid id" });
+        return res.status(400).send({ message: "Invalid Nickname or Name tournament" });
     }
 
     try {

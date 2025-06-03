@@ -143,16 +143,13 @@ const TournamentBracket = defineComponent<
                       username: this.state.players.find(
                         (e) =>
                           e.id ==
-                          this.state.rounds["round2" as any]?.[0].game
-                            .playerOneId
+                          this.state.rounds["round2" as any]?.[0].game.winnerId
                       )?.nickname,
-                      id: this.state.rounds["round2" as any]?.[0].game
-                        .playerOneId,
+                      id: this.state.rounds["round2" as any]?.[0].game.winnerId,
                       avatar_url: this.state.players.find(
                         (e) =>
                           e.id ==
-                          this.state.rounds["round2" as any]?.[0].game
-                            .playerOneId
+                          this.state.rounds["round2" as any]?.[0].game.winnerId
                       )?.avatar_url,
                       invert: false,
                     }),
