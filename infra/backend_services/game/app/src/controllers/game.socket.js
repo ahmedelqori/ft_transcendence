@@ -82,7 +82,6 @@ async function handleWebSocketConnection(socket, req) {
   if (checkChangingDevice(connections, socket, gameRooms, defaultGameConfig, setupSocketEventHandlers)) return
   socket.send(Message("connected", { message: "You are connected" }));
   fastify.log.info(`User ${userId} connected to game ${gameId}`);
-  // fdtf = runHeartBeatMechanism(socket);
   sendInitialGameData(gameId, socket, gameRooms, defaultGameConfig,createGameState);
   setupSocketEventHandlers(socket);
 }
@@ -99,8 +98,7 @@ function setupSocketEventHandlers(socket) {
   });
 
   socket.on("close", (code, reason) => {
-    fastify.log.warn(`socket close event triggered with code ${code}`);
-    // clearInterval(socket.pingInterval);    
+    fastify.log.warn(`socket close event triggered with code ${code}`);   
     const gameId = socket.gameId;
     const userId = socket.userId;
     if (socket.changed) return;
@@ -111,8 +109,6 @@ function setupSocketEventHandlers(socket) {
     handleDisconnect(socket, code);
   });
 }
-
-// *************************** MESSAGE HANDLERS ***************************
 
 function handleMessage(socket, data) {
   const messageHandlers = {
@@ -481,115 +477,6 @@ function handleDisconnectByGameState(gameRoom, socket, closeCode) {
   }
 }
 
-async function handleGameForfeit(gameId, winnerId, gameRoom, customMessage = null) {
-  try {
-    const game = gameRoom.gameData || await fastify.prisma.game.findUnique({
-      where: { id: gameId },
-    });
-    const winnerPosition = gameRoom.players[winnerId]?.position || gameRoom.disconnectedPlayers[winnerId]?.position || "left";    
-    gameRoom.gameState.state = Game.FINISHED;
-    gameRoom.gameState.winner = winnerPosition;
-    gameRoom.endedAt = new Date();        
-    let playerOneScore, playerTwoScore;
-    if (game.playerOneId == winnerId) {
-      playerOneScore = 10;
-      playerTwoScore = 0;
-    } else {
-      playerOneScore = 0;
-      playerTwoScore = 10;
-    }        
-    if (winnerPosition === "left") {
-      gameRoom.gameState.score.left = 10;
-      gameRoom.gameState.score.right = 0;
-    } else {
-      gameRoom.gameState.score.left = 0;
-      gameRoom.gameState.score.right = 10;
-    }
-    
-    const updateData = {
-      endedAt: new Date(),
-      playerOneScore: playerOneScore,
-      playerTwoScore: playerTwoScore,
-      status: "FINISHED",
-      winnerId: +winnerId
-    };
-    const updatedGame = await fastify.prisma.game.update({
-      where: { id: gameId },
-      data: updateData
-    });
-    fastify.log.info(`Game ${gameId} updated - player ${winnerId} wins by forfeit with score ${playerOneScore}-${playerTwoScore}`);    
-    const message = customMessage || "You win by forfeit!";    
-    broadcastAll(gameId, Message("gameFinished", {
-      gameState: {...gameRoom.gameState, tournamentId: game?.tournementId},
-      message: message,
-      forfeit: true,
-      winnerId: winnerId,
-      tournamentId: updatedGame.tournementId
-    }));    
-    if (updatedGame.tournementId) {
-      try {
-        await notifyGameFinished(TOKEN, {...game, ...updatedGame});
-        fastify.log.info(`Tournament ${updatedGame.tournementId} notified about forfeit in game ${gameId}`);
-      } catch (error) {
-        fastify.log.error(`Failed to notify tournament service: ${error.message}`);
-      }
-    }    
-    setTimeout(() => {
-      try {
-        gameRooms.delete(gameId);
-        connections.delete(gameId);
-        fastify.log.debug(`Game ${gameId} resources cleaned up after forfeit`);
-      } catch (cleanupError) {
-        fastify.log.error(`Error during game cleanup after forfeit: ${cleanupError.message}`);
-      }
-    }, CLEANUP);
-    
-  } catch (error) {
-    fastify.log.error(`Error handling forfeit for game ${gameId}: ${error.message}`);
-  }
-}
-
-function handleEarlyDisconnect(gameRoom, socket) {
-  const userId = socket.userId;
-  const gameId = socket.gameId;
-  fastify.log.info(`Early disconnect from player ${userId} in the game ${gameId}`);
-  if (gameRoom.forfeitTimer) {
-    clearTimeout(gameRoom.forfeitTimer);
-    gameRoom.forfeitTimer = null;
-    fastify.log.info(`Forfeit timer cleared due to player ${userId} disconnect in game ${gameId}`);
-  }
-  if (gameRoom.players[userId]) {
-    const remainingPlayers = Object.keys(gameRoom.players).filter(id => id !== userId);    
-    if (remainingPlayers.length > 0) {
-      const winnerId = remainingPlayers[0];
-      handleGameForfeit(gameId, winnerId, gameRoom);
-    } else {
-      delete gameRoom.players[userId];
-      fastify.log.info(`Removed player ${userId} from the game ${gameId}`);
-    }
-  }
-}
-
-function handleActiveGameDisconnect(gameRoom, socket, closeCode) {
-  const userId = socket.userId;
-  const gameId = socket.gameId;
-  const isIntentionalDisconnect = closeCode === WS_CLOSE.NORMAL;
-  const playerPosition = gameRoom.players[userId].position;
-  gameRoom.disconnectedPlayers[userId] = { ...gameRoom.players[userId], disconnectedAt: Date.now(), intentionalDisconnect: isIntentionalDisconnect};
-  delete gameRoom.players[userId];
-  fastify.log.info(`Removed player ${userId} (${playerPosition}) from active players in game ${gameId}`);
-  if (Object.keys(gameRoom.players).length === 0) {
-    handleLastPlayerDisconnect(gameRoom, socket);
-    return;
-  }
-  if (gameRoom.gameState.state === Game.IN_PLAY) {
-    gameRoom.gameState.state = Game.PAUSED;
-    pauseGame(gameId);
-  }
-  broadcastDisconnectNotification(gameId, userId, isIntentionalDisconnect);
-  setupReconnectionTimer(gameRoom, socket, isIntentionalDisconnect);
-}
-
 async function handleLastPlayerDisconnect(gameRoom, socket) {
   const gameId = socket.gameId;
   const userId = socket.userId;
@@ -601,36 +488,38 @@ async function handleLastPlayerDisconnect(gameRoom, socket) {
   
   if (game.tournementId && game.tournementId !== 0) {
     fastify.log.info(`Tournament game ${gameId}: Last player ${userId} disconnected, they win by being last to leave`);
-    const winnerPosition = gameRoom.disconnectedPlayers[userId]?.position || socket.user?.position || "left";
-    await handleTournamentLastPlayerWin(gameRoom, gameId, userId, winnerPosition, game);
+    await handleIntentionalDisconnection(gameId, userId, gameRoom, false);
     return;
   }
   
   fastify.log.warn(`Regular game ${gameId}: Last player disconnected, canceling game`);
   try {
-    await handleRegularGameCancel(gameRoom, gameId, game);
+    await handleBothPlayersDisconnected(gameId, gameRoom, game);
   } catch (error) {
     fastify.log.error(`Failed to update game ${gameId} in database: ${error.message}`);
   }
 }
 
 async function handleTournamentLastPlayerWin(gameRoom, gameId, winnerId, winnerPosition, game) {
-  await handleGameForfeit(gameId, winnerId, gameRoom);
+  await handleIntentionalDisconnection(gameId, winnerId, gameRoom, false);
 }
 
-async function handleRegularGameCancel(gameRoom, gameId, game) {
+async function handleBothPlayersDisconnected(gameId, gameRoom, game) {
   gameRoom.gameState.state = Game.CANCELED;
   gameRoom.gameState.winner = null;
   gameRoom.endedAt = new Date();
   
-  const leftPlayerId = Object.values(gameRoom.disconnectedPlayers).find(p => p.position === "left")?.id;
+  const currentLeftScore = gameRoom.gameState.score.left || 0;
+  const currentRightScore = gameRoom.gameState.score.right || 0;
+  
+  const leftPlayerId = getPlayerIdByPosition("left", gameRoom, game);
   let playerOneScore, playerTwoScore;
   if (game.playerOneId === leftPlayerId) {
-    playerOneScore = gameRoom.gameState.score.left;
-    playerTwoScore = gameRoom.gameState.score.right;
+    playerOneScore = currentLeftScore;
+    playerTwoScore = currentRightScore;
   } else {
-    playerOneScore = gameRoom.gameState.score.right;
-    playerTwoScore = gameRoom.gameState.score.left;
+    playerOneScore = currentRightScore;
+    playerTwoScore = currentLeftScore;
   }
   
   const updateData = {
@@ -646,16 +535,15 @@ async function handleRegularGameCancel(gameRoom, gameId, game) {
     data: updateData
   });
   
-  fastify.log.info(`Regular game ${gameId} updated in database as canceled with scores ${playerOneScore}-${playerTwoScore}`);
+  fastify.log.info(`Game ${gameId} canceled - both players disconnected with scores ${playerOneScore}-${playerTwoScore}`);
   
   broadcastAll(gameId, Message("gameFinished", {
-      gameState: {...gameRoom.gameState, tournamentId: game.tournementId},
-      message: "Game canceled - both players disconnected",
-      reason: "bothDisconnected",
-      forfeit: true,
-      tournamentId: updatedGame.tournementId
-    })
-  );
+    gameState: {...gameRoom.gameState, tournamentId: game.tournementId},
+    message: "Game canceled - both players disconnected",
+    reason: "bothDisconnected",
+    forfeit: true,
+    tournamentId: updatedGame.tournementId
+  }));
   
   if (updatedGame.tournementId) {
     try {
@@ -665,6 +553,193 @@ async function handleRegularGameCancel(gameRoom, gameId, game) {
       fastify.log.error(`Failed to notify tournament service: ${error.message}`);
     }
   }
+  
+  return updatedGame;
+}
+
+async function handleIntentionalDisconnection(gameId, disconnectedUserId, gameRoom, isEarlyDisconnect = false) {
+  try {
+    const game = gameRoom.gameData || await fastify.prisma.game.findUnique({
+      where: { id: gameId },
+    });
+    
+    if (!game) throw new Error(`Game ${gameId} not found in database`);
+
+    if (gameRoom.forfeitTimer) {
+      clearTimeout(gameRoom.forfeitTimer);
+      gameRoom.forfeitTimer = null;
+    }
+    if (gameRoom.disconnectTimer) {
+      clearTimeout(gameRoom.disconnectTimer);
+      gameRoom.disconnectTimer = null;
+    }
+
+    const disconnectedPlayer = gameRoom.players[disconnectedUserId] || gameRoom.disconnectedPlayers[disconnectedUserId];
+    const allPlayerIds = [game.playerOneId, game.playerTwoId];
+    const remainingPlayerId = allPlayerIds.find(id => id !== disconnectedUserId);
+    
+    if (!remainingPlayerId) {
+      return await handleBothPlayersDisconnected(gameId, gameRoom, game);
+    }
+
+    const winnerId = remainingPlayerId;
+    const loserId = disconnectedUserId;
+    
+    const winnerPosition = getPlayerPosition(winnerId, gameRoom, game);
+    const loserPosition = getPlayerPosition(loserId, gameRoom, game);
+    
+    fastify.log.info(`Game ${gameId}: Player ${loserId} (${loserPosition}) disconnected, Player ${winnerId} (${winnerPosition}) wins`);
+
+    gameRoom.gameState.state = Game.FINISHED;
+    gameRoom.gameState.winner = winnerPosition;
+    gameRoom.endedAt = new Date();
+
+    let playerOneScore, playerTwoScore, leftScore, rightScore;
+    
+    if (isEarlyDisconnect || gameRoom.gameState.state === Game.START || gameRoom.gameState.state === Game.JOINED) {
+      playerOneScore = game.playerOneId === winnerId ? 10 : 0;
+      playerTwoScore = game.playerTwoId === winnerId ? 10 : 0;
+      leftScore = winnerPosition === "left" ? 10 : 0;
+      rightScore = winnerPosition === "right" ? 10 : 0;
+      
+      fastify.log.info(`Early disconnect forfeit: ${winnerId} wins 10-0`);
+    } else {
+      const currentLeftScore = gameRoom.gameState.score.left || 0;
+      const currentRightScore = gameRoom.gameState.score.right || 0;
+      
+      const leftPlayerId = getPlayerIdByPosition("left", gameRoom, game);
+      if (game.playerOneId === leftPlayerId) {
+        playerOneScore = currentLeftScore;
+        playerTwoScore = currentRightScore;
+      } else {
+        playerOneScore = currentRightScore;
+        playerTwoScore = currentLeftScore;
+      }
+      
+      leftScore = currentLeftScore;
+      rightScore = currentRightScore;
+      
+      fastify.log.info(`Active game disconnect: preserving scores ${leftScore}-${rightScore}, winner: ${winnerPosition}`);
+    }
+
+    gameRoom.gameState.score.left = leftScore;
+    gameRoom.gameState.score.right = rightScore;
+
+    const updateData = {
+      endedAt: new Date(),
+      playerOneScore: playerOneScore,
+      playerTwoScore: playerTwoScore,
+      status: "FINISHED",
+      winnerId: winnerId
+    };
+
+    const updatedGame = await fastify.prisma.game.update({
+      where: { id: gameId },
+      data: updateData
+    });
+
+    fastify.log.info(`Game ${gameId} updated - player ${winnerId} wins with database score ${playerOneScore}-${playerTwoScore}`);
+
+    const message = isEarlyDisconnect ? "You win by forfeit!" : "You win - opponent disconnected!";
+    broadcastAll(gameId, Message("gameFinished", {
+      gameState: {...gameRoom.gameState, tournamentId: game?.tournementId},
+      message: message,
+      forfeit: true,
+      winnerId: winnerId,
+      tournamentId: updatedGame.tournementId
+    }));
+
+    if (updatedGame.tournementId) {
+      try {
+        await notifyGameFinished(TOKEN, {...game, ...updatedGame});
+        fastify.log.info(`Tournament ${updatedGame.tournementId} notified about game ${gameId}`);
+      } catch (error) {
+        fastify.log.error(`Failed to notify tournament service: ${error.message}`);
+      }
+    }
+
+    setTimeout(() => {
+      try {
+        gameRooms.delete(gameId);
+        connections.delete(gameId);
+        fastify.log.debug(`Game ${gameId} resources cleaned up after disconnection`);
+      } catch (cleanupError) {
+        fastify.log.error(`Error during game cleanup: ${cleanupError.message}`);
+      }
+    }, CLEANUP);
+
+    return updatedGame;
+
+  } catch (error) {
+    fastify.log.error(`Error handling intentional disconnection for game ${gameId}: ${error.message}`);
+    throw error;
+  }
+}
+
+function getPlayerPosition(playerId, gameRoom, game) {
+  const activePlayer = gameRoom.players[playerId];
+  if (activePlayer?.position) {
+    return activePlayer.position;
+  }
+  
+  const disconnectedPlayer = gameRoom.disconnectedPlayers[playerId];
+  if (disconnectedPlayer?.position) {
+    return disconnectedPlayer.position;
+  }
+  
+  return game.playerOneId === playerId ? "left" : "right";
+}
+
+function getPlayerIdByPosition(position, gameRoom, game) {
+  const activePlayer = Object.values(gameRoom.players || {}).find(p => p.position === position);
+  if (activePlayer) return activePlayer.id;
+  
+  const disconnectedPlayer = Object.values(gameRoom.disconnectedPlayers || {}).find(p => p.position === position);
+  if (disconnectedPlayer) return disconnectedPlayer.id;
+  
+  return position === "left" ? game.playerOneId : game.playerTwoId;
+}
+
+function handleEarlyDisconnect(gameRoom, socket) {
+  const userId = socket.userId;
+  const gameId = socket.gameId;
+  fastify.log.info(`Early disconnect from player ${userId} in the game ${gameId}`);
+  
+  handleIntentionalDisconnection(gameId, userId, gameRoom, true);
+}
+
+function handleActiveGameDisconnect(gameRoom, socket, closeCode) {
+  const userId = socket.userId;
+  const gameId = socket.gameId;
+  const isIntentionalDisconnect = closeCode === WS_CLOSE.NORMAL;
+  
+  if (isIntentionalDisconnect) {
+    fastify.log.info(`Intentional disconnect during active game from player ${userId} in game ${gameId}`);
+    handleIntentionalDisconnection(gameId, userId, gameRoom, false);
+    return;
+  }
+  
+  const playerPosition = gameRoom.players[userId].position;
+  gameRoom.disconnectedPlayers[userId] = { 
+    ...gameRoom.players[userId], 
+    disconnectedAt: Date.now(), 
+    intentionalDisconnect: isIntentionalDisconnect
+  };
+  delete gameRoom.players[userId];
+  fastify.log.info(`Removed player ${userId} (${playerPosition}) from active players in game ${gameId}`);
+  
+  if (Object.keys(gameRoom.players).length === 0) {
+    handleLastPlayerDisconnect(gameRoom, socket);
+    return;
+  }
+  
+  if (gameRoom.gameState.state === Game.IN_PLAY) {
+    gameRoom.gameState.state = Game.PAUSED;
+    pauseGame(gameId);
+  }
+  
+  broadcastDisconnectNotification(gameId, userId, isIntentionalDisconnect);
+  setupReconnectionTimer(gameRoom, socket, isIntentionalDisconnect);
 }
 
 function broadcastDisconnectNotification(gameId, userId, isIntentionalDisconnect) {
@@ -709,44 +784,37 @@ async function handleReconnectionTimeout(socket, gameRoom) {
       );
       
       fastify.log.info(`Tournament game ${gameId}: Both players disconnected, last to disconnect (${lastToDisconnect.id}) wins`);
-      await handleTournamentLastPlayerWin(gameRoom, gameId, lastToDisconnect.id, lastToDisconnect.position, game);
+      await handleIntentionalDisconnection(gameId, disconnectedPlayers.find(p => p.id !== lastToDisconnect.id).id, gameRoom, false);
       return;
     }
     
     fastify.log.info(`Regular game ${gameId} finished - both players disconnected`);
-    await handleRegularGameCancel(gameRoom, gameId, game);
+    await handleBothPlayersDisconnected(gameId, gameRoom, game);
   } else {
-    const disconnectedPosition = gameRoom.disconnectedPlayers[userId].position;
-    const winnerPosition = disconnectedPosition === "left" ? "right" : "left";        
-    const remainingPlayers = Object.values(gameRoom.players);
-    const winnerPlayer = remainingPlayers.find(player => player.position === winnerPosition);
-    const winnerId = winnerPlayer ? winnerPlayer.id : null    
-    const leftPlayer = remainingPlayers.find(p => p.position === "left");
-    const isLeftPlayerWinner = leftPlayer && leftPlayer.id == winnerId;
-    if (isLeftPlayerWinner) {
-      gameRoom.gameState.score.left = 10;
-      gameRoom.gameState.score.right = 0;
-    } else {
-      gameRoom.gameState.score.left = 0;
-      gameRoom.gameState.score.right = 10;
-    }
+    fastify.log.info(`Game ${gameId}: Player ${userId} failed to reconnect - using unified disconnection handler`);
+    await handleIntentionalDisconnection(gameId, userId, gameRoom, false);
+  }
+}
+
+async function handleForfeitTimeout(gameId, firstPlayerId, gameRoom) {
+  try {
+    const playerCount = Object.keys(gameRoom.players).length;
+    if (playerCount >= 2 || gameRoom.gameState.state !== Game.START) return;
     
-    gameRoom.gameState.state = Game.FINISHED;
-    gameRoom.gameState.winner = winnerPosition;
-    gameRoom.endedAt = new Date();
-    fastify.log.info(`Game ${gameId} finished - reconnecting player ${userId} (${disconnectedPosition}) lost with score ${gameRoom.gameState.score.left}-${gameRoom.gameState.score.right}`);
-    try {
-      const game = await updateGameInDatabase(socket, gameRoom, winnerId);
-      broadcastAll(gameId, Message("gameFinished", {
-          gameState: {...gameRoom.gameState, tournamentId : game.tournementId},
-          message: `Game ended - reconnecting player lost with score ${gameRoom.gameState.score.left}-${gameRoom.gameState.score.right}`,
-          reason: "reconnectionTimeout",
-          forfeit: true,
-        })
-      );
-    } catch (error) {
-      fastify.log.error(`Failed to update game ${gameId} in database: ${error.message}`);
+    const game = gameRoom.gameData || await fastify.prisma.game.findUnique({
+      where: { id: gameId },
+    });
+    
+    const allPlayerIds = [game.playerOneId, game.playerTwoId];
+    const loserPlayerId = allPlayerIds.find(id => id !== firstPlayerId);
+    
+    if (loserPlayerId) {
+      await handleIntentionalDisconnection(gameId, loserPlayerId, gameRoom, true);
+    } else {
+      await handleIntentionalDisconnection(gameId, firstPlayerId, gameRoom, true);
     }
+  } catch (error) {
+    fastify.log.error(`Error handling forfeit timeout for game ${gameId}: ${error.message}`);
   }
 }
 
@@ -847,14 +915,4 @@ function validateGameAndPlayer(gameId, userId, socket, action) {
     return null;
   }
   return gameRoom;
-}
-
-async function handleForfeitTimeout(gameId, firstPlayerId, gameRoom) {
-  try {
-    const playerCount = Object.keys(gameRoom.players).length;
-    if (playerCount >= 2 || gameRoom.gameState.state !== Game.START) return;
-    await handleGameForfeit(gameId, firstPlayerId, gameRoom);
-  } catch (error) {
-    fastify.log.error(`Error handling forfeit timeout for game ${gameId}: ${error.message}`);
-  }
 }
