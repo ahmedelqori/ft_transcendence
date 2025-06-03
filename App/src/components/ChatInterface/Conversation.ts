@@ -208,6 +208,7 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
           credentials: "include",
         }
       );
+      if (!res.ok) throw await res.json();
       const data = await res.json();
       this.updateState({
         messages: data.map((msg: any) => {

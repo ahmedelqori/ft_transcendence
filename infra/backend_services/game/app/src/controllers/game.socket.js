@@ -520,7 +520,7 @@ async function handleGameForfeit(gameId, winnerId, gameRoom) {
       where: { id: gameId },
       data: updateData
     });
-    fastify.log.info(`Game ${gameId} updated - player ${winnerId} wins by ${reason} with score ${playerOneScore}-${playerTwoScore}`);    
+    fastify.log.info(`Game ${gameId} updated - player ${winnerId} wins with score ${playerOneScore}-${playerTwoScore}`);    
     broadcastAll(gameId, Message("gameFinished", {
       gameState: {...gameRoom.gameState, gameId: gameId, tournamentId: game?.tournementId || 0},
       message: "You win by forfeit!",
@@ -531,7 +531,7 @@ async function handleGameForfeit(gameId, winnerId, gameRoom) {
     if (updatedGame.tournementId) {
       try {
         await notifyGameFinished(TOKEN, {...game, ...updatedGame});
-        fastify.log.info(`Tournament ${updatedGame.tournementId} notified about ${reason} in game ${gameId}`);
+        fastify.log.info(`Tournament ${updatedGame.tournementId} notified  in game ${gameId}`);
       } catch (error) {
         fastify.log.error(`Failed to notify tournament service: ${error.message}`);
       }
@@ -540,13 +540,13 @@ async function handleGameForfeit(gameId, winnerId, gameRoom) {
       try {
         gameRooms.delete(gameId);
         connections.delete(gameId);
-        fastify.log.debug(`Game ${gameId} resources cleaned up after ${reason}`);
+        fastify.log.debug(`Game ${gameId} resources cleaned up`);
       } catch (cleanupError) {
-        fastify.log.error(`Error during game cleanup after ${reason}: ${cleanupError.message}`);
+        fastify.log.error(`Error during game cleanup after ${cleanupError.message}`);
       }
     }, CLEANUP);
   } catch (error) {
-    fastify.log.error(`Error handling ${reason} for game ${gameId}: ${error.message}`);
+    fastify.log.error(`Error handling game ${gameId}: ${error.message}`);
   }
 }
 

@@ -22,7 +22,7 @@ const FriendsSideBar = defineComponent<void, FriendsSideBarProps>({
       handlePlayButton: () => Promise<void>;
     }
   ) {
-    return createElement("div", { class: ["mb-auto", "w-full"] }, [
+    return createElement("div", { class: ["mb-auto", "w-full",] }, [
       createElement("div", { class: ["flex-row", "gap-5", "w-full"] }, [
         createElement("img", {
           src: this.props.avatar,
