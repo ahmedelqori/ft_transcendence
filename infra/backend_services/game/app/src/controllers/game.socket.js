@@ -728,19 +728,22 @@ async function handleReconnectionTimeout(socket, gameRoom) {
     await handleRegularGameCancel(gameRoom, gameId, game);
   } else {
     const disconnectedPosition = gameRoom.disconnectedPlayers[userId].position;
-    const winnerPosition = disconnectedPosition === "left" ? "right" : "left";    
-    if (disconnectedPosition === "left") {
-      gameRoom.gameState.score.left = 0;
-      gameRoom.gameState.score.right = 10;
-    } else {
-      gameRoom.gameState.score.left = 10;
-      gameRoom.gameState.score.right = 0;
-    }
-    gameRoom.gameState.state = Game.FINISHED;
-    gameRoom.gameState.winner = winnerPosition;
+    const winnerPosition = disconnectedPosition === "left" ? "right" : "left";        
     const remainingPlayers = Object.values(gameRoom.players);
     const winnerPlayer = remainingPlayers.find(player => player.position === winnerPosition);
-    const winnerId = winnerPlayer ? winnerPlayer.id : null;
+    const winnerId = winnerPlayer ? winnerPlayer.id : null    
+    const leftPlayer = remainingPlayers.find(p => p.position === "left");
+    const isLeftPlayerWinner = leftPlayer && leftPlayer.id == winnerId;
+    if (isLeftPlayerWinner) {
+      gameRoom.gameState.score.left = 10;
+      gameRoom.gameState.score.right = 0;
+    } else {
+      gameRoom.gameState.score.left = 0;
+      gameRoom.gameState.score.right = 10;
+    }
+    
+    gameRoom.gameState.state = Game.FINISHED;
+    gameRoom.gameState.winner = winnerPosition;
     gameRoom.endedAt = new Date();
     fastify.log.info(`Game ${gameId} finished - reconnecting player ${userId} (${disconnectedPosition}) lost with score ${gameRoom.gameState.score.left}-${gameRoom.gameState.score.right}`);
     try {
