@@ -23,9 +23,6 @@ export const VictoryOverlay = defineComponent<void, VictoryOverlayProps>({
 
     if (gameState.tournamentId && gameState.tournamentId !== 0) {
       setTimeout(async () => {
-        console.log(
-          `============/tournament/${gameState.tournamentId}====================`
-        );
         await router.navigateTo(`/tournament/${gameState.tournamentId}`);
       }, 500);
     }

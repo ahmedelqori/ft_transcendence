@@ -22,6 +22,13 @@ export const GameOverLossOverlay = defineComponent<void, GameOverLossOverlayProp
     
     if (!visible)
       return createElement("div", { style: { display: "none" } });
+
+    if (gameState.tournamentId && gameState.tournamentId !== 0) {
+      setTimeout(async () => {
+        await router.navigateTo(`/tournament/${gameState.tournamentId}`);
+      }, 500);
+    }
+
     const handleGoToPage = async (link:string) => {
       await router.navigateTo(link);
     };
