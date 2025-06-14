@@ -75,20 +75,21 @@ if [ -f /vault/data/init.txt ]; then
     WRAPPED_TOKEN_2FA=$(vault write -f -wrap-ttl=1000m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
     WRAPPED_TOKEN_USER_MANAGEMENT=$(vault write -f -wrap-ttl=1000m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
     WRAPPED_TOKEN_TOURNAMENT=$(vault write -f -wrap-ttl=1000m -format=json auth/approle/role/backend/secret-id | grep -o '"token": *"[^"]*"' | awk -F'"' '{print $4}')
-    ROLE_ID=$(vault read -format=json auth/approle/role/backend/role-id | grep -o '"role_id": *"[^"]*"' | awk -F'"' '{print $4}')
-
+    
     printf "WRAPPED_TOKEN_2FA=\"%s\"\n" "$WRAPPED_TOKEN_2FA" > /home/vault/.temp.env
     printf "WRAPPED_TOKEN_USER_MANAGEMENT=\"%s\"\n" "$WRAPPED_TOKEN_USER_MANAGEMENT" >> /home/vault/.temp.env
     printf "WRAPPED_TOKEN_TOURNAMENT=\"%s\"\n" "$WRAPPED_TOKEN_TOURNAMENT" >> /home/vault/.temp.env
+    
+    ROLE_ID=$(vault read -format=json auth/approle/role/backend/role-id | grep -o '"role_id": *"[^"]*"' | awk -F'"' '{print $4}')
     printf "\nROLE_ID=\"%s\"\n" "$ROLE_ID" >> /home/vault/.temp.env
+   
 
-
-    SECRET_ID=$(vault write -f -format=json auth/approle/role/backend/secret-id | grep -o '"secret_id": *"[^"]*"' | awk -F'"' '{print $4}')
-    printf "\nSECRET_ID=\"%s\"\n" "$SECRET_ID" >> /home/vault/.temp.env
+    # SECRET_ID=$(vault write -f -format=json auth/approle/role/backend/secret-id | grep -o '"secret_id": *"[^"]*"' | awk -F'"' '{print $4}')
+    # printf "\nSECRET_ID=\"%s\"\n" "$SECRET_ID" >> /home/vault/.temp.env
 
     #cleanup
-    vault token revoke "$ROOT_TOKEN"
-    unset ROOT_TOKEN
+    # vault token revoke "$ROOT_TOKEN"
+    unset ROLE_ID
     unset WRAPPED_TOKEN_2FA
     unset WRAPPED_TOKEN_USER_MANAGEMENT
     unset WRAPPED_TOKEN_TOURNAMENT

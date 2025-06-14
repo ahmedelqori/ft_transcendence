@@ -1,6 +1,6 @@
-// import {secrets} from '../server.js';
+import {secrets} from '../server.js';
 import jwt from 'jsonwebtoken';
-import fs from 'fs';
+
 export default async function first_refresh_token(req, res) {
 
     // this endpoint can only be called once
@@ -11,7 +11,7 @@ export default async function first_refresh_token(req, res) {
         return ;
     }
 
-    const privateKey = fs.readFileSync('./private.pem', 'utf8');
+    const privateKey =secrets.JWT_PRIVATE;
     const payload = { user_id: req.user.id };
 
     const jwt_access_token = jwt.sign(payload, privateKey, { algorithm: 'RS256', expiresIn: '1h' });

@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import fs from 'fs';
+import {secrets} from '../server.js';
 import Player from '../models.js';
 
 
@@ -11,7 +11,7 @@ const is_authenticated = async (req) => {
     if (!token) {
         return undefined;
     }
-    const publicKey = fs.readFileSync('./public.pem', 'utf8');
+    const publicKey = secrets.JWT_PUBLIC;
     try {
         const decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] });
         if (decoded) {

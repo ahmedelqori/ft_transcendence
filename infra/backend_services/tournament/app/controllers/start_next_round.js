@@ -1,6 +1,6 @@
 import { tournament, tournament_games, tournament_players } from "../models.js";
 import notif from '../utils/send_notif.js';
-import axios from "axios";
+import {secrets} from '../server.js';
 
 
 async function reload_tournament(req, id) {
@@ -14,7 +14,7 @@ async function reload_tournament(req, id) {
 }
 
 export default async function start_next_round(req, res) {
-    if (req.headers.origin !== process.env.ORIGIN) {
+    if (req.headers.origin !== secrets.ORIGIN_S2S) {
         res.status(401).send({ message: 'unauthorized' });
         return ;
     }

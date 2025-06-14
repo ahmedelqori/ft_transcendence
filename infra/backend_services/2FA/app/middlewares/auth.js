@@ -1,7 +1,6 @@
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
-// import { secrets } from '../server.js';
-import fs from 'fs';
+import { secrets } from '../server.js';
 
 export default async function auth(req, res) {
     const authorization = req.headers.authorization;
@@ -10,7 +9,7 @@ export default async function auth(req, res) {
         return;
     };
 
-    const publicKey = fs.readFileSync('./public.pem', 'utf8');
+    const publicKey = secrets.JWT_PUBLIC;
     let decode;
     try {
         decode = jwt.verify(authorization.split(' ')[1], publicKey, { algorithms: ['RS256'] });

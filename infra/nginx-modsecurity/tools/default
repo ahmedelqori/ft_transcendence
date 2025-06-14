@@ -62,16 +62,12 @@ server {
         autoindex off;  # Disable directory listing
     }
 
-
-
-
 # Backend services {
 
 	location /api/account/ {
 		proxy_pass http://user_managment:3000/api/account/;
 		proxy_connect_timeout 20s;
 	}
-
 
 	location /api/friends/ {
         proxy_pass http://friendship:3000/api/friends/;
