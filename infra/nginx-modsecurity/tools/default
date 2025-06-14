@@ -44,8 +44,8 @@ server {
 	# include snippets/snakeoil.conf;
 
 	root /var/www/html;
-	# modsecurity on;
-	# modsecurity_rules_file /etc/nginx/modsec/main.conf;
+	modsecurity on;
+	modsecurity_rules_file /etc/nginx/modsec/main.conf;
 	# Add index.php to the list if you are using PHP
 	index index.html index.htm;
 

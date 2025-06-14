@@ -1,7 +1,5 @@
 #!/bin/bash
 
-
-
 cd /opt
 if [ ! -e .firstbuild ]; then
     git clone https://github.com/owasp-modsecurity/ModSecurity.git
@@ -43,7 +41,6 @@ if [ ! -e .addModule ]; then
     mkdir /etc/nginx/modules
     cp objs/ngx_http_modsecurity_module.so /etc/nginx/modules
     # add line load_module
-    mv /conf/nginx.conf /etc/nginx/
     touch .addModule
     echo "----------  add modules to nginx done!.  ----------"
 else
@@ -55,7 +52,6 @@ if [ ! -e .modsec ]; then
     cp /opt/ModSecurity/unicode.mapping /etc/nginx/modsec
     mv /conf/modsecurity.conf /etc/nginx/modsec
     mv /conf/main.conf /etc/nginx/modsec
-    mv /conf/default /etc/nginx/sites-available
     touch .modsec
     echo "----------  configure modsec done!.  ----------"
 else
