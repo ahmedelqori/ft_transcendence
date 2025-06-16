@@ -3,7 +3,7 @@
 # config.hcl
 storage "raft" {
   path = "/vault/data"
-  node_id = "vault_1"
+  node_id = "vault_node_1"
 }
 
 listener "tcp" {
@@ -18,7 +18,7 @@ ui = true
 
 # Disable core dumps
 #  Vault's memory is locked and sensitive data is not exposed through swap space. 
-disable_mlock = false
+disable_mlock = true
 
 # for audit logging
 audit "file" {

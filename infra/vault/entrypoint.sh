@@ -30,11 +30,17 @@ fi
 if [ -f /vault/data/init.txt ]; then
     echo "__________________Unsealing Vault...__________________"
     # Extracing keys 
+
     UNSEAL_KEYS=$(grep "Unseal Key" /vault/data/init.txt | awk '{print $4}' | head -n 3)
     for KEY in $UNSEAL_KEYS; do
-        vault operator unseal "$KEY" >/dev/null
+        vault operator unseal "$KEY"
     done
-    #login for create policy and role
+
+    while ! vault status | grep -q "HA Mode                 active";
+    do
+        sleep 1
+    done
+    # login for create policy and role
     ROOT_TOKEN=$(grep "Initial Root Token" /vault/data/init.txt |  awk '{print $4}')
     vault login $ROOT_TOKEN
 
