@@ -46,15 +46,8 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
     this.updateState({ userId: authState.getState().user?.id });
 
     eventBus.on("get:messages", async () => {
-      const status: any = await this.getRelation();
-      if (status == "blocked") {
-        if (this.getIsMounted)
-          this.updateState({
-            isLoading: false,
-            online: false,
-            messages: [],
-          });
-      } else if (this.state.socket.readyState === WebSocket.OPEN) {
+      await this.getRelation();
+      if (this.state.socket.readyState === WebSocket.OPEN) {
         if (this.getIsMounted)
           this.updateState({
             isLoading: true,
