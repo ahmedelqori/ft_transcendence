@@ -156,7 +156,7 @@ const TournamentDashboard = defineComponent<ProgressChart>({
         }
       );
       const data = await response.json();
-      console.log(data);
+      if (this.getIsMounted)
       this.updateState({ matches: data.reverse() });
     } catch (err) {}
   },

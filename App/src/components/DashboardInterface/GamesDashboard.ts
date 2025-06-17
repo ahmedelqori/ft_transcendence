@@ -116,17 +116,39 @@ const GamesDashboard = defineComponent<GamesDashboardState>({
                           "flex-row",
                           "gap-4",
                           "rounded-[30px]",
-                          e.winner ? "bg-[#ddf247]" : "bg-[#ff4242]",
                           "px-4",
                           "py-1",
-                          e.winner ? "text-black" : "text-white",
                           "font-medium",
                         ],
                       },
                       [
-                        createElement("p", {}, [e.userScore]),
-                        createElement("span", {}, [":"]),
-                        createElement("p", {}, [e.friendScore]),
+                        createElement(
+                          "p",
+                          {
+                            class: [
+                              e.winner
+                                ? "text-[var(--light-yellow)]"
+                                : "text-[var(--red-color)]",
+                            ],
+                          },
+                          [e.userScore]
+                        ),
+                        createElement("span", {}, [
+                          e.winner ? null : " ",
+                          ":",
+                          e.winner ? null : " ",
+                        ]),
+                        createElement(
+                          "p",
+                          {
+                            class: [
+                              e.winner
+                                ? "text-[var(--red-color)]"
+                                : "text-[var(--light-yellow)]",
+                            ],
+                          },
+                          [e.friendScore]
+                        ),
                       ]
                     ),
                     createElement("div", { class: ["flex-row", "gap-4"] }, [
@@ -166,7 +188,6 @@ const GamesDashboard = defineComponent<GamesDashboardState>({
         }
       );
       const data = await response.json();
-      // console.log(data);
       const newData = await Promise.all(
         data.map(async (e: GamesDataInterface) => {
           let game;
