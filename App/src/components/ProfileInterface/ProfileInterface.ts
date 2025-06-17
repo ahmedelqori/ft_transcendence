@@ -265,7 +265,8 @@ const ProfileInterface = defineComponent<
                       class: ["flex-row", "justify-end", "gap-4", "w-full"],
                     },
                     [
-                      this.state.relationShip === "friend"
+                      this.state.relationShip === "friend" ||
+                      this.state.relationShip === "blocked"
                         ? createElement(
                             "button",
                             {
@@ -294,10 +295,15 @@ const ProfileInterface = defineComponent<
                                   await this.handleUnfriendButton(),
                               },
                             },
-                            ["Unfriend"]
+                            [
+                              this.state.relationShip === "blocked"
+                                ? "Lah Ysameh"
+                                : "Unfriend",
+                            ]
                           )
                         : null,
-                      this.state.id !== authState.getState().user?.id
+                      this.state.id !== authState.getState().user?.id &&
+                      this.state.relationShip != "blocked"
                         ? createElement(
                             "button",
                             {
@@ -685,13 +691,27 @@ const ProfileInterface = defineComponent<
     this: IComponent<ProfileInterfaceState, ProfileInterfaceProps>
   ) {
     try {
-      await enhancedFetch.fetch(
-        `${import.meta.env.VITE_URL_DEV}/api/friends/${this.state.id}/friend`,
-        {
-          method: "DELETE",
-        }
+      if (this.state.relationShip === "blocked") {
+        await enhancedFetch.fetch(
+          `${import.meta.env.VITE_URL_DEV}/api/friends/${this.state.id}/block`,
+          {
+            method: "DELETE",
+          }
+        );
+      } else {
+        await enhancedFetch.fetch(
+          `${import.meta.env.VITE_URL_DEV}/api/friends/${this.state.id}/friend`,
+          {
+            method: "DELETE",
+          }
+        );
+      }
+      const relationResponse = await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/friends/${this.state.id}`
       );
-      if (this.getIsMounted) this.updateState({ relationShip: "none" });
+      const relation = await relationResponse.json();
+      if (this.getIsMounted)
+        this.updateState({ relationShip: relation.status });
     } catch (err) {
       console.log(err);
     }
