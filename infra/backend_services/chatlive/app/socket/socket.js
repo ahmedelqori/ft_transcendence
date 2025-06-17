@@ -1,7 +1,7 @@
 import fastify from "fastify";
 import fastifyWebsocket from "@fastify/websocket";
 import fastifyCors from "@fastify/cors";
-import wsAuth from "../middleware/ws-auth-middleware.js";
+import {wsAuth} from "../middleware/ws-auth-middleware.js";
 import { handleGetHistory } from "../controllers/handleGetHistory.js";
 import { handleSendMessage } from "../controllers/handleSendMessage.js";
 import { checkFriendship } from "../middleware/friendship.js";
@@ -27,6 +27,9 @@ export async function buildApp() {
   //   app.log.info("-------------------- New Request --------------------");
   // });
   // Register plugins
+
+
+  app.addHook("preHandler", wsAuth);
   await app.register(fastifyWebsocket, {
     maxPayload: 1048576,
     clientTracking: false,
@@ -43,7 +46,7 @@ export async function buildApp() {
   app.register(async (fastify) => {
     fastify.get(
       "/ws",
-      { websocket: true, preValidation: wsAuth },
+      { websocket: true },
       (connection, request) => {
         const userId = parseInt(request.user.id, 10);
         if (userId === undefined || userId === null) {

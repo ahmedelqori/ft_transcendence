@@ -103,7 +103,7 @@ function setupSocketEventHandlers(socket) {
     fastify.log.warn(`socket close event triggered with code ${code}`);   
     const gameId = socket.gameId;
     const userId = socket.userId;
-    clearInterval(heartbeat);
+    clearInterval(socket.heartbeat);
     if (socket.changed) return;
     if (!gameId || !userId) {
       fastify.log.error(`Invalid socket state on disconnect: gameId=${gameId}, userId=${userId}`);
