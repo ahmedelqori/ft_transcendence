@@ -59,9 +59,8 @@ export async function buildApp() {
               data.receiverId,
               request.query.token
             );
-            if (friendship) {
-              switch (data.type) {
-                case "sendMessage":
+            if (data.type === "sendMessage" && friendship)
+            {
                   await handleSendMessage(
                     data,
                     userId,
@@ -69,16 +68,13 @@ export async function buildApp() {
                     app,
                     messageBatches
                   );
-                  break;
-
-                case "getHistory":
-                  await handleGetHistory(data, userId, connection, app);
-                  break;
-
-                default:
-                  console.warn("Unknown message type:", data.type);
-              }
             }
+            else if (data.type === "getHistory")
+            {
+                await handleGetHistory(data, userId, connection, app);
+            }
+            else
+                console.warn("Unknown message type:", data.type);
           } catch (error) {
             console.error("Error processing message:", error);
           }
