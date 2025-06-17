@@ -14,6 +14,7 @@ interface FriendProps {
   setUser: (str: string) => void;
   setSelectedFriend: (str: string) => void;
   setFriendUserId: (id: number) => void;
+  relation: string;
 }
 
 interface FriendState {
@@ -57,6 +58,7 @@ const Friend = defineComponent<FriendState, FriendProps>({
           "focus:border-[#828c3a]",
           "cursor-pointer",
           "relative",
+          this.props.relation === "blocked" ? "opacity-[30%]" : "none",
         ],
         on: {
           contextmenu: (e) => {
