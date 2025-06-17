@@ -27,7 +27,7 @@ import {
   broadcast,
   broadcastAll,
   sendInitialGameData,
-  updateGameInDatabase,
+  runHeartBeatMechanism,
   checkChangingDevice,
   notifyGameFinished
 } from "./game.socket.utils.js";
@@ -79,6 +79,8 @@ async function handleWebSocketConnection(socket, req) {
   socket.userId = userId;
   socket.token = req.token
   socket.user = req.user
+  const heartbeat = runHeartBeatMechanism(socket);
+
   if (checkChangingDevice(connections, socket, gameRooms, defaultGameConfig, setupSocketEventHandlers)) return
   socket.send(Message("connected", { message: "You are connected" }));
   fastify.log.info(`User ${userId} connected to game ${gameId}`);
@@ -101,6 +103,7 @@ function setupSocketEventHandlers(socket) {
     fastify.log.warn(`socket close event triggered with code ${code}`);   
     const gameId = socket.gameId;
     const userId = socket.userId;
+    clearInterval(heartbeat);
     if (socket.changed) return;
     if (!gameId || !userId) {
       fastify.log.error(`Invalid socket state on disconnect: gameId=${gameId}, userId=${userId}`);
