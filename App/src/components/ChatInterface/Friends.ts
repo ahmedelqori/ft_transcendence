@@ -211,7 +211,6 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
       });
       const currentUser = authState.getState().user?.username;
       users = users.filter((e) => e.username !== currentUser);
-      console.log(users);
       if (this.getIsMounted)
         this.updateState({ friends: users, isLoading: false });
     } catch (err) {

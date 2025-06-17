@@ -1,3 +1,4 @@
+import enhancedFetch from "@/Hooks/fetch";
 import { router } from "@/router/Router.js";
 import {
   createElement,
@@ -21,22 +22,28 @@ interface FriendState {
   xPosition: number;
   yPosition: number;
   showContextMenu: boolean;
+  lastMsg: string;
+  time: string;
 }
 
 const Friend = defineComponent<FriendState, FriendProps>({
-  onMounted(
+  async onMounted(
     this: IComponent<FriendState> & {
       handleClickOutSide: (e: MouseEvent) => void;
+      getLastMessage: () => Promise<void>;
     }
   ) {
     this.handleClickOutSide = this.handleClickOutSide.bind(this);
     document.addEventListener("mousedown", this.handleClickOutSide);
+    await this.getLastMessage();
   },
   state() {
     return {
       xPosition: 0,
       yPosition: 0,
       showContextMenu: false,
+      lastMsg: "Send me a message",
+      time: "",
     };
   },
   render(this: IComponent<FriendState, FriendProps>) {
@@ -112,7 +119,7 @@ const Friend = defineComponent<FriendState, FriendProps>({
                     "max-w-xs",
                   ],
                 },
-                ["Rally your way to victory!"]
+                [this.state.lastMsg]
               ),
             ]),
           ]
@@ -129,7 +136,7 @@ const Friend = defineComponent<FriendState, FriendProps>({
               },
             },
           },
-          ["5m"]
+          [this.state.time]
         ),
         createElement(
           "div",
@@ -263,6 +270,42 @@ const Friend = defineComponent<FriendState, FriendProps>({
           });
       }
     }
+  },
+  async getLastMessage(
+    this: IComponent<FriendState, FriendProps> & {
+      getRelativeTime: (n: string) => string;
+    }
+  ) {
+    try {
+      const responseData = await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/chat/getlast?receiveId=${
+          this.props.id
+        }`
+      );
+      const data = await responseData.json();
+      console.log(data);
+      if (this.getIsMounted)
+        this.updateState({
+          lastMsg: data.data.content,
+          time: this.getRelativeTime(data.data.createdAt),
+        });
+    } catch (err) {}
+  },
+
+  getRelativeTime(dateString: string): string {
+    const now = new Date();
+    const past = new Date(dateString);
+    const diffMs = now.getTime() - past.getTime();
+
+    const seconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (seconds < 60) return `${seconds}s`;
+    if (minutes < 60) return `${minutes}m`;
+    if (hours < 24) return `${hours}h`;
+    return `${days}d`;
   },
 });
 
