@@ -166,7 +166,7 @@ const GamesDashboard = defineComponent<GamesDashboardState>({
         }
       );
       const data = await response.json();
-      console.log(data);
+      // console.log(data);
       const newData = await Promise.all(
         data.map(async (e: GamesDataInterface) => {
           let game;
