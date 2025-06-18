@@ -78,7 +78,7 @@ export const UserCompo = defineComponent<void, UserCompoProps>({
           height: "25",
           class: ["rounded-full", "w-[25px]", "h-[25px]"],
         }),
-        this.props.username.substring(0, 8),
+        this.props?.username?.substring(0, 8),
       ]
     );
   },
