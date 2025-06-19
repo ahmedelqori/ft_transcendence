@@ -17,6 +17,7 @@ interface RequestReceivedParams {
   username: string;
   avatar: string;
   id: number;
+  notifId: number;
 }
 
 interface DirectMessageParams {
@@ -41,6 +42,7 @@ const Toast = defineComponent<ToastState>({
           avatar: data.avatar,
           username: data.username,
           id: data.id,
+          notifId: data.notifId,
         }),
       });
       setTimeout(() => {
@@ -94,7 +96,7 @@ const Toast = defineComponent<ToastState>({
         });
         setTimeout(() => {
           this.updateState({ NotifComponent: null });
-        }, 6000);
+        }, 10000);
       }
     );
     eventBus.on("notif:error", (error: string) => {
@@ -165,6 +167,7 @@ interface FriendRequestProps {
   avatar: any;
   username: string;
   id: number;
+  notifId: number;
 }
 
 export const FriendRequest = defineComponent<void, FriendRequestProps>({
@@ -244,7 +247,11 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
       ]
     );
   },
-  async handleAcceptRequest(this: IComponent<void, FriendRequestProps>) {
+  async handleAcceptRequest(
+    this: IComponent<void, FriendRequestProps> & {
+      handleRemoveNotif: () => Promise<void>;
+    }
+  ) {
     try {
       await enhancedFetch.fetch(
         `${import.meta.env.VITE_URL_DEV}/api/friends/${
@@ -254,11 +261,16 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
       );
       eventBus.emit("update:friends");
       eventBus.emit("reset:notif");
+      await this.handleRemoveNotif();
     } catch (err) {
       console.log(err);
     }
   },
-  async handleDeclineRequest(this: IComponent<void, FriendRequestProps>) {
+  async handleDeclineRequest(
+    this: IComponent<void, FriendRequestProps> & {
+      handleRemoveNotif: () => Promise<void>;
+    }
+  ) {
     console.log(this.props);
     try {
       await enhancedFetch.fetch(
@@ -268,9 +280,18 @@ export const FriendRequest = defineComponent<void, FriendRequestProps>({
         { method: "POST" }
       );
       eventBus.emit("reset:notif");
+      await this.handleRemoveNotif();
     } catch (err) {
       console.log(err);
     }
+  },
+  async handleRemoveNotif(this: IComponent<void, FriendRequestProps>) {
+    try {
+      await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/notif/${this.props.notifId}`,
+        { method: "DELETE" }
+      );
+    } catch (err) {}
   },
 });
 
@@ -401,71 +422,139 @@ interface inviteToTournamentPorps {
   tournamentId: string;
 }
 
-export const inviteToTournament = defineComponent({
+interface inviteToTournamentState {
+  nickname: string;
+  showInput: boolean;
+}
+
+export const inviteToTournament = defineComponent<
+  inviteToTournamentState,
+  inviteToTournamentPorps
+>({
+  onMounted(
+    this: IComponent<inviteToTournamentState, inviteToTournamentPorps>
+  ) {},
+  state(this: IComponent<inviteToTournamentState, inviteToTournamentPorps>) {
+    return { nickname: authState.getState().user?.username!, showInput: false };
+  },
   render(
-    this: IComponent<void, inviteToTournamentPorps> & {
+    this: IComponent<inviteToTournamentState, inviteToTournamentPorps> & {
       handleJoinTournament: () => Promise<void>;
     }
   ) {
-    return createElement(
-      "div",
-      { class: ["flex-row", "gap-[20px]", "px-4", "py-2"] },
-      [
-        createElement("img", {
-          width: "40px",
-          height: "40px",
-          src: this.props.avatar_url,
-          class: ["w-[40px]", "h-[40px]", "rounded-full"],
-          on: {
-            click: () => {
-              router.navigateTo(`/profile/${this.props.username}`);
-              eventBus.emit("reset:notif");
+    return this.state.showInput
+      ? createElement("div", { class: ["flex-row", "gap-2"] }, [
+          createElement("input", {
+            value: this.state.nickname,
+            placeholder: "Nickname",
+            class: [
+              "px-4",
+              "py-2",
+              "w-44",
+              "h-5",
+              "rounded-[33px]",
+              "text-white",
+              "text-base",
+              "bg-transparent",
+              "focus:outline-none",
+              "transition-all",
+            ],
+            on: {
+              input: (e) => {
+                this.updateState({ nickname: e.target.value });
+              },
             },
-          },
-        }),
-        createElement("div", { class: ["mr-auto", "items-start"] }, [
-          createElement("p", { class: ["text-xs"] }, [
-            this.props.username || "unknown",
-          ]),
-          createElement(
-            "span",
-            { class: ["text-[var(--light-grey)]", "text-[10px]"] },
-            ["Tournament Invite"]
-          ),
-        ]),
-        createElement("div", { class: ["flex-row", "gap-2"] }, [
+          }),
           createElement(
             "button",
             {
-              class: [
-                "rounded-[16px]",
-                "bg-[var(--light-yellow)]",
-                "text-[var(--dark-black)]",
-                "px-2",
-                "py-1",
-                "text-[10px]",
-                "font-medium",
-                "hover:scale-[104%]",
-              ],
               on: {
                 click: async () => await this.handleJoinTournament(),
               },
+              class: [
+                "rounded-[33px]",
+                "bg-[var(--light-yellow)]",
+                "text-[var(--dark-black)]",
+                "font-medium",
+                "px-4",
+                "py-2",
+                "ml-auto",
+                "text-base",
+                "text-center",
+              ],
             },
-            ["Join"]
+            ["Gooo"]
           ),
-        ]),
-      ]
-    );
+        ])
+      : createElement(
+          "div",
+          { class: ["flex-row", "gap-[20px]", "px-4", "py-2"] },
+          [
+            createElement("img", {
+              width: "40px",
+              height: "40px",
+              src: this.props.avatar_url,
+              class: ["w-[40px]", "h-[40px]", "rounded-full"],
+              on: {
+                click: () => {
+                  router.navigateTo(`/profile/${this.props.username}`);
+                  eventBus.emit("reset:notif");
+                },
+              },
+            }),
+            createElement("div", { class: ["mr-auto", "items-start"] }, [
+              createElement("p", { class: ["text-xs"] }, [
+                this.props.username || "unknown",
+              ]),
+              createElement(
+                "span",
+                { class: ["text-[var(--light-grey)]", "text-[10px]"] },
+                ["Tournament Invite"]
+              ),
+            ]),
+            createElement("div", { class: ["flex-row", "gap-2"] }, [
+              createElement(
+                "button",
+                {
+                  class: [
+                    "rounded-[16px]",
+                    "bg-[var(--light-yellow)]",
+                    "text-[var(--dark-black)]",
+                    "px-2",
+                    "py-1",
+                    "text-[10px]",
+                    "font-medium",
+                    "hover:scale-[104%]",
+                  ],
+                  on: {
+                    click: () => {
+                      this.updateState({ showInput: true });
+                    },
+                    // click: async () => await this.handleJoinTournament(),
+                  },
+                },
+                ["Join"]
+              ),
+            ]),
+          ]
+        );
   },
-  async handleJoinTournament(this: IComponent<void, inviteToTournamentPorps>) {
+  async handleJoinTournament(
+    this: IComponent<inviteToTournamentState, inviteToTournamentPorps>
+  ) {
     try {
-      await enhancedFetch.fetch(this.props.link, {
+      const response = await enhancedFetch.fetch(this.props.link, {
         method: "POST",
-        body: JSON.stringify({ nickname: authState.getState().user?.username }),
+        body: JSON.stringify({ nickname: this.state.nickname }),
         headers: {
           "Content-Type": "application/json",
         },
       });
+      if (!response.ok) {
+        eventBus.emit("reset:notif");
+        return;
+      }
+      eventBus.emit("reset:notif");
       await router.navigateTo(`/tournament/${this.props.tournamentId}`);
     } catch (err) {
       console.log(err);

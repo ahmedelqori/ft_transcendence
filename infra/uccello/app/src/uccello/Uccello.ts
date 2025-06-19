@@ -1827,8 +1827,10 @@ export function defineComponent<State = {}, Props = {}>({
      * @param {Partial<State>} state - The partial state to update the component with.
      */
     updateState(state: Partial<State>): void {
-      this.state = { ...this.state, ...state };
-      this.patch();
+      if (this.getIsMounted) {
+        this.state = { ...this.state, ...state };
+        this.patch();
+      }
     }
 
     /**
@@ -2435,7 +2437,10 @@ export class HashRouter {
    * @param path - The path to push to the history.
    */
   private pushState(path: string) {
-    window.history.pushState({}, "", `#${path}`);
+    const newHash = `#${path}`;
+
+    if (window.location.hash !== newHash)
+      window.history.pushState({ path }, "", newHash);
   }
 
   /**

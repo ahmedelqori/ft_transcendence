@@ -246,14 +246,35 @@ const Searchbar = defineComponent<SearchBarState>({
                           class: ["ml-auto"],
                           on: {
                             click: async () => {
-                              await enhancedFetch.fetch(
-                                `${import.meta.env.VITE_URL_DEV}/api/friends/${
-                                  user.id
-                                }/request`,
-                                {
-                                  method: "POST",
+                              try {
+                                const res = await enhancedFetch.fetch(
+                                  `${
+                                    import.meta.env.VITE_URL_DEV
+                                  }/api/friends/${user.id}/request`,
+                                  {
+                                    method: "POST",
+                                  }
+                                );
+                                if (!res.ok && res.status == 400) {
+                                  await enhancedFetch.fetch(
+                                    `${
+                                      import.meta.env.VITE_URL_DEV
+                                    }/api/friends/${user.id}/block`,
+
+                                    {
+                                      method: "DELETE",
+                                    }
+                                  );
+                                  await enhancedFetch.fetch(
+                                    `${
+                                      import.meta.env.VITE_URL_DEV
+                                    }/api/friends/${user.id}/request`,
+                                    {
+                                      method: "POST",
+                                    }
+                                  );
                                 }
-                              );
+                              } catch (err) {}
                             },
                           },
                         },

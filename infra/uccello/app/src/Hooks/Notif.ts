@@ -14,9 +14,10 @@ class NotifSystem {
     this.socket.onopen = () => {};
     this.socket.onmessage = (event) => {
       const data: any = JSON.parse(event.data);
+      console.log("===============> ", data);
       switch (data.type) {
         case "friendRequest":
-          this.handleFriendRequest(data.payload.senderId);
+          this.handleFriendRequest(data);
           break;
         case "directMessage":
           this.handleMessageRequest(data.payload.senderId);
@@ -48,14 +49,14 @@ class NotifSystem {
     };
     this.socket.onclose = () => {};
   }
-  private async handleFriendRequest(id: number) {
+  private async handleFriendRequest(req: any) {
     try {
-      const data = await this.getUserData(id);
-
+      const data = await this.getUserData(req.payload.senderId);
       eventBus.emit("notif:requestReceived", {
         username: data.username,
         avatar: data.avatar_url,
-        id: id,
+        id: req.payload.senderId,
+        notifId: req.id,
       });
     } catch (err) {
       console.log("Error::handleFriendRequest - ", err);
@@ -76,7 +77,7 @@ class NotifSystem {
   }
   private async getUserData(id: number) {
     const response = await enhancedFetch.fetch(
-      `https://www.meedivo.me/api/account/${id}`
+      `${import.meta.env.VITE_URL_DEV}/api/account/${id}`
     );
     return await response.json();
   }
@@ -111,7 +112,8 @@ class NotifSystem {
     });
   }
   private handleReloadTournament() {
-    eventBus.emit("change:tournament");
+    if (router.getMatchedRoute?.path === "/tournament/:id")
+      eventBus.emit("change:tournament");
   }
   private async handlePlayGameFromTournament(data: any) {
     await router.navigateTo(`/game/${data.payload.id}`);

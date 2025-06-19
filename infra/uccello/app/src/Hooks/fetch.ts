@@ -4,6 +4,14 @@ import { router } from "@/router/Router";
 
 const enhancedFetch = new EnhancedFetch();
 
+function getCookie(name: string) {
+  const value = `; ${document.cookie}`;
+  console.log(document.cookie);
+  const parts: any = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+}
+
 enhancedFetch.addRequestInterceptor((request) => {
   return {
     ...request,
@@ -23,8 +31,24 @@ enhancedFetch.addRequestInterceptor((request) => {
 
 enhancedFetch.addResponseInterceptor(async (response) => {
   if (!response.ok && response.status == 401) {
-    authState.setState({ isAuthenticated: false, user: null });
-    await router.navigateTo("/login");
+    try {
+      console.log("Cookie:", document.cookie);
+      console.log(getCookie("refresh_token"));
+      const res = await fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/account/login/refresh/`,
+        {
+          method: "POST",
+          body: JSON.stringify({ refresh_token: getCookie("refresh_token") }),
+        }
+      );
+      console.log(res);
+      if (!res.ok) throw await res.json();
+      const data = await res.json();
+      localStorage.setItem("access_token", data.access_token);
+    } catch (err) {
+      authState.setState({ isAuthenticated: false, user: null });
+      await router.navigateTo("/login");
+    }
   }
   return response;
 });

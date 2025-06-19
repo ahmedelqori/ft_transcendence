@@ -47,17 +47,17 @@ services:
     depends_on:
       - vault
 
-  # uccello:
-  #   build:
-  #     context: ./uccello
-  #     dockerfile: Dockerfile
-  #   container_name: uccello
-  #   env_file:
-  #     - ./uccello/app/.env
-  #   networks:
-  #     - appNet
-  #   volumes:
-  #     - framework_build:/app/dist
+  uccello:
+    build:
+      context: ./uccello
+      dockerfile: Dockerfile
+    container_name: uccello
+    env_file:
+      - ./uccello/app/.env
+    networks:
+      - appNet
+    volumes:
+      - framework_build:/app/dist
 
   user_managment:
     build:
@@ -160,5 +160,6 @@ services:
       - appNet
     volumes:
       - game_database:/app/database
+      - temp_env:/app/temp_env
     depends_on:
       - user_managment

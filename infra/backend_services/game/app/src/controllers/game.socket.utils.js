@@ -3,7 +3,7 @@ import { connections } from "../gameLogic/gameConfig.js";
 import { WS_CLOSE, Game } from "../gameLogic/gameConfig.js";
 import axios from 'axios';
 import { TOKEN } from "../middlewares/auth.middleware.js";
-
+import { secrets } from "../server.js";
 export const Message = (messageType, messagePayload) =>
   JSON.stringify({ type: messageType, data: messagePayload });
 
@@ -295,7 +295,7 @@ export async function notifyGameFinished(token, game) {
       {
         headers: {
           Authorization: `${token}`,
-          origin: process.env.ORIGIN
+          origin: secrets.ORIGIN_S2S
         },
       }
     );

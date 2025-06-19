@@ -8,7 +8,7 @@ import { router } from "@/router/Router.js";
 interface VictoryOverlayProps {
   score: { player: number; opponent: number };
   visible?: boolean;
-  gameState:any;
+  gameState: any;
 }
 
 export const VictoryOverlay = defineComponent<void, VictoryOverlayProps>({
@@ -21,7 +21,13 @@ export const VictoryOverlay = defineComponent<void, VictoryOverlayProps>({
       return createElement("div", { style: { display: "none" } });
     }
 
-    const handleGoToPage = async (link:string) => {
+    if (gameState.tournamentId && gameState.tournamentId !== 0) {
+      setTimeout(async () => {
+        await router.navigateTo(`/tournament/${gameState.tournamentId}`);
+      }, 500);
+    }
+
+    const handleGoToPage = async (link: string) => {
       await router.navigateTo(link);
     };
 
@@ -156,14 +162,17 @@ export const VictoryOverlay = defineComponent<void, VictoryOverlayProps>({
                 },
                 on: {
                   click: () => {
-                    if (gameState.tournamentId &&  gameState.tournamentId != 0)
-                      handleGoToPage(`/tournament/${gameState.tournamentId}`)
-                    else
-                      handleGoToPage(`/dashboard`)
+                    if (gameState.tournamentId && gameState.tournamentId != 0)
+                      handleGoToPage(`/tournament/${gameState.tournamentId}`);
+                    else handleGoToPage(`/dashboard`);
                   },
                 },
               },
-              ["GO TO DASHBOARD"]
+              [
+                gameState.tournamentId && gameState.tournamentId != 0
+                  ? "GO TO TOURNAMENT"
+                  : "GO TO DASHBOARD",
+              ]
             ),
           ]
         ),

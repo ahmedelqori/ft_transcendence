@@ -26,6 +26,5 @@
       "@/*": ["src/*"]
     }
   },
-    "include": ["src"],  // Compiles all files in `src/`
-  "exclude": []
+  "include": ["src"]
 }

@@ -14,6 +14,7 @@ interface UserInterface {
   username: string;
   id: string;
   avatar: any;
+  relation: string;
 }
 
 interface FriendsState {
@@ -185,6 +186,7 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
                       setFriendUserId: (id: number) => {
                         this.props.setUserId(id);
                       },
+                      relation: e.relation,
                     })
                   )
             ),
@@ -204,6 +206,7 @@ const Friends = defineComponent<FriendsState, FriendsProps>({
           username: user.username,
           id: user.id,
           avatar: user.avatar_url,
+          relation: user.relation,
         };
       });
       const currentUser = authState.getState().user?.username;

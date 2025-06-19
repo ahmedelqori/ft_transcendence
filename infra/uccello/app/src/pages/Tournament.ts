@@ -59,9 +59,6 @@ const Tournament = defineComponent<void>({
           },
           [
             createElement(TournamentBracketState, {
-              //   number: this.state.number,
-              //   nickName: this.state.nickName,
-              //   title: this.state.title,
             }),
           ]
         ),

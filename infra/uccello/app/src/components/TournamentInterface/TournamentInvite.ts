@@ -4,6 +4,7 @@ import { createElement, defineComponent, IComponent } from "@/uccello/Uccello";
 interface TournamentInviteProps {
   inviteUsers: boolean;
   tournamentId: string;
+  players: any[];
   setInviteUsers: () => void;
 }
 interface TournamentInviteStat {
@@ -25,7 +26,14 @@ const TournamentInvite = defineComponent<
         `${import.meta.env.VITE_URL_DEV}/api/account/users/?n=20&sort=newest`
       );
       const data = await response.json();
-      if (this.getIsMounted) this.updateState({ friends: data });
+      const newData = data.filter(
+        (e: any) =>
+          this.props.players.filter((item) => item.id == e.id).length === 0
+      );
+      if (this.getIsMounted)
+        this.updateState({
+          friends: newData,
+        });
     } catch (err) {
       console.log(err);
     }
@@ -46,7 +54,6 @@ const TournamentInvite = defineComponent<
       "div",
       {
         class: [
-          this.props.inviteUsers ? "flex" : "hidden",
           "absolute",
           "top-1/2",
           "left-1/2",
@@ -133,7 +140,7 @@ const TournamentInviteUser = defineComponent<
           class: ["rounded-full"],
         }),
         createElement("p", { class: ["text-lg", "text-[var(--light-grey)]"] }, [
-          this.props.username.substring(0, 8),
+          this.props?.username?.substring(0, 8),
         ]),
         createElement("i", {
           class: ["ph", "ml-auto", this.state.icon, "text-xl"],

@@ -61,13 +61,12 @@ const TournamentStartState = defineComponent<
               maxplayers: e.total_places,
               currentplayers: e.total_players,
               id: e.id,
-              nickname: e.nickname,
+              nickname: e.owner.nickname,
               status: e.status,
             };
           }),
           isLoading: false,
         });
-      console.log(data);
     } catch (err) {
       console.log(err);
     }
@@ -204,10 +203,31 @@ const TournamentStartState = defineComponent<
                                           `/tournament/${el.id}`
                                         );
                                       } else {
-                                        this.updateState({
-                                          id: el.id,
-                                          selected: true,
-                                        });
+                                        try {
+                                          const response =
+                                            await enhancedFetch.fetch(
+                                              `${
+                                                import.meta.env.VITE_URL_DEV
+                                              }/api/tournament/${el.id}/results`
+                                            );
+                                          if (!response.ok) {
+                                            if (this.getIsMounted)
+                                              this.updateState({
+                                                id: el.id,
+                                                selected: true,
+                                              });
+                                            return;
+                                          }
+                                          await router.navigateTo(
+                                            `/tournament/${el.id}`
+                                          );
+                                        } catch (err) {
+                                          if (this.getIsMounted)
+                                            this.updateState({
+                                              id: el.id,
+                                              selected: true,
+                                            });
+                                        }
                                       }
                                     },
                                   },

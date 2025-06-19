@@ -1,5 +1,6 @@
 import { fastify } from "../server.js";
 import { gameRooms } from "../gameLogic/gameConfig.js";
+import { secrets } from "../server.js";
 import axios from "axios";
 
 const TOURNAMENT_GAME_TIMEOUT = 1 * 60 * 1000;
@@ -68,7 +69,7 @@ async function notifyTournamentGameFinished(token, game) {
     }, {
       headers: {
         Authorization: `${token}`,
-        Origin: process.env.ORIGIN
+        Origin: secrets.ORIGIN_S2S
       }
     });
   } catch (error) {

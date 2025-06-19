@@ -19,9 +19,11 @@ interface TournamentBracketState {
   numberOfPlayers: number;
   firstRound: number;
   players: any[];
+  rounds: any[];
   status: string;
   code: string;
   owner: number;
+  title: string;
 }
 
 const TournamentBracket = defineComponent<
@@ -56,6 +58,8 @@ const TournamentBracket = defineComponent<
       status: "CREATED",
       code: "",
       owner: -1,
+      rounds: [],
+      title: "",
     };
   },
   render(
@@ -65,12 +69,16 @@ const TournamentBracket = defineComponent<
     }
   ) {
     let index = 0;
+    // let indexSixTeenLeft = 0;
+    let indexSixTeenRight = 4;
     return this.state.isLoading == false
       ? createElement(
           "div",
           { class: ["w-full", "h-full", "flex-row", "relative"] },
           [
-            this.state.status === "READY"
+            (this.state.status === "READY" ||
+              this.state.status === "STARTED") &&
+            authState.getState().user?.id === this.state.owner
               ? createElement(
                   "div",
                   {
@@ -109,7 +117,49 @@ const TournamentBracket = defineComponent<
                     ),
                   ]
                 )
+              : this.state.status === "COMPLETE"
+              ? createElement(
+                  "div",
+                  {
+                    class: [
+                      "absolute",
+                      "left-1/2",
+                      "top-1/2",
+                      "bg-opacity-1",
+                      "-translate-x-1/2",
+                      "-translate-y-1/2",
+                      "py-2",
+                      "text-black",
+                      "bg-[var(--light-yellow)]",
+                      "rounded-[33px]",
+                      "font-medium",
+                      "flex-row",
+                      "scale-[120%]",
+                    ],
+                    on: {
+                      click: async () => await this.handleStartTournament(),
+                    },
+                  },
+                  [
+                    createElement(UserCompo, {
+                      username: this.state.players.find(
+                        (e) =>
+                          e.id ==
+                          this.state.rounds["round2" as any]?.[0]?.game.winnerId
+                      )?.nickname,
+                      id: this.state.rounds["round2" as any]?.[0]?.game
+                        .winnerId,
+                      avatar_url: this.state.players.find(
+                        (e) =>
+                          e.id ==
+                          this.state.rounds["round2" as any]?.[0]?.game.winnerId
+                      )?.avatar_url,
+                      invert: false,
+                    }),
+                  ]
+                )
               : null,
+
             createElement(
               "div",
               {
@@ -153,7 +203,8 @@ const TournamentBracket = defineComponent<
               {
                 class: [
                   "absolute",
-                  "right-[-26px]",
+                  "left-1/2",
+                  "-translate-x-1/2",
                   "top-[-41px]",
                   "bg-opacity-1",
                   "py-2",
@@ -162,39 +213,123 @@ const TournamentBracket = defineComponent<
                   "text-lg",
                   "flex-row",
                 ],
-                on: {
-                  click: async () => {
-                    await this.handleLeaveTournament();
-                    await router.navigateTo("/tournament");
-                  },
-                },
               },
               [
                 createElement(
                   "button",
                   {
                     class: [
-                      "rounded-br-none",
                       "rounded-tl-none",
+                      "rounded-tr-none",
                       "border-2",
-                      "text-[var(--main-color)]",
-                      "w-[120px]",
-                      "bg-[var(--red-color)]",
+                      "text-[var(--dark-black)]",
+                      "w-[160px]",
+                      "bg-[var(--light-yellow)]",
                       "border-[#878787]",
                       "border-opacity-[30%]",
                       "rounded-[33px]",
                       "tracking-wide",
                       "h-12",
+                      "text-xl",
                     ],
                   },
-                  [
-                    this.state.owner === authState.getState().user?.id!
-                      ? `Delete`
-                      : "Leave",
-                  ]
+                  [`${this.state.title}`]
                 ),
               ]
             ),
+            this.state.status === "CREATED"
+              ? createElement(
+                  "div",
+                  {
+                    class: [
+                      "absolute",
+                      "right-[-26px]",
+                      "top-[-41px]",
+                      "bg-opacity-1",
+                      "py-2",
+                      "text-black",
+                      "font-medium",
+                      "text-lg",
+                      "flex-row",
+                    ],
+                    on: {
+                      click: async () => {
+                        await this.handleLeaveTournament();
+                        await router.navigateTo("/tournament");
+                      },
+                    },
+                  },
+                  [
+                    createElement(
+                      "button",
+                      {
+                        class: [
+                          "rounded-br-none",
+                          "rounded-tl-none",
+                          "border-2",
+                          "text-[var(--main-color)]",
+                          "w-[120px]",
+                          "bg-[var(--red-color)]",
+                          "border-[#878787]",
+                          "border-opacity-[30%]",
+                          "rounded-[33px]",
+                          "tracking-wide",
+                          "h-12",
+                        ],
+                      },
+                      [
+                        this.state.owner === authState.getState().user?.id!
+                          ? `Delete`
+                          : "Leave",
+                      ]
+                    ),
+                  ]
+                )
+              : this.state.owner === authState.getState().user?.id!
+              ? createElement(
+                  "div",
+                  {
+                    class: [
+                      "absolute",
+                      "right-[-26px]",
+                      "top-[-41px]",
+                      "bg-opacity-1",
+                      "py-2",
+                      "text-black",
+                      "font-medium",
+                      "text-lg",
+                      "flex-row",
+                    ],
+                    on: {
+                      click: async () => {
+                        await this.handleLeaveTournament();
+                        await router.navigateTo("/tournament");
+                      },
+                    },
+                  },
+                  [
+                    createElement(
+                      "button",
+                      {
+                        class: [
+                          "rounded-br-none",
+                          "rounded-tl-none",
+                          "border-2",
+                          "text-[var(--main-color)]",
+                          "w-[120px]",
+                          "bg-[var(--red-color)]",
+                          "border-[#878787]",
+                          "border-opacity-[30%]",
+                          "rounded-[33px]",
+                          "tracking-wide",
+                          "h-12",
+                        ],
+                      },
+                      [`Delete`]
+                    ),
+                  ]
+                )
+              : null,
             createElement(
               "div",
               {
@@ -237,19 +372,17 @@ const TournamentBracket = defineComponent<
                             ],
                           },
                           [
-                            this.state.status == "CREATED" &&
                             this.state.numberOfPlayers === 16 &&
                             index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
                                   invert: false,
                                 })
-                              : this.state.status == "CREATED" &&
-                                this.state.numberOfPlayers !== 16
+                              : this.state.numberOfPlayers !== 16
                               ? createElement(
                                   "div",
                                   { class: ["text-[var(--light-grey)]"] },
@@ -298,19 +431,17 @@ const TournamentBracket = defineComponent<
                             ],
                           },
                           [
-                            this.state.status == "CREATED" &&
                             this.state.numberOfPlayers === 16 &&
                             index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
                                   invert: false,
                                 })
-                              : this.state.status == "CREATED" &&
-                                this.state.numberOfPlayers !== 16
+                              : this.state.numberOfPlayers !== 16
                               ? createElement(
                                   "div",
                                   { class: ["text-[var(--light-grey)]"] },
@@ -344,7 +475,7 @@ const TournamentBracket = defineComponent<
                   },
                   Array(2)
                     .fill(0)
-                    .map((e) =>
+                    .map((e, indexSixTeenLeft) =>
                       createElement("div", { class: [] }, [
                         createElement(
                           "div",
@@ -368,19 +499,43 @@ const TournamentBracket = defineComponent<
                             ],
                           },
                           [
-                            this.state.status == "CREATED" &&
-                            this.state.numberOfPlayers === 8 &&
-                            index++ < this.state.players.length
+                            (this.state.status == "STARTED" ||
+                              this.state.status == "COMPLETE") &&
+                            this.state.numberOfPlayers == 16 &&
+                            this.state.rounds["round16" as any]?.[
+                              indexSixTeenLeft == 0 ? 0 : 2
+                            ]?.game.winnerId != -1
+                              ? createElement(UserCompo, {
+                                  username: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round16" as any]?.[
+                                        indexSixTeenLeft == 0 ? 0 : 2
+                                      ]?.game.winnerId
+                                  )?.nickname,
+                                  id: this.state.rounds["round16" as any]?.[
+                                    indexSixTeenLeft == 0 ? 0 : 2
+                                  ]?.game.winnerId,
+                                  avatar_url: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round16" as any]?.[
+                                        indexSixTeenLeft == 0 ? 0 : 2
+                                      ]?.game.winnerId
+                                  )?.avatar_url,
+                                  invert: false,
+                                })
+                              : this.state.numberOfPlayers === 8 &&
+                                index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
                                   invert: false,
                                 })
-                              : this.state.status == "CREATED" &&
-                                this.state.numberOfPlayers !== 8
+                              : this.state.numberOfPlayers !== 8
                               ? createElement(
                                   "div",
                                   { class: ["text-[var(--light-grey)]"] },
@@ -438,19 +593,43 @@ const TournamentBracket = defineComponent<
                             ],
                           },
                           [
-                            this.state.status == "CREATED" &&
-                            this.state.numberOfPlayers === 8 &&
-                            index++ < this.state.players.length
+                            (this.state.status == "STARTED" ||
+                              this.state.status == "COMPLETE") &&
+                            this.state.numberOfPlayers == 16 &&
+                            this.state.rounds["round16" as any]?.[
+                              indexSixTeenLeft == 0 ? 1 : 3
+                            ]?.game.winnerId != -1
+                              ? createElement(UserCompo, {
+                                  username: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round16" as any]?.[
+                                        indexSixTeenLeft == 0 ? 1 : 3
+                                      ]?.game.winnerId
+                                  )?.nickname,
+                                  id: this.state.rounds["round16" as any]?.[
+                                    indexSixTeenLeft == 0 ? 1 : 3
+                                  ]?.game.winnerId,
+                                  avatar_url: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round16" as any]?.[
+                                        indexSixTeenLeft == 0 ? 1 : 3
+                                      ]?.game.winnerId
+                                  )?.avatar_url,
+                                  invert: false,
+                                })
+                              : this.state.numberOfPlayers === 8 &&
+                                index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
                                   invert: false,
                                 })
-                              : this.state.status == "CREATED" &&
-                                this.state.numberOfPlayers !== 8
+                              : this.state.numberOfPlayers !== 8
                               ? createElement(
                                   "div",
                                   { class: ["text-[var(--light-grey)]"] },
@@ -474,7 +653,7 @@ const TournamentBracket = defineComponent<
                   { class: ["h-full", "gap-5", "justify-around"] },
                   Array(1)
                     .fill(0)
-                    .map((e) =>
+                    .map((e, i) =>
                       createElement("div", { class: [] }, [
                         createElement(
                           "div",
@@ -498,19 +677,63 @@ const TournamentBracket = defineComponent<
                             ],
                           },
                           [
-                            this.state.status == "CREATED" &&
-                            this.state.numberOfPlayers === 4 &&
-                            index++ < this.state.players.length
+                            (this.state.status == "STARTED" ||
+                              this.state.status == "COMPLETE") &&
+                            (this.state.numberOfPlayers == 8 ||
+                              this.state.numberOfPlayers == 16) &&
+                            this.state.rounds["round8" as any].length &&
+                            this.state.rounds["round8" as any]?.[0]?.game
+                              .winnerId != -1
+                              ? createElement(UserCompo, {
+                                  username: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round8" as any]?.[0]
+                                        ?.game.winnerId
+                                  )?.nickname,
+                                  id: this.state.rounds["round8" as any]?.[0]
+                                    ?.game.winnerId,
+                                  avatar_url: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round8" as any]?.[0]
+                                        ?.game.winnerId
+                                  )?.avatar_url,
+                                  invert: false,
+                                })
+                              : this.state.status == "STARTED" &&
+                                this.state.numberOfPlayers == 4
+                              ? createElement(UserCompo, {
+                                  username: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round4" as any]?.[i]
+                                        ?.game.playerOneId
+                                  )?.nickname,
+                                  id: this.state.rounds["round4" as any]?.[i]
+                                    ?.game.playerOneId,
+                                  avatar_url: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round4" as any]?.[i]
+                                        ?.game.playerOneId
+                                  )?.avatar_url,
+                                  invert: false,
+                                })
+                              : (this.state.status == "CREATED" ||
+                                  this.state.status == "READY" ||
+                                  this.state.status == "COMPLETE") &&
+                                this.state.numberOfPlayers === 4 &&
+                                index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
                                   invert: false,
                                 })
-                              : this.state.status == "CREATED" &&
-                                this.state.numberOfPlayers !== 4
+                              : this.state.numberOfPlayers !== 4
                               ? createElement(
                                   "div",
                                   { class: ["text-[var(--light-grey)]"] },
@@ -568,18 +791,63 @@ const TournamentBracket = defineComponent<
                             ],
                           },
                           [
-                            this.state.firstRound ===
-                              this.state.numberOfPlayers &&
-                            index++ < this.state.players.length
+                            (this.state.status == "STARTED" ||
+                              this.state.status == "COMPLETE") &&
+                            (this.state.numberOfPlayers == 8 ||
+                              this.state.numberOfPlayers == 16) &&
+                            this.state.rounds["round8" as any].length &&
+                            this.state.rounds["round8" as any]?.[1]?.game
+                              .winnerId != -1
+                              ? createElement(UserCompo, {
+                                  username: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round8" as any]?.[1]
+                                        ?.game.winnerId
+                                  )?.nickname,
+                                  id: this.state.rounds["round8" as any]?.[1]
+                                    ?.game.winnerId,
+                                  avatar_url: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round8" as any]?.[1]
+                                        ?.game.winnerId
+                                  )?.avatar_url,
+                                  invert: false,
+                                })
+                              : this.state.status == "STARTED" &&
+                                this.state.numberOfPlayers == 4
+                              ? createElement(UserCompo, {
+                                  username: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round4" as any]?.[i]
+                                        ?.game.playerTwoId
+                                  )?.nickname,
+                                  id: this.state.rounds["round4" as any]?.[i]
+                                    ?.game.playerTwo,
+                                  avatar_url: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round4" as any]?.[i]
+                                        ?.game.playerTwoId
+                                  )?.avatar_url,
+                                  invert: false,
+                                })
+                              : (this.state.status == "CREATED" ||
+                                  this.state.status == "READY" ||
+                                  this.state.status == "COMPLETE") &&
+                                this.state.numberOfPlayers === 4 &&
+                                index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
                                   invert: false,
                                 })
-                              : this.state.numberOfPlayers != 4
+                              : this.state.numberOfPlayers !== 4
                               ? createElement(
                                   "div",
                                   { class: ["text-[var(--light-grey)]"] },
@@ -615,14 +883,39 @@ const TournamentBracket = defineComponent<
                       createElement(
                         "div",
                         { class: ["text-[var(--light-grey)]"] },
-                        ["Final"]
+                        [
+                          (this.state.status == "STARTED" ||
+                            this.state.status == "COMPLETE") &&
+                          this.state.rounds["round4" as any][0]?.game.status ==
+                            "FINISHED"
+                            ? createElement(UserCompo, {
+                                username: this.state.players.find(
+                                  (e) =>
+                                    e.id ==
+                                    this.state.rounds["round4" as any][0]?.game
+                                      .winnerId
+                                )?.nickname,
+                                id: this.state.rounds["round4" as any][0]?.game
+                                  .winnerId,
+                                avatar_url: this.state.players.find(
+                                  (e) =>
+                                    e.id ==
+                                    this.state.rounds["round4" as any][0]?.game
+                                      .winnerId
+                                )?.avatar_url,
+                                invert: false,
+                              })
+                            : "Final",
+                        ]
                       ),
                     ]
                   ),
                 ]),
               ]
             ),
-            createElement("h4", { class: ["text-3xl"] }, ["Vs"]),
+            this.state.status !== "COMPLETE"
+              ? createElement("h4", { class: ["text-3xl"] }, ["Vs"])
+              : null,
             createElement(
               "div",
               {
@@ -666,19 +959,17 @@ const TournamentBracket = defineComponent<
                             ],
                           },
                           [
-                            this.state.status == "CREATED" &&
                             this.state.numberOfPlayers === 16 &&
                             index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
                                   invert: true,
                                 })
-                              : this.state.status == "CREATED" &&
-                                this.state.numberOfPlayers !== 16
+                              : this.state.numberOfPlayers !== 16
                               ? createElement(
                                   "div",
                                   {
@@ -732,19 +1023,17 @@ const TournamentBracket = defineComponent<
                             ],
                           },
                           [
-                            this.state.status == "CREATED" &&
                             this.state.numberOfPlayers === 16 &&
                             index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
                                   invert: true,
                                 })
-                              : this.state.status == "CREATED" &&
-                                this.state.numberOfPlayers !== 16
+                              : this.state.numberOfPlayers !== 16
                               ? createElement(
                                   "div",
                                   {
@@ -783,7 +1072,7 @@ const TournamentBracket = defineComponent<
                   },
                   Array(2)
                     .fill(0)
-                    .map((e) =>
+                    .map((e, indexSixTeenRight) =>
                       createElement("div", { class: [] }, [
                         createElement(
                           "div",
@@ -807,19 +1096,43 @@ const TournamentBracket = defineComponent<
                             ],
                           },
                           [
-                            this.state.status == "CREATED" &&
-                            this.state.numberOfPlayers === 8 &&
-                            index++ < this.state.players.length
+                            (this.state.status == "STARTED" ||
+                              this.state.status == "COMPLETE") &&
+                            this.state.numberOfPlayers == 16 &&
+                            this.state.rounds["round16" as any]?.[
+                              indexSixTeenRight == 0 ? 4 : 6
+                            ]?.game.winnerId != -1
+                              ? createElement(UserCompo, {
+                                  username: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round16" as any]?.[
+                                        indexSixTeenRight == 0 ? 4 : 6
+                                      ]?.game.winnerId
+                                  )?.nickname,
+                                  id: this.state.rounds["round16" as any]?.[
+                                    indexSixTeenRight == 0 ? 4 : 6
+                                  ]?.game.winnerId,
+                                  avatar_url: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round16" as any]?.[
+                                        indexSixTeenRight == 0 ? 4 : 6
+                                      ]?.game.winnerId
+                                  )?.avatar_url,
+                                  invert: true,
+                                })
+                              : this.state.numberOfPlayers === 8 &&
+                                index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
                                   invert: true,
                                 })
-                              : this.state.status == "CREATED" &&
-                                this.state.numberOfPlayers !== 8
+                              : this.state.numberOfPlayers !== 8
                               ? createElement(
                                   "div",
                                   {
@@ -882,19 +1195,43 @@ const TournamentBracket = defineComponent<
                             ],
                           },
                           [
-                            this.state.status == "CREATED" &&
-                            this.state.numberOfPlayers === 8 &&
-                            index++ < this.state.players.length
+                            (this.state.status == "STARTED" ||
+                              this.state.status == "COMPLETE") &&
+                            this.state.numberOfPlayers == 16 &&
+                            this.state.rounds["round16" as any]?.[
+                              indexSixTeenRight == 0 ? 5 : 7
+                            ]?.game.winnerId != -1
+                              ? createElement(UserCompo, {
+                                  username: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round16" as any]?.[
+                                        indexSixTeenRight == 0 ? 5 : 7
+                                      ]?.game.winnerId
+                                  )?.nickname,
+                                  id: this.state.rounds["round16" as any]?.[
+                                    indexSixTeenRight == 0 ? 5 : 7
+                                  ]?.game.winnerId,
+                                  avatar_url: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round16" as any]?.[
+                                        indexSixTeenRight == 0 ? 5 : 7
+                                      ]?.game.winnerId
+                                  )?.avatar_url,
+                                  invert: true,
+                                })
+                              : this.state.numberOfPlayers === 8 &&
+                                index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
                                   invert: true,
                                 })
-                              : this.state.status == "CREATED" &&
-                                this.state.numberOfPlayers !== 8
+                              : this.state.numberOfPlayers !== 8
                               ? createElement(
                                   "div",
                                   {
@@ -923,7 +1260,7 @@ const TournamentBracket = defineComponent<
                   { class: ["h-full", "gap-5", "justify-around"] },
                   Array(1)
                     .fill(0)
-                    .map((e) =>
+                    .map((e, i) =>
                       createElement("div", { class: [] }, [
                         createElement(
                           "div",
@@ -947,19 +1284,63 @@ const TournamentBracket = defineComponent<
                             ],
                           },
                           [
-                            this.state.status == "CREATED" &&
-                            this.state.numberOfPlayers === 4 &&
-                            index++ < this.state.players.length
+                            (this.state.status == "STARTED" ||
+                              this.state.status == "COMPLETE") &&
+                            (this.state.numberOfPlayers == 8 ||
+                              this.state.numberOfPlayers == 16) &&
+                            this.state.rounds["round8" as any].length &&
+                            this.state.rounds["round8" as any]?.[2]?.game
+                              .winnerId != -1
+                              ? createElement(UserCompo, {
+                                  username: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round8" as any]?.[2]
+                                        ?.game.winnerId
+                                  )?.nickname,
+                                  id: this.state.rounds["round8" as any]?.[2]
+                                    ?.game.winnerId,
+                                  avatar_url: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round8" as any]?.[2]
+                                        ?.game.winnerId
+                                  )?.avatar_url,
+                                  invert: true,
+                                })
+                              : this.state.status == "STARTED" &&
+                                this.state.numberOfPlayers == 4
+                              ? createElement(UserCompo, {
+                                  username: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round4" as any]?.[1]
+                                        ?.game.playerOneId
+                                  )?.nickname,
+                                  id: this.state.rounds["round4" as any]?.[1]
+                                    ?.game.playerOneId,
+                                  avatar_url: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round4" as any]?.[1]
+                                        ?.game.playerOneId
+                                  )?.avatar_url,
+                                  invert: true,
+                                })
+                              : (this.state.status == "CREATED" ||
+                                  this.state.status == "READY" ||
+                                  this.state.status == "COMPLETE") &&
+                                this.state.numberOfPlayers === 4 &&
+                                index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
                                   invert: true,
                                 })
-                              : this.state.status == "CREATED" &&
-                                this.state.numberOfPlayers !== 4
+                              : this.state.numberOfPlayers !== 4
                               ? createElement(
                                   "div",
                                   {
@@ -1022,19 +1403,63 @@ const TournamentBracket = defineComponent<
                             ],
                           },
                           [
-                            this.state.status == "CREATED" &&
-                            this.state.numberOfPlayers === 4 &&
-                            index++ < this.state.players.length
+                            (this.state.status == "STARTED" ||
+                              this.state.status == "COMPLETE") &&
+                            (this.state.numberOfPlayers == 8 ||
+                              this.state.numberOfPlayers == 16) &&
+                            this.state.rounds["round8" as any].length &&
+                            this.state.rounds["round8" as any]?.[3]?.game
+                              .winnerId != -1
+                              ? createElement(UserCompo, {
+                                  username: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round8" as any]?.[3]
+                                        ?.game.winnerId
+                                  )?.nickname,
+                                  id: this.state.rounds["round8" as any]?.[3]
+                                    ?.game.winnerId,
+                                  avatar_url: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round8" as any]?.[3]
+                                        ?.game.winnerId
+                                  )?.avatar_url,
+                                  invert: true,
+                                })
+                              : this.state.status == "STARTED" &&
+                                this.state.numberOfPlayers == 4
+                              ? createElement(UserCompo, {
+                                  username: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round4" as any]?.[1]
+                                        ?.game.playerTwoId
+                                  )?.nickname,
+                                  id: this.state.rounds["round4" as any]?.[1]
+                                    ?.game.playerTwoId,
+                                  avatar_url: this.state.players.find(
+                                    (e) =>
+                                      e.id ==
+                                      this.state.rounds["round4" as any]?.[1]
+                                        ?.game.playerTwoId
+                                  )?.avatar_url,
+                                  invert: true,
+                                })
+                              : (this.state.status == "CREATED" ||
+                                  this.state.status == "READY" ||
+                                  this.state.status == "COMPLETE") &&
+                                this.state.numberOfPlayers === 4 &&
+                                index++ < this.state.players.length
                               ? createElement(UserCompo, {
                                   username:
-                                    this.state.players[index - 1]?.username,
+                                    this.state.players[index - 1]?.nickname,
                                   id: this.state.players[index - 1]?.id,
                                   avatar_url:
                                     this.state.players[index - 1]?.avatar_url,
                                   invert: true,
                                 })
-                              : this.state.status == "CREATED" &&
-                                this.state.numberOfPlayers !== 4
+                              : this.state.numberOfPlayers !== 4
                               ? createElement(
                                   "div",
                                   {
@@ -1069,28 +1494,57 @@ const TournamentBracket = defineComponent<
                         "border-2",
                         "border-[#878787]",
                         "border-opacity-[30%]",
-                        "scale-x-[-1]",
                       ],
                     },
                     [
                       createElement(
                         "div",
                         { class: ["text-[var(--light-grey)]"] },
-                        ["Final"]
+                        [
+                          (this.state.status == "STARTED" ||
+                            this.state.status == "COMPLETE") &&
+                          this.state.rounds["round4" as any][1]?.game.status ==
+                            "FINISHED"
+                            ? createElement(UserCompo, {
+                                username: this.state.players.find(
+                                  (e) =>
+                                    e.id ==
+                                    this.state.rounds["round4" as any][1]?.game
+                                      .winnerId
+                                )?.nickname,
+                                id: this.state.rounds["round4" as any][1]?.game
+                                  .winnerId,
+                                avatar_url: this.state.players.find(
+                                  (e) =>
+                                    e.id ==
+                                    this.state.rounds["round4" as any][1]?.game
+                                      .winnerId
+                                )?.avatar_url,
+                                invert: true,
+                              })
+                            : createElement(
+                                "div",
+                                { class: ["scale-x-[-1]"] },
+                                ["Final"]
+                              ),
+                        ]
                       ),
                     ]
                   ),
                 ]),
               ]
             ),
-            createElement(TournamentInvite, {
-              class: [],
-              inviteUsers: this.state.inviteUsers,
-              tournamentId: (router.getParams as any).id,
-              setInviteUsers: () => {
-                this.updateState({ inviteUsers: !this.state.inviteUsers });
-              },
-            }),
+            this.state.inviteUsers
+              ? createElement(TournamentInvite, {
+                  class: [],
+                  inviteUsers: this.state.inviteUsers,
+                  tournamentId: (router.getParams as any).id,
+                  players: this.state.players,
+                  setInviteUsers: () => {
+                    this.updateState({ inviteUsers: !this.state.inviteUsers });
+                  },
+                })
+              : null,
           ]
         )
       : createElement(Loader);
@@ -1143,6 +1597,7 @@ const TournamentBracket = defineComponent<
       );
 
       const result = await resultResponse.json();
+      console.log(result, setting);
       if (!resultResponse.ok) throw result;
       if (this.getIsMounted) {
         this.updateState({
@@ -1153,6 +1608,8 @@ const TournamentBracket = defineComponent<
           status: setting.status,
           code: setting.settings.code,
           owner: setting.owner.id,
+          rounds: result.rounds,
+          title: setting.name,
         });
       }
     } catch (err: any) {

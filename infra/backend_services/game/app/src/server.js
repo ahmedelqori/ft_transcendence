@@ -5,7 +5,9 @@ import fastifyWebsocket from "@fastify/websocket";
 import { setupWebSocketHandlers } from "./controllers/game.socket.js";
 import { setupLocalWebSocketHandlers } from "./controllers/localGame.socket.js";
 import cors from "@fastify/cors";
+import { loadSecrets } from "./vault-service.js";
 
+export const secrets = await loadSecrets();
 export const gameConnections = new Map();
 
 export const fastify = Fastify({

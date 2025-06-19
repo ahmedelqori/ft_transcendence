@@ -34,6 +34,7 @@ const SideBarDashboard = defineComponent<SideBarDashboardState>({
       {
         class: [
           this.state.showFriend ? "w-[35%]" : "w-[150px]",
+          this.state.friends.length ? "flex" : "hidden",
           "border-2",
           "border-opacity-[30%]",
           "h-fit",
