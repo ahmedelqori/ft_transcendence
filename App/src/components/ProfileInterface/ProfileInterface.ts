@@ -24,6 +24,8 @@ interface ProfileInterfaceState {
   gameLose: number;
   scoreDiffrence: number;
   relationShip: string;
+  wons: number;
+  username: string;
 }
 const ProfileInterface = defineComponent<
   ProfileInterfaceState,
@@ -32,6 +34,7 @@ const ProfileInterface = defineComponent<
   async onMounted(
     this: IComponent<ProfileInterfaceState, ProfileInterfaceProps> & {
       extractData: (data: any, userid: string) => void;
+      getTournaments: () => Promise<void>;
     }
   ) {
     try {
@@ -65,8 +68,8 @@ const ProfileInterface = defineComponent<
       const year = date.getUTCFullYear().toString().slice(-2);
       const formattedDate = `${day}-${month}-${year}`;
 
-      setTimeout(() => {
-        if (this.getIsMounted)
+      setTimeout(async () => {
+        if (this.getIsMounted) {
           this.updateState({
             avatar: user.avatar_url,
             found: true,
@@ -75,8 +78,10 @@ const ProfileInterface = defineComponent<
             animationComplete: false,
             id: user.id,
             relationShip: relation.status,
+            username: user.username,
           });
-
+          await this.getTournaments();
+        }
         setTimeout(() => {
           if (this.getIsMounted)
             this.updateState({
@@ -110,6 +115,8 @@ const ProfileInterface = defineComponent<
       scoreDiffrence: 0,
       id: -1,
       relationShip: "none",
+      wons: 0,
+      username: "",
     };
   },
   render(
@@ -370,7 +377,7 @@ const ProfileInterface = defineComponent<
                             "hover:text-[var(--light-yellow)]",
                           ],
                         },
-                        [this.props.username]
+                        [this.state.username]
                       ),
                       createElement(
                         "p",
@@ -593,14 +600,14 @@ const ProfileInterface = defineComponent<
                                   "font-bold",
                                 ],
                               },
-                              ["32"]
+                              [`${this.state.wons}`]
                             ),
                             createElement(
                               "p",
                               {
                                 class: ["text-[var(--light-grey)]", "text-sm"],
                               },
-                              ["highest score"]
+                              ["Tournaments"]
                             ),
                           ]),
                         ]
@@ -771,6 +778,18 @@ const ProfileInterface = defineComponent<
         gameLose: loseGames,
         scoreDiffrence: xp >= 0 ? xp : 0,
       });
+  },
+  async getTournaments(
+    this: IComponent<ProfileInterfaceState, ProfileInterfaceProps>
+  ) {
+    try {
+      const res = await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/tournament/${this.state.id}/wons`
+      );
+      const data = await res.json();
+      console.log(data);
+      if (this.getIsMounted) this.updateState({ wons: data.wons });
+    } catch (err) {}
   },
 });
 
