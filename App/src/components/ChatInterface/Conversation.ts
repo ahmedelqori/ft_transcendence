@@ -43,7 +43,8 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
   ) {
     this.state.intervalId = null;
     this.setupWebSocket.call(this);
-    this.updateState({ userId: authState.getState().user?.id });
+    if (this.getIsMounted)
+      this.updateState({ userId: authState.getState().user?.id });
 
     eventBus.on("get:messages", async () => {
       await this.getRelation();

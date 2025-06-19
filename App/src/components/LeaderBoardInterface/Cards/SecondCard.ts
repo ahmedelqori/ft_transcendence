@@ -38,7 +38,7 @@ const SecondCard = defineComponent<void, SecondCardProps>({
       [
         createElement("img", {
           src: this.props.avatar,
-          class: ["rounded-full", "w-[100px]"],
+          class: ["rounded-full", "w-[100px]", "h-[100px]"],
         }),
         createElement("h4", {}, [this.props.username]),
         createElement("h4", { class: ["text-[var(--light-grey)]"] }, [

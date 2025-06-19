@@ -19,7 +19,7 @@ const FriendRequestNotif = defineComponent<void, FriendRequestNotifProps>({
     return createElement("div", { class: ["flex-row", "gap-[20px]"] }, [
       createElement("img", {
         src: this.props.avatar,
-        class: ["w-[40px]", "rounded-full"],
+        class: ["w-[40px]","h-[40px]", "rounded-full"],
       }),
       createElement("div", { class: ["mr-auto", "items-start"] }, [
         createElement("p", { class: ["text-[14px]"] }, [this.props.username]),

@@ -43,7 +43,7 @@ const Card = defineComponent<void, CardProps>({
           [
             createElement("img", {
               src: this.props.avatar,
-              class: ["w-[40px]", "rounded-full"],
+              class: ["w-[40px]", "h-[40px]", "rounded-full"],
             }),
             createElement("div", { class: ["mr-[40px]", "items-start"] }, [
               createElement(

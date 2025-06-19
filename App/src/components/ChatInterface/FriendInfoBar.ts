@@ -272,7 +272,10 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
       );
       eventBus.emit("update:friends");
       eventBus.emit("remove:friend");
-    } catch (err) {}
+    } catch (err) {
+      eventBus.emit("update:friends");
+      eventBus.emit("remove:friend");
+    }
   },
   async handlePlayButton(
     this: IComponent<FriendInfoBarState, FriendInfoBarProps>

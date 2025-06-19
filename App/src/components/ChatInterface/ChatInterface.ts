@@ -35,7 +35,6 @@ const ChatInterface = defineComponent<ChatInterfaceState>({
     };
   },
   render(this: IComponent<ChatInterfaceState>) {
-    // console.log(this.state.userId);
     return createElement(
       "section",
       {
@@ -62,11 +61,14 @@ const ChatInterface = defineComponent<ChatInterfaceState>({
           ? null
           : createElement(Friends, {
               setShowSelectedUser: (user: string) => {
-                this.updateState({ showSelectedUser: user });
+                if (this.getIsMounted)
+                  this.updateState({ showSelectedUser: user });
               },
               setUserId: (id: number) => {
-                this.updateState({ userId: id });
-                eventBus.emit("get:messages");
+                if (this.getIsMounted) {
+                  this.updateState({ userId: id });
+                  eventBus.emit("get:messages");
+                }
               },
             }),
         this.state.isMobile && this.state.showConversation
