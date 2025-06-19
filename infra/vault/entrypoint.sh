@@ -63,9 +63,9 @@ if [ -f /vault/data/init.txt ]; then
     vault write auth/approle/role/backend token_policies="policy" token_ttl=1h token_max_ttl=48h secret_id_ttl="10m" secret_id_num_uses=1 # Short-lived SecretID
 
     #store kv
-    vault kv put secret/data/oauth/google SOCIAL_AUTH_GOOGLE_OAUTH2_KEY='499739725290-got362gnd4n9n7t6ook75kdve4stabu5.apps.googleusercontent.com' SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET='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'
-	vault kv put secret/data/oauth/42 SOCIAL_AUTH_42_OAUTH2_KEY='u-s4t2ud-781bcdee833b67dcbf0e446f5aa49447e19d1d252fdbb50fe06b618d4da10198' SOCIAL_AUTH_42_OAUTH2_SECRET='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'
-    vault kv put secret/data/oauth/S2S  ORIGIN='f4371N6916c83e817f5cA4681e84820Z95c'
+    vault kv put secret/data/oauth/google SOCIAL_AUTH_GOOGLE_OAUTH2_KEY=$SOCIAL_AUTH_GOOGLE_OAUTH2_KEY SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=$SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
+	vault kv put secret/data/oauth/42 SOCIAL_AUTH_42_OAUTH2_KEY=$SOCIAL_AUTH_42_OAUTH2_KEY SOCIAL_AUTH_42_OAUTH2_SECRET=$SOCIAL_AUTH_42_OAUTH2_SECRET
+    vault kv put secret/data/oauth/S2S  ORIGIN=$ORIGIN
 
     # generaten jwt pulic and private key
     openssl genrsa -out /tmp/private.pem 4096 && openssl rsa -in /tmp/private.pem -pubout -out /tmp/public.pem

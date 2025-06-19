@@ -20,7 +20,7 @@ services:
     container_name: vault
     build: ./vault/.
     env_file:
-      - ./.global.env
+      - ./vault/.env
     ports:
       - "8200:8200"
     networks:
