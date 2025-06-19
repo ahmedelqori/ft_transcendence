@@ -2553,7 +2553,7 @@ export const RouterLink = defineComponent<void, RouterLinkProps>({
     return createElement(
       "a",
       {
-        href: to,
+        href: "#" + to,
         on: {
           /**
            * Handles the click event by preventing the default anchor behavior
