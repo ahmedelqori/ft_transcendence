@@ -25,7 +25,7 @@ export const fastify = Fastify({
 
 fastify.register(cors, {
   credentials: true,
-  origin: ["http://10.12.8.2:5500"],
+  origin: [process.env.DOMAIN],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization", "userid"],
   exposedHeaders: ["Authorization"],

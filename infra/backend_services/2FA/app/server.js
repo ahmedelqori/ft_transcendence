@@ -7,7 +7,7 @@ import knexConfig from "./knexfile.cjs"; // knex config
 import { Model } from "objection"; // ORM build on top of Knex
 import multipart from "@fastify/multipart"; // to handle file uploads
 import cors from "@fastify/cors"; // to handle CORS
-import { loadSecrets } from './utils/vault-service.js';
+import { loadSecrets } from "./utils/vault-service.js";
 
 export const secrets = await loadSecrets();
 
@@ -28,7 +28,7 @@ const fastify = Fastify({
 
 fastify.register(cors, {
   credentials: true,
-  origin: ["http://10.12.8.2:5500"],
+  origin: [process.env.DOMAIN],
   methods: ["GET", "POST", "PATCH", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   exposedHeaders: ["Authorization"],
