@@ -24,6 +24,9 @@ interface ProfileInterfaceState {
   gameLose: number;
   scoreDiffrence: number;
   relationShip: string;
+  wons: number;
+  username: string;
+  bio: string;
 }
 const ProfileInterface = defineComponent<
   ProfileInterfaceState,
@@ -32,6 +35,7 @@ const ProfileInterface = defineComponent<
   async onMounted(
     this: IComponent<ProfileInterfaceState, ProfileInterfaceProps> & {
       extractData: (data: any, userid: string) => void;
+      getTournaments: () => Promise<void>;
     }
   ) {
     try {
@@ -65,8 +69,8 @@ const ProfileInterface = defineComponent<
       const year = date.getUTCFullYear().toString().slice(-2);
       const formattedDate = `${day}-${month}-${year}`;
 
-      setTimeout(() => {
-        if (this.getIsMounted)
+      setTimeout(async () => {
+        if (this.getIsMounted) {
           this.updateState({
             avatar: user.avatar_url,
             found: true,
@@ -75,8 +79,11 @@ const ProfileInterface = defineComponent<
             animationComplete: false,
             id: user.id,
             relationShip: relation.status,
+            username: user.username,
+            bio: user.bio,
           });
-
+          await this.getTournaments();
+        }
         setTimeout(() => {
           if (this.getIsMounted)
             this.updateState({
@@ -110,6 +117,9 @@ const ProfileInterface = defineComponent<
       scoreDiffrence: 0,
       id: -1,
       relationShip: "none",
+      wons: 0,
+      username: "",
+      bio: "",
     };
   },
   render(
@@ -265,7 +275,8 @@ const ProfileInterface = defineComponent<
                       class: ["flex-row", "justify-end", "gap-4", "w-full"],
                     },
                     [
-                      this.state.relationShip === "friend"
+                      this.state.relationShip === "friend" ||
+                      this.state.relationShip === "blocked"
                         ? createElement(
                             "button",
                             {
@@ -294,10 +305,15 @@ const ProfileInterface = defineComponent<
                                   await this.handleUnfriendButton(),
                               },
                             },
-                            ["Unfriend"]
+                            [
+                              this.state.relationShip === "blocked"
+                                ? "Lah Ysameh"
+                                : "Unfriend",
+                            ]
                           )
                         : null,
-                      this.state.id !== authState.getState().user?.id
+                      this.state.id !== authState.getState().user?.id &&
+                      this.state.relationShip != "blocked"
                         ? createElement(
                             "button",
                             {
@@ -364,7 +380,7 @@ const ProfileInterface = defineComponent<
                             "hover:text-[var(--light-yellow)]",
                           ],
                         },
-                        [this.props.username]
+                        [this.state.username]
                       ),
                       createElement(
                         "p",
@@ -393,7 +409,7 @@ const ProfileInterface = defineComponent<
                                 "self-end",
                               ],
                             },
-                            [`${this.state.scoreDiffrence}/10000xp`]
+                            [`${this.state.scoreDiffrence}/500xp`]
                           ),
                           createElement(
                             "div",
@@ -419,8 +435,7 @@ const ProfileInterface = defineComponent<
                                 style: {
                                   width: this.state.animationComplete
                                     ? `${
-                                        (this.state.scoreDiffrence / 10000) *
-                                        100
+                                        (this.state.scoreDiffrence / 500) * 100
                                       }%`
                                     : "0%",
                                   transitionDelay: "600ms",
@@ -587,14 +602,14 @@ const ProfileInterface = defineComponent<
                                   "font-bold",
                                 ],
                               },
-                              ["32"]
+                              [`${this.state.wons}`]
                             ),
                             createElement(
                               "p",
                               {
                                 class: ["text-[var(--light-grey)]", "text-sm"],
                               },
-                              ["highest score"]
+                              ["Tournaments"]
                             ),
                           ]),
                         ]
@@ -602,77 +617,43 @@ const ProfileInterface = defineComponent<
                     ]
                   ),
                   createElement(
-                    "div",
+                    "p",
                     {
                       class: [
+                        "text-[16px]",
+                        "resize-none",
+                        "px-4",
+                        "py-4",
                         "w-full",
-                        "mt-11",
+                        "h-full",
+                        "focus:border-2",
+                        "outline-none",
+                        "rounded-[14px]",
+                        "placeholder-[var(--light-grey)]",
+                        "text-[var(--light-grey)]",
+                        "text-opacity-5",
+                        "bg-transparent",
+                        "focus:outline-none",
+                        "focus:border-[#828c3a]",
                         "transition-all",
-                        "duration-500",
-                        this.state.animationComplete
-                          ? "opacity-100"
-                          : "opacity-0",
+                        "mx-auto",
+                        "overflow-scroll",
+                        "overflow-x-hidden",
+                        "overflow-y-auto",
+                        "[&::-webkit-scrollbar]:w-1",
+                        "[&::-webkit-scrollbar-track]:rounded-full",
+                        "[&::-webkit-scrollbar-track]:bg-gray-100",
+                        "[&::-webkit-scrollbar-thumb]:rounded-full",
+                        "[&::-webkit-scrollbar-thumb]:bg-gray-300",
+                        "dark:[&::-webkit-scrollbar-track]:bg-transparent",
+                        "dark:[&::-webkit-scrollbar-thumb]:bg-[#ddf247]",
+                        "dark:[&::-webkit-scrollbar-thumb]:bg-opacity-[70%]",
                       ],
-                      style: {
-                        transitionDelay: "700ms",
-                      },
                     },
                     [
-                      createElement(
-                        "p",
-                        {
-                          class: [
-                            "text-[var(--main-color)]",
-                            "text-md",
-                            "self-start",
-                            "font-semibold",
-                          ],
-                        },
-                        ["Achievements"]
-                      ),
-                      createElement("div", { class: ["w-full", "gap-2"] }, [
-                        createElement(
-                          "h5",
-                          {
-                            class: [
-                              "text-[var(--light-grey)]",
-                              "text-sm",
-                              "self-end",
-                            ],
-                          },
-                          ["22/100"]
-                        ),
-                        createElement(
-                          "div",
-                          {
-                            class: [
-                              "w-full",
-                              "bg-white",
-                              "rounded-full",
-                              "h-2.5",
-                              "items-start",
-                              "overflow-hidden",
-                            ],
-                          },
-                          [
-                            createElement("div", {
-                              class: [
-                                "bg-[var(--light-yellow)]",
-                                "h-2.5",
-                                "rounded-full",
-                                "transition-all",
-                                "duration-1000",
-                              ],
-                              style: {
-                                width: this.state.animationComplete
-                                  ? "22%"
-                                  : "0%",
-                                transitionDelay: "800ms",
-                              },
-                            }),
-                          ]
-                        ),
-                      ]),
+                      this.state.bio.length
+                        ? this.state.bio
+                        : `My Name is ${authState.getState().user?.username}`,
                     ]
                   ),
                 ]
@@ -685,13 +666,27 @@ const ProfileInterface = defineComponent<
     this: IComponent<ProfileInterfaceState, ProfileInterfaceProps>
   ) {
     try {
-      await enhancedFetch.fetch(
-        `${import.meta.env.VITE_URL_DEV}/api/friends/${this.state.id}/friend`,
-        {
-          method: "DELETE",
-        }
+      if (this.state.relationShip === "blocked") {
+        await enhancedFetch.fetch(
+          `${import.meta.env.VITE_URL_DEV}/api/friends/${this.state.id}/block`,
+          {
+            method: "DELETE",
+          }
+        );
+      } else {
+        await enhancedFetch.fetch(
+          `${import.meta.env.VITE_URL_DEV}/api/friends/${this.state.id}/friend`,
+          {
+            method: "DELETE",
+          }
+        );
+      }
+      const relationResponse = await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/friends/${this.state.id}`
       );
-      if (this.getIsMounted) this.updateState({ relationShip: "none" });
+      const relation = await relationResponse.json();
+      if (this.getIsMounted)
+        this.updateState({ relationShip: relation.status });
     } catch (err) {
       console.log(err);
     }
@@ -751,6 +746,18 @@ const ProfileInterface = defineComponent<
         gameLose: loseGames,
         scoreDiffrence: xp >= 0 ? xp : 0,
       });
+  },
+  async getTournaments(
+    this: IComponent<ProfileInterfaceState, ProfileInterfaceProps>
+  ) {
+    try {
+      const res = await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/tournament/${this.state.id}/wons`
+      );
+      const data = await res.json();
+      console.log(data);
+      if (this.getIsMounted) this.updateState({ wons: data.wons });
+    } catch (err) {}
   },
 });
 

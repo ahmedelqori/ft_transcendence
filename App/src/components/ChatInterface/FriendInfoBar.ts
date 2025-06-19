@@ -12,6 +12,7 @@ interface FriendInfoBarProps {
   online: boolean;
   isLoading: boolean;
   friendId: number;
+  relation: string;
 }
 
 interface FriendInfoBarState {
@@ -55,6 +56,8 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
                   "max-lg:text-xs",
                   this.props.isLoading
                     ? "text-[#FF9F00]"
+                    : this.props.relation == "blocked"
+                    ? "text-[var(--red-color)]"
                     : this.props.online
                     ? "text-[var(--light-yellow)]"
                     : "text-[var(--light-grey)]",
@@ -64,6 +67,8 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
               [
                 this.props.isLoading
                   ? "Waiting"
+                  : this.props.relation == "blocked"
+                  ? "BLOCKED"
                   : this.props.online
                   ? "Online"
                   : "Offline",
@@ -74,6 +79,8 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
                     "h-3",
                     this.props.isLoading
                       ? "bg-[#FF9F00]"
+                      : this.props.relation == "blocked"
+                      ? "text-[var(--red-color)]"
                       : this.props.online
                       ? "bg-[var(--light-yellow)]"
                       : "bg-[var(--light-grey)]",
@@ -208,7 +215,11 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
                   createElement("i", {
                     class: ["ph", "ph-prohibit", "text-[18px]"],
                   }),
-                  createElement("button", {}, ["Block User"]),
+                  createElement("button", {}, [
+                    this.props.relation === "blocked"
+                      ? "Unblock User"
+                      : "Block User",
+                  ]),
                 ]
               ),
             ]
@@ -256,19 +267,21 @@ const FriendInfoBar = defineComponent<FriendInfoBarState, FriendInfoBarProps>({
           this.props.friendId
         }/block`,
         {
-          method: "POST",
+          method: this.props.relation === "blocked" ? "DELETE" : "POST",
         }
       );
       eventBus.emit("update:friends");
       eventBus.emit("remove:friend");
-    } catch (err) {}
+    } catch (err) {
+      eventBus.emit("update:friends");
+      eventBus.emit("remove:friend");
+    }
   },
   async handlePlayButton(
     this: IComponent<FriendInfoBarState, FriendInfoBarProps>
   ) {
     try {
       await enhancedFetch.fetch(`${import.meta.env.VITE_URL_DEV}/api/games/`, {
-        // await enhancedFetch.fetch(`http://localhost:3000/`, {
         method: "POST",
         body: JSON.stringify({ playerTwoId: this.props.friendId }),
         headers: {

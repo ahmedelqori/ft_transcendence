@@ -140,7 +140,7 @@ const TournamentInviteUser = defineComponent<
           class: ["rounded-full"],
         }),
         createElement("p", { class: ["text-lg", "text-[var(--light-grey)]"] }, [
-          this.props.username.substring(0, 8),
+          this.props?.username?.substring(0, 8),
         ]),
         createElement("i", {
           class: ["ph", "ml-auto", this.state.icon, "text-xl"],

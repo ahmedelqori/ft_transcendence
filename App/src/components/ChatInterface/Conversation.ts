@@ -25,6 +25,7 @@ interface ConversationState {
   messages: MessageInterface[];
   socket: any;
   online: boolean;
+  relation: string;
   intervalId: any;
   userId: number;
   receiverId: number;
@@ -37,19 +38,22 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
       setupWebSocket: () => void;
       getMessages: () => Promise<void>;
       getStatus: () => Promise<void>;
+      getRelation: () => Promise<string>;
     }
   ) {
     this.state.intervalId = null;
     this.setupWebSocket.call(this);
-    this.updateState({ userId: authState.getState().user?.id });
+    if (this.getIsMounted)
+      this.updateState({ userId: authState.getState().user?.id });
 
     eventBus.on("get:messages", async () => {
+      await this.getRelation();
       if (this.state.socket.readyState === WebSocket.OPEN) {
-        this.updateState({
-          isLoading: true,
-          online: false,
-        });
-
+        if (this.getIsMounted)
+          this.updateState({
+            isLoading: true,
+            online: false,
+          });
         this.state.socket.send(
           JSON.stringify({
             type: "getHistory",
@@ -72,6 +76,7 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
       receiverId: -1,
       userId: -1,
       isLoading: true,
+      relation: "",
     };
   },
   render(this: IComponent<ConversationState, ConversationProps>) {
@@ -91,6 +96,7 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
             createElement(FriendInfoBar, {
               username: this.props.username,
               online: this.state.online,
+              relation: this.state.relation,
               isLoading: this.state.isLoading,
               friendId: this.props.userId,
             }),
@@ -201,6 +207,18 @@ const Conversation = defineComponent<ConversationState, ConversationProps>({
         eventBus.emit("scroll:height");
       }
     );
+  },
+  async getRelation(this: IComponent<ConversationState, ConversationProps>) {
+    try {
+      const res = await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/friends/${this.props.userId}`
+      );
+      const data = await res.json();
+      if (this.getIsMounted) this.updateState({ relation: data.status });
+      return data.status;
+    } catch (err) {
+      console.log(err);
+    }
   },
   async getStatus(this: IComponent<ConversationState, ConversationProps>) {
     try {

@@ -1827,8 +1827,10 @@ export function defineComponent<State = {}, Props = {}>({
      * @param {Partial<State>} state - The partial state to update the component with.
      */
     updateState(state: Partial<State>): void {
-      this.state = { ...this.state, ...state };
-      this.patch();
+      if (this.getIsMounted) {
+        this.state = { ...this.state, ...state };
+        this.patch();
+      }
     }
 
     /**

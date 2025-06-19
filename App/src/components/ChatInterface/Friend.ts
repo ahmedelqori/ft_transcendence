@@ -1,3 +1,4 @@
+import enhancedFetch from "@/Hooks/fetch";
 import { router } from "@/router/Router.js";
 import {
   createElement,
@@ -14,28 +15,35 @@ interface FriendProps {
   setUser: (str: string) => void;
   setSelectedFriend: (str: string) => void;
   setFriendUserId: (id: number) => void;
+  relation: string;
 }
 
 interface FriendState {
   xPosition: number;
   yPosition: number;
   showContextMenu: boolean;
+  lastMsg: string;
+  time: string;
 }
 
 const Friend = defineComponent<FriendState, FriendProps>({
-  onMounted(
+  async onMounted(
     this: IComponent<FriendState> & {
       handleClickOutSide: (e: MouseEvent) => void;
+      getLastMessage: () => Promise<void>;
     }
   ) {
     this.handleClickOutSide = this.handleClickOutSide.bind(this);
     document.addEventListener("mousedown", this.handleClickOutSide);
+    await this.getLastMessage();
   },
   state() {
     return {
       xPosition: 0,
       yPosition: 0,
       showContextMenu: false,
+      lastMsg: "Send me a message",
+      time: "",
     };
   },
   render(this: IComponent<FriendState, FriendProps>) {
@@ -57,16 +65,13 @@ const Friend = defineComponent<FriendState, FriendProps>({
           "focus:border-[#828c3a]",
           "cursor-pointer",
           "relative",
+          this.props.relation === "blocked" ? "opacity-[30%]" : "none",
         ],
         on: {
-          contextmenu: (e) => {
-            e.preventDefault();
-            if (this.getIsMounted)
-              this.updateState({
-                showContextMenu: true,
-                xPosition: e.pageX,
-                yPosition: e.pageY,
-              });
+          click: () => {
+            this.props.setSelectedFriend(this.props.username);
+            this.props.setFriendUserId(this.props.id);
+            eventBus.emit("get:messages");
           },
         },
       },
@@ -75,13 +80,6 @@ const Friend = defineComponent<FriendState, FriendProps>({
           "div",
           {
             class: ["flex-row", "gap-3", "z-20", "text-xl"],
-            on: {
-              click: () => {
-                this.props.setSelectedFriend(this.props.username);
-                this.props.setFriendUserId(this.props.id);
-                eventBus.emit("get:messages");
-              },
-            },
           },
           [
             createElement("img", {
@@ -110,7 +108,7 @@ const Friend = defineComponent<FriendState, FriendProps>({
                     "max-w-xs",
                   ],
                 },
-                ["Rally your way to victory!"]
+                [this.state.lastMsg]
               ),
             ]),
           ]
@@ -119,130 +117,8 @@ const Friend = defineComponent<FriendState, FriendProps>({
           "div",
           {
             class: ["max-lg:text-sm"],
-            on: {
-              click: () => {
-                this.props.setSelectedFriend(this.props.username);
-                this.props.setFriendUserId(this.props.id);
-                eventBus.emit("get:messages");
-              },
-            },
           },
-          ["5m"]
-        ),
-        createElement(
-          "div",
-          {
-            class: [
-              this.state.showContextMenu ? "block" : "hidden",
-              "z-30",
-              "absolute",
-              "w-[170px]",
-              "bg-[var(--background-color)]",
-              "rounded-[14px]",
-              "py-4",
-              "px-5",
-              "flex",
-              "flex-col",
-              "items-start",
-              "gap-3",
-            ],
-            style: {
-              top: `${this.state.yPosition}px`,
-              left: `${this.state.xPosition}px`,
-              position: "fixed",
-            },
-          },
-          [
-            createElement(
-              "div",
-              {
-                class: [
-                  "text-[14px]",
-                  "flex",
-                  "flex-row",
-                  "gap-4",
-                  "hover:text-[var(--light-yellow)]",
-                  "w-full",
-                ],
-                on: {
-                  click: async () => {
-                    await router.navigateTo(`/profile/${this.props.username}`);
-                    eventBus.emit("change:profile");
-                    this.props.setOption("vprofile");
-                    this.props.setUser(this.props.username);
-                    if (this.getIsMounted)
-                      this.updateState({
-                        showContextMenu: false,
-                      });
-                  },
-                },
-              },
-              [
-                createElement("i", {
-                  class: ["ph", "ph-user-circle", "text-[18px]"],
-                }),
-                createElement("button", {}, ["View Profile"]),
-              ]
-            ),
-            createElement(
-              "div",
-              {
-                class: [
-                  "text-[14px]",
-                  "flex",
-                  "flex-row",
-                  "gap-4",
-                  "hover:text-[var(--light-yellow)]",
-                  "w-full",
-                ],
-                on: {
-                  click: () => {
-                    this.props.setOption("unfriend");
-                    this.props.setUser(this.props.username);
-                    if (this.getIsMounted)
-                      this.updateState({
-                        showContextMenu: false,
-                      });
-                  },
-                },
-              },
-              [
-                createElement("i", {
-                  class: ["ph", "ph-user-circle-minus", "text-[18px]"],
-                }),
-                createElement("button", {}, ["Unfriend"]),
-              ]
-            ),
-            createElement(
-              "div",
-              {
-                class: [
-                  "text-[14px]",
-                  "flex",
-                  "flex-row",
-                  "gap-4",
-                  "text-[var(--red-color)]",
-                  "w-full",
-                ],
-                on: {
-                  click: () => {
-                    this.props.setOption("block");
-                    this.props.setUser(this.props.username);
-                    if (this.getIsMounted)
-                      this.updateState({
-                        showContextMenu: false,
-                      });
-                  },
-                },
-              },
-              [
-                createElement("i", {
-                  class: ["ph", "ph-prohibit", "text-[18px]"],
-                }),
-                createElement("button", {}, ["Block User"]),
-              ]
-            ),
-          ]
+          [this.state.time]
         ),
       ]
     );
@@ -261,6 +137,42 @@ const Friend = defineComponent<FriendState, FriendProps>({
           });
       }
     }
+  },
+  async getLastMessage(
+    this: IComponent<FriendState, FriendProps> & {
+      getRelativeTime: (n: string) => string;
+    }
+  ) {
+    try {
+      const responseData = await enhancedFetch.fetch(
+        `${import.meta.env.VITE_URL_DEV}/api/chat/getlast?receiveId=${
+          this.props.id
+        }`
+      );
+      const data = await responseData.json();
+      console.log(data);
+      if (this.getIsMounted)
+        this.updateState({
+          lastMsg: data.data.content,
+          time: this.getRelativeTime(data.data.createdAt),
+        });
+    } catch (err) {}
+  },
+
+  getRelativeTime(dateString: string): string {
+    const now = new Date();
+    const past = new Date(dateString);
+    const diffMs = now.getTime() - past.getTime();
+
+    const seconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (seconds < 60) return `${seconds}s`;
+    if (minutes < 60) return `${minutes}m`;
+    if (hours < 24) return `${hours}h`;
+    return `${days}d`;
   },
 });
 

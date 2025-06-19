@@ -63,41 +63,41 @@ export async function checkUserGamePermission(gameId, userId, gameRooms) {
   }
 }
 
-// export function runHeartBeatMechanism(socket) {
-//   socket.isAlive = true;
-//   const pingInterval = setInterval(() => {
-//     if (socket.isAlive === false) {
-//       if (connections.has(socket.gameId)) {
-//         const gameConnections = connections.get(socket.gameId);
-//         if (gameConnections.get(socket.userId) === socket) {
-//           gameConnections.delete(socket.userId);
-//           fastify.log.info(`Removed dead connection for user ${socket.userId} in game ${socket.gameId}`);
-//         }
-//         if (gameConnections.size === 0) {
-//           connections.delete(socket.gameId);
-//           fastify.log.info(`Removed empty game ${socket.gameId} from connections`);
-//         }
-//       }
-//       clearInterval(pingInterval);
-//       socket.terminate();
-//       return;
-//     }
-//     socket.isAlive = false;
-//     try {
-//       socket.ping();
-//     } catch (err) {
-//       fastify.log.error(`${err.message}`);
-//     }
-//   }, 5000);
+export function runHeartBeatMechanism(socket) {
+  socket.isAlive = true;
+  const pingInterval = setInterval(() => {
+    if (socket.isAlive === false) {
+      if (connections.has(socket.gameId)) {
+        const gameConnections = connections.get(socket.gameId);
+        if (gameConnections.get(socket.userId) === socket) {
+          gameConnections.delete(socket.userId);
+          fastify.log.info(`Removed dead connection for user ${socket.userId} in game ${socket.gameId}`);
+        }
+        if (gameConnections.size === 0) {
+          connections.delete(socket.gameId);
+          fastify.log.info(`Removed empty game ${socket.gameId} from connections`);
+        }
+      }
+      clearInterval(pingInterval);
+      socket.terminate();
+      return;
+    }
+    socket.isAlive = false;
+    try {
+      socket.ping();
+    } catch (err) {
+      fastify.log.error(`${err.message}`);
+    }
+  }, 5000);
 
-//   if (!socket.pongActive) {
-//     socket.on("pong", () => {
-//       socket.isAlive = true;
-//     });
-//     socket.pongActive = true;
-//   }
-//   return pingInterval;
-// }
+  if (!socket.pongActive) {
+    socket.on("pong", () => {
+      socket.isAlive = true;
+    });
+    socket.pongActive = true;
+  }
+  return pingInterval;
+}
 
 export function sendToUser(gameId, userId, data) {
   const socket = connections.get(gameId)?.get(userId);
