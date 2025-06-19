@@ -650,11 +650,7 @@ const ProfileInterface = defineComponent<
                         "dark:[&::-webkit-scrollbar-thumb]:bg-opacity-[70%]",
                       ],
                     },
-                    [
-                      this.state.bio.length
-                        ? this.state.bio
-                        : `My Name is ${authState.getState().user?.username}`,
-                    ]
+                    [this.state.bio]
                   ),
                 ]
               ),

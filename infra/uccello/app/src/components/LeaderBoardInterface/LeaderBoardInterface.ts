@@ -115,7 +115,7 @@ const LeaderBoardInterface = defineComponent<LeaderBoardInterfaceState>({
                 this.state.allUsers.splice(index).map((user) =>
                   createElement(Card, {
                     username: user.username,
-                    index: index++,
+                    index: ++index,
                     avatar: user.avatar,
                     xp: user.xp,
                   })

@@ -2,10 +2,10 @@
 
 cd /opt
 if [ ! -e .firstbuild ]; then
-    git clone https://github.com/owasp-modsecurity/ModSecurity.git
+    git clone --depth 1 https://github.com/owasp-modsecurity/ModSecurity.git
     git clone --depth 1 https://github.com/SpiderLabs/ModSecurity-nginx.git
     # Setting Up OWASP-CRS
-    git clone https://github.com/coreruleset/coreruleset modsecurity-crs
+    git clone --depth 1 https://github.com/coreruleset/coreruleset modsecurity-crs
     mv /opt/modsecurity-crs/crs-setup.conf.example /opt/modsecurity-crs/crs-setup.conf 
     mv /opt/modsecurity-crs/rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf.example /opt/modsecurity-crs/rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf
     mv /opt/modsecurity-crs /usr/local

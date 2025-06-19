@@ -1,6 +1,5 @@
 import { authState } from "@/Hooks/Auth";
 import enhancedFetch from "@/Hooks/fetch";
-import { router } from "@/router/Router";
 import { createElement, defineComponent, IComponent } from "@/uccello/Uccello";
 function drawWinRateChart(canvasId: string, matches: any[], playerId: number) {
   const canvas: any = document.getElementById(canvasId);
@@ -38,45 +37,162 @@ function drawWinRateChart(canvasId: string, matches: any[], playerId: number) {
 
   const results = playedMatches.map((match) => {
     const isWinner = match.winnerId === playerId;
-    return isWinner ? 100 : 0;
+
+    const opponentScore =
+      playerId === match.playerOneId
+        ? match.playerTwoScore
+        : match.playerOneScore;
+    const playerScore =
+      playerId === match.playerOneId
+        ? match.playerOneScore
+        : match.playerTwoScore;
+
+    const total = playerScore + opponentScore;
+    const percentage = total === 0 ? 50 : (playerScore / total) * 100;
+
+    return {
+      value: percentage,
+      startedAt: match.startedAt ? new Date(match.startedAt) : new Date(),
+      score: `${playerScore}-${opponentScore}`,
+    };
   });
 
-  const paddingTop = 20;
-  const paddingBottom = 30;
+  const paddingTop = 30;
+  const paddingBottom = 50;
+  const paddingLeft = 60;
+  const paddingRight = 20;
   const chartHeight = containerHeight - paddingTop - paddingBottom;
-  const maxValue = 100;
-  const stepX = results.length > 1 ? containerWidth / (results.length - 1) : 0;
+  const chartWidth = containerWidth - paddingLeft - paddingRight;
 
+  const stepX = results.length > 1 ? chartWidth / (results.length - 1) : 0;
+
+  // Calculate points
+  const points = results.map((res, i) => ({
+    x: paddingLeft + i * stepX,
+    y: containerHeight - paddingBottom - (res.value / 100) * chartHeight,
+  }));
+
+  // Draw Axes
+  ctx.strokeStyle = "#878787";
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.strokeStyle = "#ddf247";
-  ctx.lineWidth = 3;
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
+  ctx.moveTo(paddingLeft, paddingTop);
+  ctx.lineTo(paddingLeft, containerHeight - paddingBottom); // Y axis
+  ctx.lineTo(containerWidth - paddingRight, containerHeight - paddingBottom); // X axis
+  ctx.stroke();
 
-  results.forEach((value, i) => {
-    const x = i * stepX;
-    const y =
-      containerHeight - paddingBottom - (value / maxValue) * chartHeight;
+  // Y-Axis Labels
+  ctx.fillStyle = "#878787";
+  ctx.font = "14px sans-serif";
+  ctx.textAlign = "right";
+  ctx.fillText("100%", paddingLeft - 10, paddingTop + 5);
+  ctx.fillText("0%", paddingLeft - 10, containerHeight - paddingBottom + 5);
 
-    if (i === 0) {
-      ctx.moveTo(x, y);
+  // X-Axis Time Label Format
+  const firstDate = results[0].startedAt;
+  const lastDate = results[results.length - 1].startedAt;
+  const diffMs = lastDate.getTime() - firstDate.getTime();
+  let timeFormat = "minute";
+
+  if (diffMs > 30 * 24 * 60 * 60 * 1000) timeFormat = "month";
+  else if (diffMs > 24 * 60 * 60 * 1000) timeFormat = "day";
+  else if (diffMs > 60 * 60 * 1000) timeFormat = "hour";
+
+  function formatTime(date: Date) {
+    if (timeFormat === "month")
+      return date.toLocaleDateString("en", { month: "short" });
+    if (timeFormat === "day")
+      return date.toLocaleDateString("en", { day: "numeric", month: "short" });
+    if (timeFormat === "hour")
+      return date.toLocaleTimeString("en", { hour: "2-digit", hour12: false });
+    return date.toLocaleTimeString("en", {
+      minute: "2-digit",
+      hour: "2-digit",
+      hour12: false,
+    });
+  }
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#878787";
+  results.forEach((res, i) => {
+    const x = paddingLeft + i * stepX;
+    ctx.fillText(
+      formatTime(res.startedAt),
+      x,
+      containerHeight - paddingBottom + 20
+    );
+  });
+
+  // Draw smooth curve that passes through all points
+  if (points.length > 1) {
+    ctx.beginPath();
+    ctx.strokeStyle = "#ddf247";
+    ctx.lineWidth = 3;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+
+    ctx.moveTo(points[0].x, points[0].y);
+
+    if (points.length === 2) {
+      // Just two points, draw a line
+      ctx.lineTo(points[1].x, points[1].y);
     } else {
-      const prevValue = results[i - 1];
-      const prevX = (i - 1) * stepX;
-      const prevY =
-        containerHeight - paddingBottom - (prevValue / maxValue) * chartHeight;
-      const midX = (prevX + x) / 2;
-      const midY = (prevY + y) / 2;
+      // Multiple points, create smooth curve
+      for (let i = 0; i < points.length - 1; i++) {
+        const current = points[i];
+        const next = points[i + 1];
 
-      ctx.quadraticCurveTo(prevX, prevY, midX, midY);
-      if (i === results.length - 1) {
-        ctx.quadraticCurveTo(midX, midY, x, y);
+        if (i === 0) {
+          // First segment
+          const afterNext = points[i + 2] || next;
+          const cp1x = current.x + (next.x - current.x) * 0.3;
+          const cp1y = current.y + (next.y - current.y) * 0.3;
+          const cp2x = next.x - (afterNext.x - current.x) * 0.2;
+          const cp2y = next.y - (afterNext.y - current.y) * 0.2;
+
+          ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, next.x, next.y);
+        } else if (i === points.length - 2) {
+          // Last segment
+          const prev = points[i - 1];
+          const cp1x = current.x + (next.x - prev.x) * 0.2;
+          const cp1y = current.y + (next.y - prev.y) * 0.2;
+          const cp2x = next.x - (next.x - current.x) * 0.3;
+          const cp2y = next.y - (next.y - current.y) * 0.3;
+
+          ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, next.x, next.y);
+        } else {
+          // Middle segments
+          const prev = points[i - 1];
+          const afterNext = points[i + 2];
+          const cp1x = current.x + (next.x - prev.x) * 0.2;
+          const cp1y = current.y + (next.y - prev.y) * 0.2;
+          const cp2x = next.x - (afterNext.x - current.x) * 0.2;
+          const cp2y = next.y - (afterNext.y - current.y) * 0.2;
+
+          ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, next.x, next.y);
+        }
       }
     }
-  });
-  ctx.stroke();
-}
 
+    ctx.stroke();
+  }
+
+  // Draw Score Points
+  results.forEach((res, i) => {
+    const x = paddingLeft + i * stepX;
+    const y = containerHeight - paddingBottom - (res.value / 100) * chartHeight;
+
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = "#ddf247";
+    ctx.fill();
+
+    ctx.font = "12px sans-serif";
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.fillText(res.score, x, y - 10);
+  });
+}
 let resizeTimeout: any;
 function handleResize(matches: any[], playerId: number) {
   clearTimeout(resizeTimeout);
@@ -156,8 +272,7 @@ const TournamentDashboard = defineComponent<ProgressChart>({
         }
       );
       const data = await response.json();
-      if (this.getIsMounted)
-      this.updateState({ matches: data.reverse() });
+      if (this.getIsMounted) this.updateState({ matches: data.reverse() });
     } catch (err) {}
   },
 });
