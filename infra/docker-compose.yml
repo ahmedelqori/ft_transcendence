@@ -1,5 +1,5 @@
 volumes:
-  # vault_database:
+  vault_database:
   temp_env:
   framework_build:
   user_managment_database:
@@ -16,22 +16,20 @@ networks:
     driver: bridge
 
 services:
-  # vault:
-  #   image: "vault:app"
-  #   container_name: vault
-  #   build: ./vault/.
-  #   hostname: vault 
-  #   env_file:
-  #     - ./.global.env
-  #   networks:
-  #     - appNet
-  #   volumes:
-  #     - vault_database:/vault/data
-  #     - temp_env:/home/vault
-  #   ports:
-  #     - "8200:8200"
-  #   cap_add:
-  #     - IPC_LOCK
+  vault:
+    container_name: vault
+    build: ./vault/.
+    env_file:
+      - ./.global.env
+    ports:
+      - "8200:8200"
+    networks:
+      - appNet
+    volumes:
+      - vault_database:/vault/data
+      - temp_env:/home/vault
+    cap_add:
+      - IPC_LOCK
     
   nginx-modsecurity:
     container_name: nginx-modsecurity
@@ -46,18 +44,20 @@ services:
     volumes:
       - profile_images:/app/profile_images
       - framework_build:/var/www/html
+    depends_on:
+      - vault
 
-  uccello:
-    build:
-      context: ./uccello
-      dockerfile: Dockerfile
-    container_name: uccello
-    env_file:
-      - ./uccello/app/.env
-    networks:
-      - appNet
-    volumes:
-      - framework_build:/app/dist
+  # uccello:
+  #   build:
+  #     context: ./uccello
+  #     dockerfile: Dockerfile
+  #   container_name: uccello
+  #   env_file:
+  #     - ./uccello/app/.env
+  #   networks:
+  #     - appNet
+  #   volumes:
+  #     - framework_build:/app/dist
 
   user_managment:
     build:
@@ -72,6 +72,8 @@ services:
       - profile_images:/app/profile_images
       - user_managment_database:/app/database
       - temp_env:/app/temp_env
+    depends_on:
+      - vault
 
   2fa:
     build:
@@ -86,6 +88,7 @@ services:
       - 2fa_database:/app/database
       - temp_env:/app/temp_env
     depends_on:
+      - vault
       - user_managment
 
   friendship:
@@ -130,6 +133,7 @@ services:
       - temp_env:/app/temp_env
     depends_on:
       - user_managment
+      - vault
 
   chatlive:
     build:

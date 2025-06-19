@@ -7,9 +7,9 @@ import knexConfig from "./knexfile.cjs"; // knex config
 import { Model } from "objection"; // ORM build on top of Knex
 import multipart from "@fastify/multipart"; // to handle file uploads
 import cors from "@fastify/cors"; // to handle CORS
-// import { loadSecrets } from './utils/vault-service.js';
+import { loadSecrets } from './utils/vault-service.js';
 
-// export const secrets = await loadSecrets();
+export const secrets = await loadSecrets();
 
 const knex = Knex(knexConfig);
 
@@ -34,14 +34,6 @@ fastify.register(cors, {
   allowedHeaders: ["Content-Type", "Authorization"],
   exposedHeaders: ["Authorization"],
 });
-
-// fastify.setErrorHandler((error, request, reply) => {
-//   reply.status(500).send({
-//     statusCode: 500,
-//     error: 'Internal Server Error',
-//     message: 'Something went wrong',
-//   });
-// });
 
 fastify.register(multipart);
 fastify.register(cookie);
