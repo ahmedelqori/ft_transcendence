@@ -12,6 +12,7 @@ interface EditAvatarState {
   icon: string;
   validAvatar: boolean;
   color: string;
+  previewUrl: any;
 }
 
 const EditAvatar = defineComponent<EditAvatarState>({
@@ -36,6 +37,7 @@ const EditAvatar = defineComponent<EditAvatarState>({
       avatarUrl: "",
       avatarFile: null,
       color: "var(--main-color)",
+      previewUrl: null,
     };
   },
   render(this: IComponent<EditAvatarState> & { updateAvatar: () => void }) {
@@ -173,12 +175,10 @@ const EditAvatar = defineComponent<EditAvatarState>({
                         typeof file.name !== "undefined" &&
                         filesize <= 10
                       ) {
-                        const previewUrl = URL.createObjectURL(file);
-
                         this.updateState({
                           icon: "ph-check",
                           avatarFile: file,
-                          avatarUrl: previewUrl,
+                          previewUrl: URL.createObjectURL(file),
                           color: "var(--light-yellow)",
                           validAvatar: true,
                         });
@@ -186,6 +186,7 @@ const EditAvatar = defineComponent<EditAvatarState>({
                         this.updateState({
                           icon: "ph-nut",
                           avatarFile: null,
+                          previewUrl: null,
                           color: "var(--red-color)",
                           validAvatar: false,
                         });
@@ -214,18 +215,15 @@ const EditAvatar = defineComponent<EditAvatarState>({
       }
       const formData = new FormData();
       formData.append("avatar", this.state.avatarFile);
-      await enhancedFetch.fetch(
+      const res = await enhancedFetch.fetch(
         `${import.meta.env.VITE_URL_DEV}/api/account/avatar/`,
         {
           method: "POST",
           body: formData,
         }
       );
-      // location.reload();
-      // const res = await enhancedFetch.fetch(
-      //   `${import.meta.env.VITE_URL_DEV}/api/account/whoami/`
-      // );
-      // const data = await res.json();
+      if (!res.ok) throw res;
+      this.updateState({ avatarUrl: this.state.previewUrl });
       eventBus.emit("load:avatar", {
         avatar: this.state.avatarUrl,
       });

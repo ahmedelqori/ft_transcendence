@@ -68,14 +68,10 @@ const Friend = defineComponent<FriendState, FriendProps>({
           this.props.relation === "blocked" ? "opacity-[30%]" : "none",
         ],
         on: {
-          contextmenu: (e) => {
-            e.preventDefault();
-            if (this.getIsMounted)
-              this.updateState({
-                showContextMenu: true,
-                xPosition: e.pageX,
-                yPosition: e.pageY,
-              });
+          click: () => {
+            this.props.setSelectedFriend(this.props.username);
+            this.props.setFriendUserId(this.props.id);
+            eventBus.emit("get:messages");
           },
         },
       },
@@ -84,13 +80,6 @@ const Friend = defineComponent<FriendState, FriendProps>({
           "div",
           {
             class: ["flex-row", "gap-3", "z-20", "text-xl"],
-            on: {
-              click: () => {
-                this.props.setSelectedFriend(this.props.username);
-                this.props.setFriendUserId(this.props.id);
-                eventBus.emit("get:messages");
-              },
-            },
           },
           [
             createElement("img", {
@@ -128,130 +117,8 @@ const Friend = defineComponent<FriendState, FriendProps>({
           "div",
           {
             class: ["max-lg:text-sm"],
-            on: {
-              click: () => {
-                this.props.setSelectedFriend(this.props.username);
-                this.props.setFriendUserId(this.props.id);
-                eventBus.emit("get:messages");
-              },
-            },
           },
           [this.state.time]
-        ),
-        createElement(
-          "div",
-          {
-            class: [
-              this.state.showContextMenu ? "block" : "hidden",
-              "z-30",
-              "absolute",
-              "w-[170px]",
-              "bg-[var(--background-color)]",
-              "rounded-[14px]",
-              "py-4",
-              "px-5",
-              "flex",
-              "flex-col",
-              "items-start",
-              "gap-3",
-            ],
-            style: {
-              top: `${this.state.yPosition}px`,
-              left: `${this.state.xPosition}px`,
-              position: "fixed",
-            },
-          },
-          [
-            createElement(
-              "div",
-              {
-                class: [
-                  "text-[14px]",
-                  "flex",
-                  "flex-row",
-                  "gap-4",
-                  "hover:text-[var(--light-yellow)]",
-                  "w-full",
-                ],
-                on: {
-                  click: async () => {
-                    await router.navigateTo(`/profile/${this.props.username}`);
-                    eventBus.emit("change:profile");
-                    this.props.setOption("vprofile");
-                    this.props.setUser(this.props.username);
-                    if (this.getIsMounted)
-                      this.updateState({
-                        showContextMenu: false,
-                      });
-                  },
-                },
-              },
-              [
-                createElement("i", {
-                  class: ["ph", "ph-user-circle", "text-[18px]"],
-                }),
-                createElement("button", {}, ["View Profile"]),
-              ]
-            ),
-            createElement(
-              "div",
-              {
-                class: [
-                  "text-[14px]",
-                  "flex",
-                  "flex-row",
-                  "gap-4",
-                  "hover:text-[var(--light-yellow)]",
-                  "w-full",
-                ],
-                on: {
-                  click: () => {
-                    this.props.setOption("unfriend");
-                    this.props.setUser(this.props.username);
-                    if (this.getIsMounted)
-                      this.updateState({
-                        showContextMenu: false,
-                      });
-                  },
-                },
-              },
-              [
-                createElement("i", {
-                  class: ["ph", "ph-user-circle-minus", "text-[18px]"],
-                }),
-                createElement("button", {}, ["Unfriend"]),
-              ]
-            ),
-            createElement(
-              "div",
-              {
-                class: [
-                  "text-[14px]",
-                  "flex",
-                  "flex-row",
-                  "gap-4",
-                  "text-[var(--red-color)]",
-                  "w-full",
-                ],
-                on: {
-                  click: () => {
-                    this.props.setOption("block");
-                    this.props.setUser(this.props.username);
-                    if (this.getIsMounted)
-                      this.updateState({
-                        showContextMenu: false,
-                      });
-                  },
-                },
-              },
-              [
-                createElement("i", {
-                  class: ["ph", "ph-prohibit", "text-[18px]"],
-                }),
-                createElement("button", {}, ["Block User"]),
-              ]
-            ),
-          ]
         ),
       ]
     );
