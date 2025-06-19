@@ -229,7 +229,10 @@ const GamesDashboard = defineComponent<GamesDashboardState>({
         `${import.meta.env.VITE_URL_DEV}/api/account/${id}`
       );
       const data = await res.json();
-      return { avatar: data.avatar_url, username: data.username };
+      return {
+        avatar: data.avatar_url,
+        username: data.username.substring(0, 8),
+      };
     } catch (err) {
       console.log(err);
       return { avatar: "", username: "" };

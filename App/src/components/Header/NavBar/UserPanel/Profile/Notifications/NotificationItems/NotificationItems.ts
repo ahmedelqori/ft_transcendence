@@ -65,7 +65,7 @@ const NotificationItems = defineComponent<NotificationItemsState>({
             switch (info.type) {
               case "friendRequest":
                 return createElement(FriendRequestNotif, {
-                  username: info.Sender.username,
+                  username: info.Sender.username.substring(0, 10),
                   id: info.Sender.id,
                   avatar: info.Sender.avatar_url,
                   notifId: info.id,
